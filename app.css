@@ -472,6 +472,9 @@
   .flex-grow {
     flex-grow: 1;
   }
+  .grow {
+    flex-grow: 1;
+  }
   .border-collapse {
     border-collapse: collapse;
   }
@@ -597,8 +600,14 @@
     border-top-style: var(--tw-border-style);
     border-top-width: 4px;
   }
+  .border-\[\#1A5EDB\] {
+    border-color: #1A5EDB;
+  }
   .border-\[\#2D7DFF\] {
     border-color: #2D7DFF;
+  }
+  .border-\[\#4493f8\] {
+    border-color: #4493f8;
   }
   .border-blue-500 {
     border-color: var(--color-blue-500);
@@ -612,8 +621,14 @@
   .border-gray-300 {
     border-color: var(--color-gray-300);
   }
+  .bg-\[\#1A5EDB\] {
+    background-color: #1A5EDB;
+  }
   .bg-\[\#2D7DFF\] {
     background-color: #2D7DFF;
+  }
+  .bg-\[\#4493f8\] {
+    background-color: #4493f8;
   }
   .bg-\[\#CFE6FF\] {
     background-color: #CFE6FF;
@@ -740,11 +755,20 @@
     --tw-font-weight: var(--font-weight-semibold);
     font-weight: var(--font-weight-semibold);
   }
+  .text-\[\#000000\] {
+    color: #000000;
+  }
+  .text-\[\#1A5EDB\] {
+    color: #1A5EDB;
+  }
   .text-\[\#2D7DFF\] {
     color: #2D7DFF;
   }
   .text-\[\#0162fd\] {
     color: #0162fd;
+  }
+  .text-\[\#4493f8\] {
+    color: #4493f8;
   }
   .text-black {
     color: var(--color-black);
@@ -816,6 +840,9 @@
   .outline-\[\#2d7dFF\] {
     outline-color: #2d7dFF;
   }
+  .outline-\[\#4493f8\] {
+    outline-color: #4493f8;
+  }
   .outline-blue-500 {
     outline-color: var(--color-blue-500);
   }
@@ -849,6 +876,27 @@
       }
     }
   }
+  .hover\:bg-\[\#1149AE\] {
+    &:hover {
+      @media (hover: hover) {
+        background-color: #1149AE;
+      }
+    }
+  }
+  .hover\:bg-\[\#4493f8\] {
+    &:hover {
+      @media (hover: hover) {
+        background-color: #4493f8;
+      }
+    }
+  }
+  .hover\:bg-\[\#ffffff\] {
+    &:hover {
+      @media (hover: hover) {
+        background-color: #ffffff;
+      }
+    }
+  }
   .hover\:bg-blue-100 {
     &:hover {
       @media (hover: hover) {
@@ -870,10 +918,31 @@
       }
     }
   }
+  .hover\:text-\[\#1A5EDB\] {
+    &:hover {
+      @media (hover: hover) {
+        color: #1A5EDB;
+      }
+    }
+  }
   .hover\:text-\[\#2D7DFF\] {
     &:hover {
       @media (hover: hover) {
         color: #2D7DFF;
+      }
+    }
+  }
+  .hover\:text-\[\#1149AE\] {
+    &:hover {
+      @media (hover: hover) {
+        color: #1149AE;
+      }
+    }
+  }
+  .hover\:text-\[\#4493f8\] {
+    &:hover {
+      @media (hover: hover) {
+        color: #4493f8;
       }
     }
   }
