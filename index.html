@@ -5,25 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./app.css">
     <link rel="icon" href="./Images/Logo.png" type="image/png" sizes="180x180">
-
     <title>BharatSuraksha</title>
 </head>
 
 <body class="bg-white text-gray-900">
 
+    <!-- SKIP LINK FOR ACCESSIBILITY -->
+    <a href="#main-content"
+       class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-white focus:text-black focus:px-4 focus:py-2 focus:rounded">
+        Skip to main content
+    </a>
+
     <!-- NAVBAR -->
     <header class="w-full bg-white shadow-md">
-        <nav class="max-w-7xl mx-auto flex items-center justify-between py-4 px-6">
+        <nav class="max-w-7xl mx-auto flex items-center justify-between py-4 px-6" aria-label="Primary navigation">
 
-            <!-- Logo + Name -->
-            <div class="flex items-center gap-3 relative left-[-150px]">
-                <img src="./Images/Logo_without bg.png" alt="Logo" class="h-20 w-auto">
+            <!-- LOGO + NAME -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 left-0">
+                <img src="./Images/Logo_without bg.png" alt="Bharat Suraksha logo"class="h-20 w-auto sm:h-20 sm:w-auto">
                 <span class="text-2xl font-bold text-[#2D7DFF] leading-tight">
                     Bharat<br>Suraksha
                 </span>
             </div>
 
-            <!-- NAV LINKS -->
+            <!-- NAV LINKS (Desktop Only) -->
             <div class="hidden md:flex gap-8 text-lg font-medium">
                 <a href="#" class="hover:text-[#2D7DFF]">Home</a>
                 <a href="#" class="hover:text-[#2D7DFF]">Plans</a>
@@ -32,22 +37,54 @@
                 <a href="#" class="hover:text-[#2D7DFF]">Contact</a>
             </div>
 
-            <!-- BUTTONS -->
-            <div class="flex gap-4">
-                <button class="px-5 py-2 border outline-2 outline-[#2d7dFF] border-[#2D7DFF] rounded-lg hover:bg-[#2D7DFF] hover:text-white transition">
+            <!-- BUTTONS (Desktop Only) -->
+            <div class="hidden md:flex gap-4">
+                <button class="px-5 py-2 border border-[#2D7DFF] rounded-lg hover:bg-[#2D7DFF] hover:text-white transition">
                     Login
                 </button>
-                <button class="px-5 py-2 bg-[#2D7DFF]  text-white rounded-lg hover:bg-[#1A63D6] transition">
+                <button class="px-5 py-2 bg-[#2D7DFF] text-white rounded-lg hover:bg-[#1A63D6] transition">
                     Sign Up
                 </button>
             </div>
 
+            <!-- MOBILE MENU BUTTON -->
+            <button id="menuBtn"
+                    title="Open navigation menu"
+                    class="md:hidden flex flex-col gap-1"
+                    aria-label="Toggle navigation menu"
+                    aria-controls="mobileMenu"
+                    aria-expanded="false">
+                <span class="w-8 h-1 bg-[#2D7DFF] rounded"></span>
+                <span class="w-8 h-1 bg-[#2D7DFF] rounded"></span>
+                <span class="w-8 h-1 bg-[#2D7DFF] rounded"></span>
+            </button>
         </nav>
+
+        <!-- MOBILE MENU -->
+        <div id="mobileMenu"
+             class="hidden md:hidden bg-white shadow-md px-6 py-5 space-y-4 text-lg font-medium">
+            <a href="#" class="block hover:text-[#2D7DFF]">Home</a>
+            <a href="#" class="block hover:text-[#2D7DFF]">Plans</a>
+            <a href="#" class="block hover:text-[#2D7DFF]">Claim</a>
+            <a href="#" class="block hover:text-[#2D7DFF]">About</a>
+            <a href="#" class="block hover:text-[#2D7DFF]">Contact</a>
+
+            <hr class="border-gray-300">
+
+            <button class="w-full py-2 border border-[#2D7DFF] rounded-lg hover:bg-[#2D7DFF] hover:text-white transition">
+                Login
+            </button>
+            <button class="w-full py-2 bg-[#2D7DFF] text-white rounded-lg hover:bg-[#1A63D6] transition">
+                Sign Up
+            </button>
+        </div>
     </header>
 
+    <!-- MAIN CONTENT -->
+    <main id="main-content">
 
-    <!-- HERO SECTION -->
-         <section class="bg-blue-50 py-16">
+        <!-- HERO SECTION -->
+        <section class="bg-blue-50 py-16">
             <div class="max-w-7xl mx-auto grid md:grid-cols-2 items-center px-6 gap-10">
 
                 <div>
@@ -58,7 +95,7 @@
                         Protect your loved ones with our easy claim process and wide plan coverage
                     </p>
 
-                    <div class="flex gap-5 mt-6">
+                    <div class="flex flex-wrap gap-5 mt-6">
                         <button class="px-6 py-3 bg-[#2D7DFF] text-white rounded-lg text-lg hover:bg-[#1A63D6] transition">
                             Explore Plans
                         </button>
@@ -69,12 +106,13 @@
                 </div>
 
                 <div class="flex justify-center">
-                    <img src="./Images/HERO_SECTION/shield.png" alt="shield image" class="w-120">
+                    <img src="./Images/HERO_SECTION/shield.png"
+                         alt="Illustration of shield representing health insurance protection"
+                         class="w-72 md:w-80">
                 </div>
 
             </div>
         </section>
-
 
         <!-- TRUSTED STATS -->
         <section class="max-w-7xl mx-auto py-12 px-6 text-center">
@@ -83,318 +121,316 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-10">
 
                 <div class="flex flex-col items-center text-center">
-                    <img src="./Images/Trusted/star.png" width="90" alt="">
+                    <img src="./Images/Trusted/star.png" width="90" alt="" aria-hidden="true">
                     <p class="text-4xl font-bold text-[#2D7DFF]">98.7%</p>
                     <p class="text-gray-600 mt-2">Claim Settlement Ratio</p>
                 </div>
 
-            <div class="flex flex-col items-center text-center">
-                <img src="./Images/Trusted/shield.png" width="90" alt="">
-                <p class="text-4xl font-bold text-[#2D7DFF] mt-2">4.9/5</p>
-                <p class="text-gray-600 mt-1">10,000+ Customer Reviews</p>
+                <div class="flex flex-col items-center text-center">
+                    <img src="./Images/Trusted/shield.png" width="90" alt="" aria-hidden="true">
+                    <p class="text-4xl font-bold text-[#2D7DFF] mt-2">4.9/5</p>
+                    <p class="text-gray-600 mt-1">10,000+ Customer Reviews</p>
                 </div>
 
-
                 <div class="flex flex-col items-center text-center">
-                    <img src="./Images/Trusted/clock.png" width="60" alt="">
+                    <img src="./Images/Trusted/clock.png" width="60" alt="" aria-hidden="true">
                     <p class="text-4xl font-bold text-[#2D7DFF]">6–12 hrs</p>
                     <p class="text-gray-600 mt-2">Fast Claim Approval</p>
                 </div>
 
                 <div class="flex flex-col items-center text-center">
-                    <img src="./Images/Trusted/hospital.png" width="60" alt="">
+                    <img src="./Images/Trusted/hospital.png" width="60" alt="" aria-hidden="true">
                     <p class="text-4xl font-bold text-[#2D7DFF]">13,000+</p>
                     <p class="text-gray-600 mt-2">Network Hospitals</p>
                 </div>
 
             </div>
         </section>
-
-
+        <hr class="outline-2 border-blue-500 outline-blue-500">
         <!-- RECOMMENDED PLANS -->
-            <section class="max-w-7xl mx-auto py-16 px-6">
+        <section class="max-w-7xl mx-auto py-16 px-6">
+            <h2 class="text-3xl font-bold text-center">Recommended Insurance Plans</h2>
+            <p class="text-center text-gray-500 mt-2">
+                Choose From Our Carefully Designed Plans That Suit Different Needs And Budgets
+            </p>
 
-        <h2 class="text-3xl font-bold text-center">Recommended Insurance Plans</h2>
-        <p class="text-center text-gray-500 mt-2">
-            Choose From Our Carefully Designed Plans That Suit Different Needs And Budgets
-        </p>
+            <div class="grid md:grid-cols-4 gap-8 mt-12">
 
-        <div class="grid md:grid-cols-4 gap-8 mt-12">
+                <!-- Basic Care Plan -->
+                <article class="border-2 border-[#2D7DFF] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col"
+                         aria-label="Basic Care Plan">
+                    <!-- Fixed Height Image Container -->
+                    <div class="h-24 flex items-center justify-center mb-4">
+                        <img src="./Images/RECOMMENDED PLANS/basic.png" class="w-14" alt="">
+                    </div>
 
-            <!-- Basic Care Plan -->
-            <div class="border-2 border-[#2D7DFF] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
+                    <!-- Content -->
+                    <div class="flex flex-col flex-grow">
+                        <h3 class="text-xl font-bold text-center">Basic Care Plan</h3>
+                        <p class="text-[#2D7DFF] text-center font-semibold mt-1">Starts from ₹3 Lakhs</p>
 
-                <!-- Fixed Height Image Container -->
-                <div class="h-24 flex items-center justify-center mb-4">
-                    <img src="./Images/RECOMMENDED PLANS/basic.png" class="w-14" alt="">
-                </div>
+                        <ul class="mt-4 text-gray-700 space-y-2">
+                            <li>✔ Starting at  ₹3 Lakhs</li>
+                            <li>✔ Room rent: Single Private AC</li>
+                            <li>✔ Cashless hospitals: 13,000+</li>
+                            <li>✔ Pre & post hospitalization covered</li>
+                            <li>✔ Daycare procedures covered</li>
+                        </ul>
+                    </div>
 
-                <!-- Content (flex-grow keeps button aligned) -->
-                <div class="flex flex-col flex-grow">
-                    <h3 class="text-xl font-bold text-center">Basic Care Plan</h3>
-                    <p class="text-[#2D7DFF] text-center font-semibold mt-1">₹3 Lakhs</p>
+                    <button class="mt-6 w-full py-2 bg-[#2D7DFF] text-white rounded-lg hover:bg-[#1A63D6] transition">
+                        View Details
+                    </button>
+                </article>
 
-                    <ul class="mt-4 text-gray-700 space-y-2">
-                        <li>✔ Coverage up to ₹3 Lakhs</li>
-                        <li>✔ Room rent: Single Private AC</li>
-                        <li>✔ Cashless hospitals: 13,000+</li>
-                        <li>✔ Pre & post hospitalization covered</li>
-                        <li>✔ Daycare procedures covered</li>
+                <!-- Family Shield Plan -->
+                <article class="border-2 border-[#2D7DFF] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col"
+                         aria-label="Family Shield Plan">
+                    <div class="h-24 flex items-center justify-center mb-4">
+                        <img src="./Images/RECOMMENDED PLANS/family_1.png" class="w-16" alt="">
+                    </div>
+
+                    <div class="flex flex-col flex-grow">
+                        <h3 class="text-xl font-bold text-center">Family Shield Plan</h3>
+                        <p class="text-[#2D7DFF] text-center font-semibold mt-1">Starts from ₹10 Lakhs</p>
+
+                        <ul class="mt-4 text-gray-700 space-y-2">
+                            <li>✔ Coverage up to ₹10 Lakhs</li>
+                            <li>✔ Covers spouse + children</li>
+                            <li>✔ Free annual health checkup</li>
+                            <li>✔ No claim bonus benefits</li>
+                            <li>✔ Maternity coverage included</li>
+                        </ul>
+                    </div>
+
+                    <button class="mt-6 w-full py-2 bg-[#2D7DFF] text-white rounded-lg hover:bg-[#1A63D6] transition">
+                        View Details
+                    </button>
+                </article>
+
+                <!-- Senior Protect Plan -->
+                <article class="border-2 border-[#2D7DFF] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col"
+                         aria-label="Senior Protect Plan">
+                    <div class="h-24 flex items-center justify-center mb-4">
+                        <img src="./Images/RECOMMENDED PLANS/Senior .png" class="w-24" alt="">
+                    </div>
+
+                    <div class="flex flex-col flex-grow">
+                        <h3 class="text-xl font-bold text-center">Senior Protect Plan</h3>
+                        <p class="text-[#2D7DFF] text-center font-semibold mt-1">Starts from 5L Lakhs</p>
+
+                        <ul class="mt-4 text-gray-700 space-y-2">
+                            <li>✔ Special for 60+ years</li>
+                            <li>✔ Reduced waiting period</li>
+                            <li>✔ Tele-OPD Consultation</li>
+                            <li>✔ Pre-existing diseases covered from 31st Day</li>
+                            <li>✔ No Sub-Limits</li>
+                        </ul>
+                    </div>
+
+                    <button class="mt-6 w-full py-2 bg-[#2D7DFF] text-white rounded-lg hover:bg-[#1A63D6] transition">
+                        View Details
+                    </button>
+                </article>
+
+                <!-- Universal Coverage -->
+                <article class="border-2 border-[#2D7DFF] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col"
+                         aria-label="Universal Coverage Plan">
+                    <div class="h-24 flex items-center justify-center mb-4">
+                        <img src="./Images/RECOMMENDED PLANS/globe.png" class="w-14" alt="">
+                    </div>
+
+                    <div class="flex flex-col flex-grow">
+                        <h3 class="text-xl font-bold text-center">Universal Coverage</h3>
+                        <p class="text-[#2D7DFF] text-center font-semibold mt-1">Up to ₹25L – 99Cr</p>
+
+                        <ul class="mt-4 text-gray-700 space-y-2">
+                            <li>✔ ₹25 Lakhs – 99Cr Coverage</li>
+                            <li>✔ Any room category</li>
+                            <li>✔ Inbuilt unlimited care</li>
+                            <li>✔ Hospital Daily Cash Benefit</li>
+                            <li>✔ Worldwide validity</li>
+                        </ul>
+                    </div>
+
+                    <button class="mt-6 w-full py-2 bg-[#2D7DFF] text-white rounded-lg hover:bg-[#1A63D6] transition">
+                        View Details
+                    </button>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- CUSTOMIZATION SECTION -->
+        <section class="bg-[#CFE6FF] py-16 border-t-2 border-[#2D7DFF]">
+            <div class="max-w-7xl mx-auto grid md:grid-cols-2 items-center px-6 gap-12">
+
+                <!-- LEFT CONTENT -->
+                <div>
+                    <h2 class="text-4xl font-bold text-black">Customize Your Health Insurance Plan</h2>
+
+                    <p class="text-gray-700 mt-3 leading-relaxed">
+                        Create a policy that fits your needs. Choose your base plan,
+                        add-ons, riders, and adjust your premium.
+                    </p>
+
+                    <p class="font-semibold text-xl mt-8 mb-4">Customize with:</p>
+
+                    <ul class="space-y-6 text-lg text-gray-800">
+
+                        <li class="flex items-center gap-3 ml-5">
+                            <img src="./Images/CUSTOMIZATION SECTION/room.png" alt="" class="w-8">
+                            Room Rent Options
+                        </li>
+
+                        <li class="flex items-center gap-3 ml-5">
+                            <img src="./Images/CUSTOMIZATION SECTION/maternity.png" alt="" class="w-8">
+                            Maternity & Newborn Add-ons
+                        </li>
+
+                        <li class="flex items-center gap-3 ml-5">
+                            <img src="./Images/CUSTOMIZATION SECTION/cash.png" alt="" class="w-8">
+                            Daily Hospital Cash
+                        </li>
+
+                        <li class="flex items-center gap-3 ml-5">
+                            <img src="./Images/CUSTOMIZATION SECTION/care.png" alt="" class="w-8">
+                            Unlimited Care
+                        </li>
+
+                        <li class="flex items-center gap-3 ml-5">
+                            <img src="./Images/RECOMMENDED PLANS/globe.png" alt="" class="w-8">
+                            Global Cover
+                        </li>
+
                     </ul>
                 </div>
 
-                <!-- Aligned Button -->
-                <button class="mt-6 w-full py-2 bg-[#2D7DFF] text-white rounded-lg hover:bg-[#1A63D6] transition">
-                    View Details
-                </button>
-            </div>
-
-            <!-- Family Shield Plan -->
-            <div class="border-2 border-[#2D7DFF] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
-
-                <div class="h-24 flex items-center justify-center mb-4">
-                    <img src="./Images/RECOMMENDED PLANS/family_1.png" class="w-15" alt="">
+                <!-- RIGHT IMAGE CARD -->
+                <div class="flex justify-center">
+                    <div class="bg-white rounded-3xl shadow-lg p-8">
+                        <img src="./Images/CUSTOMIZATION SECTION/CUSTOMIZATION SECTION.png"
+                             alt="Illustration of customizing health insurance plan"
+                             class="w-80">
+                    </div>
                 </div>
 
-                <div class="flex flex-col flex-grow">
-                    <h3 class="text-xl font-bold text-center">Family Shield Plan</h3>
-                    <p class="text-[#2D7DFF] text-center font-semibold mt-1">₹10 Lakhs</p>
+            </div>
+        </section>
 
-                    <ul class="mt-4 text-gray-700 space-y-2">
-                        <li>✔ Coverage up to ₹10 Lakhs</li>
-                        <li>✔ Covers spouse + children</li>
-                        <li>✔ Free annual health checkup</li>
-                        <li>✔ No claim bonus benefits</li>
-                        <li>✔ Maternity coverage included</li>
-                    </ul>
+        <!-- BENEFITS SECTION -->
+        <section class="max-w-7xl mx-auto py-16 px-6">
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+
+                <div>
+                    <div class="w-20 h-20 bg-[#2D7DFF] rounded-full flex items-center justify-center mx-auto mb-4">
+                        <img src="./Images/BENEFITS SECTION/mark.png" class="w-10" alt="" aria-hidden="true">
+                    </div>
+                    <p class="text-gray-700 text-sm leading-tight">
+                        Hassle-free cashless <br> claims at all our <br> network hospitals
+                    </p>
                 </div>
 
-                <button class="mt-6 w-full py-2 bg-[#2D7DFF] text-white rounded-lg hover:bg-[#1A63D6] transition">
-                    View Details
-                </button>
-            </div>
-
-            <!-- Senior Protect Plan -->
-            <div class="border-2 border-[#2D7DFF] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
-
-                <div class="h-24 flex items-center justify-center mb-4">
-                    <img src="./Images/RECOMMENDED PLANS/Senior .png" class="w-25" alt="">
+                <div>
+                    <div class="flex items-center justify-center mx-auto mb-4">
+                        <img src="./Images/BENEFITS SECTION/comment.png" class="w-20" alt="" aria-hidden="true">
+                    </div>
+                    <p class="text-gray-700 text-sm leading-tight">
+                        Real-time updates on <br> your claim status and <br> policy details
+                    </p>
                 </div>
 
-                <div class="flex flex-col flex-grow">
-                    <h3 class="text-xl font-bold text-center">Senior Protect Plan</h3>
-                    <p class="text-[#2D7DFF] text-center font-semibold mt-1">From 5L Lakhs</p>
-
-                    <ul class="mt-4 text-gray-700 space-y-2">
-                        <li>✔ Special for 60+ years</li>
-                        <li>✔ Reduced waiting period</li>
-                        <li>✔ Tele-OPD Consultation</li>
-                        <li>✔ Pre-existing diseases covered from 31st Day</li>
-                        <li>✔ No Sub-Limits</li>
-                    </ul>
+                <div>
+                    <div class="flex items-center justify-center mx-auto mb-4">
+                        <img src="./Images/BENEFITS SECTION/team.png" class="w-20" alt="" aria-hidden="true">
+                    </div>
+                    <p class="text-gray-700 text-sm leading-tight">
+                        24/7 support team ready <br> to help you with any <br> queries
+                    </p>
                 </div>
 
-                <button class="mt-6 w-full py-2 bg-[#2D7DFF] text-white rounded-lg hover:bg-[#1A63D6] transition">
-                    View Details
-                </button>
-            </div>
-
-            <!-- Universal Coverage -->
-            <div class="border-2 border-[#2D7DFF] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
-
-                <div class="h-24 flex items-center justify-center mb-4">
-                    <img src="./Images/RECOMMENDED PLANS/globe.png" class="w-14" alt="">
+                <div>
+                    <div class="flex items-center justify-center mx-auto mb-4">
+                        <img src="./Images/BENEFITS SECTION/card.png" class="w-20" alt="" aria-hidden="true">
+                    </div>
+                    <p class="text-gray-700 text-sm leading-tight">
+                        Best prices in the <br> market with flexible <br> payment options
+                    </p>
                 </div>
 
-                <div class="flex flex-col flex-grow">
-                    <h3 class="text-xl font-bold text-center">Universal Coverage</h3>
-                    <p class="text-[#2D7DFF] text-center font-semibold mt-1">₹25L – 99Cr</p>
-
-                    <ul class="mt-4 text-gray-700 space-y-2">
-                        <li>✔ ₹25 Lakhs – 99Cr Coverage</li>
-                        <li>✔ Any room category</li>
-                        <li>✔ Inbuilt unlimited care</li>
-                        <li>✔ Hospital Daily Cash Benefit</li>
-                        <li>✔ Worldwide validity</li>
-                    </ul>
-                </div>
-
-                <button class="mt-6 w-full py-2 bg-[#2D7DFF] text-white rounded-lg hover:bg-[#1A63D6] transition">
-                    View Details
-                </button>
-                </div>
             </div>
-    </section>
+        </section>
 
-    <!-- CUSTOMIZATION SECTION -->
-<section class="bg-[#CFE6FF] py-16 border-t-2 border-[#2D7DFF]">
-    <div class="max-w-7xl mx-auto grid md:grid-cols-2 items-center px-6 gap-12">
-
-        <!-- LEFT CONTENT -->
-        <div>
-            <h2 class="text-4xl font-bold text-black">Customize Your Health Insurance Plan</h2>
-
-            <p class="text-gray-700 mt-3 leading-relaxed">
-                Create a policy that fits your needs. Choose your base plan,
-                add-ons, riders, and adjust your premium.
-            </p>
-
-            <p class="font-semibold text-xl mt-8 mb-4">Customize with:</p>
-
-            <ul class="space-y-6 text-lg text-gray-800">
-
-                <li class="flex items-center gap-3">
-                    <img src="./Images/CUSTOMIZATION SECTION/room.png" alt="" class="w-8">
-                    Room Rent Options
-                </li>
-
-                <li class="flex items-center gap-3">
-                    <img src="./Images/CUSTOMIZATION SECTION/maternity.png" alt="" class="w-8">
-                    Maternity & Newborn Add-ons
-                </li>
-
-                <li class="flex items-center gap-3">
-                    <img src="./Images/CUSTOMIZATION SECTION/cash.png" alt="" class="w-8">
-                    Daily Hospital Cash
-                </li>
-
-                <li class="flex items-center gap-3">
-                    <img src="./Images/CUSTOMIZATION SECTION/care.png" alt="" class="w-8">
-                    Unlimited Care
-                </li>
-
-                <li class="flex items-center gap-3">
-                    <img src="./Images/RECOMMENDED PLANS/globe.png" alt="" class="w-8">
-                    Global Cover
-                </li>
-
-            </ul>
-        </div>
-
-        <!-- RIGHT IMAGE CARD -->
-        <div class="flex justify-center">
-            <div class="bg-white rounded-3xl shadow-lg p-8">
-                <img src="./Images/CUSTOMIZATION SECTION/CUSTOMIZATION SECTION.png" alt="Customize Profile" class="w-80">
-            </div>
-        </div>
-
-    </div>
-</section>
-
-    <!-- BENEFITS SECTION -->
-<section class="max-w-7xl mx-auto py-16 px-6">
-
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
-
-  
-        <div>
-            <div class="w-20 h-20 bg-[#2D7DFF] rounded-full flex items-center justify-center mx-auto mb-4">
-                <img src="./Images//BENEFITS SECTION/mark.png" class="w-10" alt="">
-            </div>
-            <p class="text-gray-700 text-sm leading-tight">
-                Hassle-free cashless <br> claims at all our <br> network hospitals
-            </p>
-        </div>
-
-
-        <div>
-            <div class=" flex items-center justify-center mx-auto mb-4">
-                <img src="./Images//BENEFITS SECTION/comment.png" class="w-20" alt="">
-            </div>
-            <p class="text-gray-700 text-sm leading-tight">
-                Real-time updates on <br> your claim status and <br> policy details
-            </p>
-        </div>
-
-  
-        <div>
-            <div class="flex items-center justify-center mx-auto mb-4">
-                <img src="./Images//BENEFITS SECTION/team.png" class="w-20" alt="">
-            </div>
-            <p class="text-gray-700 text-sm leading-tight">
-                24/7 support team ready <br> to help you with any <br> queries
-            </p>
-        </div>
-
-
-        <div>
-            <div class=" flex items-center justify-center mx-auto mb-4">
-                <img src="./Images//BENEFITS SECTION/card.png" class="w-20" alt="">
-            </div>
-            <p class="text-gray-700 text-sm leading-tight">
-                Best prices in the <br> market with flexible <br> payment options
-            </p>
-        </div>
-        </div>
-    </section>
+    </main>
 
     <!-- FOOTER -->
-    <footer class="bg-black text-white py-12 mt-10 border-t-4 ">
-    <div class="max-w-7xl mx-auto grid md:grid-cols-4 px-6 gap-12">
-        <div class="flex flex-col items-start -ml-20">
-            <div class="flex items-center gap-0 -mt-10 -ml-10 ">
-                <img src="./Images/Logo_without bg.png" class="w-42 h-auto " alt="Logo">
-                <h2 class="text-2xl font-bold leading-tight">Bharat <br>Suraksha</h2>
-            </div>
+    <footer class="bg-black text-white py-12 mt-10 border-t-4 border-[#2D7DFF]">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 px-6 gap-12">
 
-            <!-- QUOTE BELOW -->
-            <div>
-                <p class="text-gray-400 text-sm leading-relaxed">
+            <!-- LOGO + NAME + QUOTE -->
+            <div class="flex flex-col items-start">
+                <div class="flex items-center gap-4">
+                    <img src="./Images/Logo_without bg.png" class="w-28 sm:w-32 h-auto" alt="Bharat Suraksha logo">
+                    <h2 class="text-2xl font-bold leading-tight">
+                        Bharat <br> Suraksha
+                    </h2>
+                </div>
+
+                <p class="text-gray-400 text-sm leading-relaxed mt-4">
                     Your trusted partner for comprehensive health 
                     insurance solutions. Protecting what matters most.
                 </p>
             </div>
-        </div>
 
-        <!-- QUICK LINKS -->
-        <div>
-            <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
-            <ul class="space-y-2 text-gray-300 text-sm">
-                <li><a href="#" class="hover:text-[#2D7DFF]">Plans</a></li>
-                <li><a href="#" class="hover:text-[#2D7DFF]">Claims</a></li>
-                <li><a href="#" class="hover:text-[#2D7DFF]">About Us</a></li>
-                <li><a href="#" class="hover:text-[#2D7DFF]">FAQs</a></li>
-            </ul>
-        </div>
+            <!-- QUICK LINKS -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2 text-gray-300 text-sm">
+                    <li><a href="#" class="hover:text-[#2D7DFF]">Plans</a></li>
+                    <li><a href="#" class="hover:text-[#2D7DFF]">Claims</a></li>
+                    <li><a href="#" class="hover:text-[#2D7DFF]">About Us</a></li>
+                    <li><a href="#" class="hover:text-[#2D7DFF]">FAQs</a></li>
+                </ul>
+            </div>
 
-        <!-- CONTACT -->
-        <div>
-            <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
+            <!-- CONTACT -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
 
-            <!-- Phone -->
-            <a href="tel:9063807489" class="flex items-center gap-3 mb-3 hover:text-[#2D7DFF] transition">
-                <img src="./Images/CONTACT/phone.png" class="w-6" alt="Phone Icon">
-                <span class="text-gray-300 text-sm hover:text-[#2D7DFF]">9063807489</span>
-            </a>
-
-            <!-- Email -->
-            <a href="mailto:mlmmanikanta@outlook.com" class="flex items-center gap-3 hover:text-[#2D7DFF] transition">
-                <img src="./Images/CONTACT/mail.png" class="w-7" alt="Mail Icon">
-                <span class="text-gray-300 text-sm hover:text-[#2D7DFF]">mlmmanikanta@outlook.com</span>
-            </a>
-        </div>
-
-        <!-- SOCIAL -->
-        <div>
-            <h3 class="text-lg font-semibold mb-4">Follow Us</h3>
-
-            <div class="flex items-center gap-4">
-                <a href="#">
-                    <img src="./Images/Footer/instagram.png" class="w-10" alt="Instagram">
+                <a href="tel:9063807489" class="flex items-center gap-3 mb-3 hover:text-[#2D7DFF] transition">
+                    <img src="./Images/CONTACT/phone.png" class="w-6" alt="Phone icon">
+                    <span class="text-gray-300 text-sm">9063807489</span>
                 </a>
-                <a href="#">
-                    <img src="./Images/Footer/whatapp.png" class="w-10" alt="WhatsApp">
+
+                <a href="mailto:mlmmanikanta@outlook.com"
+                   class="flex items-center gap-3 hover:text-[#2D7DFF] transition">
+                    <img src="./Images/CONTACT/mail.png" class="w-7" alt="Mail icon">
+                    <span class="text-gray-300 text-sm">mlmmanikanta@outlook.com</span>
                 </a>
             </div>
+
+            <!-- SOCIAL -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Follow Us</h3>
+
+                <div class="flex items-center gap-4">
+                    <a href="#" aria-label="Visit our Instagram">
+                        <img src="./Images/Footer/instagram.png" class="w-10" alt="Instagram">
+                    </a>
+                    <a href="#" aria-label="Chat with us on WhatsApp">
+                        <img src="./Images/Footer/whatapp.png" class="w-10" alt="WhatsApp">
+                    </a>
+                </div>
+            </div>
+
         </div>
 
-    </div>
+        <p class="text-center text-gray-500 mt-12 text-sm">
+            © 2025 Bharat Suraksha. All Rights Reserved.
+        </p>
+    </footer>
 
-    <!-- COPYRIGHT -->
-    <p class="text-center text-gray-500 mt-12 text-sm">
-        © 2025 Bharat Suraksha. All Rights Reserved.
-    </p>
-</footer>
-
+    <script src="./app.js"></script>
 </body>
 </html>
