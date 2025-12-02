@@ -1261,3 +1261,19 @@
     }
   }
 }
+
+.BestSeller {
+  position: absolute;
+  top: -12px;
+  left: 150px;
+  
+  background-color: #0162fd;
+  color: white;
+  
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  
+  border-radius: 6px;
+  white-space: nowrap;
+}
