@@ -834,6 +834,9 @@
     outline-style: var(--tw-outline-style);
     outline-width: 2px;
   }
+  .outline-\[\#1A5EDB\] {
+    outline-color: #1A5EDB;
+  }
   .outline-\[\#2D7DFF\] {
     outline-color: #2D7DFF;
   }
