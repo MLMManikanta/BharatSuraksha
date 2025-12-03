@@ -11,8 +11,7 @@
 <body class="bg-white text-gray-900">
 
     <!-- SKIP LINK FOR ACCESSIBILITY -->
-    <a href="#main-content"
-       class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-white focus:text-black focus:px-4 focus:py-2 focus:rounded">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-white focus:text-black focus:px-4 focus:py-2 focus:rounded">
         Skip to main content
     </a>
 
@@ -39,9 +38,9 @@
 
             <!-- BUTTONS (Desktop Only) -->
             <div class="hidden md:flex gap-4">
-                <button class="px-5 py-2 border border-[#1A5EDB] text-[#1A5EDB] rounded-lg hover:bg-[#1149AE] hover:text-white transition outline-2">
+                <a href="./login.html" class="px-5 py-2 border border-[#1A5EDB] text-[#1A5EDB] rounded-lg hover:bg-[#1149AE] hover:text-white transition outline-2">
                     Login
-                </button>
+                </a>
                 <button class="px-5 py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
                     Sign Up
                 </button>
@@ -56,9 +55,7 @@
         </nav>
 
         <!-- MOBILE MENU -->
-        <div id="mobileMenu"
-             class="hidden md:hidden bg-white shadow-md px-6 py-5 space-y-4 text-lg font-medium">
-             
+        <div id="mobileMenu" class="hidden md:hidden bg-white shadow-md px-6 py-5 space-y-4 text-lg font-medium">
             <a href="./index.html" class="block text-[#000000] hover:text-[#1149AE]">Home</a>
             <a href="#" class="block text-[#1A5EDB] hover:text-[#1149AE]">Plans</a>
             <a href="#" class="block text-[#1A5EDB] hover:text-[#1149AE]">Claim</a>
@@ -67,9 +64,9 @@
 
             <hr class="border-gray-300">
 
-            <button class="w-full py-2 border border-[#1A5EDB] text-[#1A5EDB] rounded-lg hover:bg-[#1149AE] hover:text-white transition outline-2">
+            <a href="./login.html" class="w-full py-2 border border-[#1A5EDB] text-[#1A5EDB] rounded-lg hover:bg-[#1149AE] hover:text-white transition outline-2">
                 Login
-            </button>
+            </a>
 
             <button class="w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
                 Sign Up
@@ -105,9 +102,7 @@
                 </div>
 
                 <div class="flex justify-center">
-                    <img src="./images/hero_section/shield.png"
-                         alt="Illustration of shield representing health insurance protection"
-                         class="w-72 md:w-80">
+                    <img src="./images/hero_section/shield.png" alt="Illustration of shield representing health insurance protection" class="w-72 md:w-80">
                 </div>
 
             </div>
@@ -155,112 +150,110 @@
                 Choose From Our Carefully Designed Plans That Suit Different Needs And Budgets
             </p>
 
-    <div class="grid md:grid-cols-4 gap-8 mt-12">
+            <div class="grid md:grid-cols-4 gap-8 mt-12">
 
-        <!-- CARD 1 -->
-        <article class="border-2 border-[#1A5EDB] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
-            <div class="h-24 flex items-center justify-center mb-4">
-                <img src="./images/RECOMMENDED_PLANS/basic.png" class="w-14" alt="Basic Care Plan" />
+                <!-- CARD 1 -->
+                <article class="border-2 border-[#1A5EDB] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
+                    <div class="h-24 flex items-center justify-center mb-4">
+                        <img src="./images/RECOMMENDED_PLANS/basic.png" class="w-14" alt="Basic Care Plan" />
+                    </div>
+
+                    <div class="flex flex-col grow">
+                        <h3 class="text-xl font-bold text-center">Basic Care Plan</h3>
+                        <p class="text-[#1A5EDB] text-center font-semibold mt-1">Starts from ₹3 Lakhs</p>
+
+                        <ul class="mt-4 text-gray-700 space-y-2">
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB] text-lg">✔</span><span>Starting at ₹3 Lakhs</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB] text-lg">✔</span><span>Room rent: Single Private AC</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB] text-lg">✔</span><span>Cashless hospitals: 13,000+</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB] text-lg">✔</span><span>Pre & post hospitalization covered</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB] text-lg">✔</span><span>Daycare procedures covered</span></li>
+                        </ul>
+                    </div>
+
+                    <button class="mt-auto w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
+                        View Details
+                    </button>
+                </article>
+
+                <!-- CARD 2 -->
+                <article class="border-2 border-[#1A5EDB] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col relative">
+                    <div class="BestSeller">Best Seller</div>
+                    <div class="h-24 flex items-center justify-center mb-4">
+                        <img src="./images/RECOMMENDED_PLANS/family_1.png" class="w-16" alt="Family Shield Plan" />
+                    </div>
+
+                    <div class="flex flex-col grow">
+                        <h3 class="text-xl font-bold text-center">Family Shield Plan</h3>
+                        <p class="text-[#1A5EDB] text-center font-semibold mt-1">Starts from ₹10 Lakhs</p>
+
+                        <ul class="mt-4 text-gray-700 space-y-2">
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Coverage up to ₹10 Lakhs</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Covers spouse + children</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Free annual health checkup</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>No claim bonus benefits</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Maternity coverage included</span></li>
+                        </ul>
+                    </div>
+
+                    <button class="mt-auto w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
+                        View Details
+                    </button>
+                </article>
+
+                <!-- CARD 3 -->
+                <article class="border-2 border-[#1A5EDB] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
+                    <div class="h-24 flex items-center justify-center mb-4">
+                        <img src="./images/RECOMMENDED_PLANS/Senior.png" class="w-24" alt="Senior Protect Plan" />
+                    </div>
+
+                    <div class="flex flex-col grow">
+                        <h3 class="text-xl font-bold text-center">Senior Protect Plan</h3>
+                        <p class="text-[#1A5EDB] text-center font-semibold mt-1">Starts from ₹5 Lakhs</p>
+
+                        <ul class="mt-4 text-gray-700 space-y-2">
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Special for 60+ years</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Reduced waiting period</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Tele-OPD Consultation</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Pre-existing diseases covered from 31st day</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>No Sub-Limits</span></li>
+                        </ul>
+                    </div>
+
+                    <button class="mt-auto w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
+                        View Details
+                    </button>
+                </article>
+
+                <!-- CARD 4 -->
+                <article class="border-2 border-[#1A5EDB] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
+                    <div class="h-24 flex items-center justify-center mb-4">
+                        <img src="./images/RECOMMENDED_PLANS/di.png" class="w-17" alt="Universal Coverage Plan" />
+                    </div>
+
+                    <div class="flex flex-col grow">
+                        <h3 class="text-xl font-bold text-center">Universal Coverage</h3>
+                        <p class="text-[#1A5EDB] text-center font-semibold mt-1">Up to ₹25L – 99Cr</p>
+
+                        <ul class="mt-4 text-gray-700 space-y-2">
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>₹25 Lakhs – 99Cr Coverage</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Any room category</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Inbuilt unlimited care</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Hospital Daily Cash Benefit</span></li>
+                            <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Worldwide validity</span></li>
+                        </ul>
+                    </div>
+
+                    <button class="mt-auto w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
+                        View Details
+                    </button>
+                </article>
+
             </div>
-
-            <div class="flex flex-col grow">
-                <h3 class="text-xl font-bold text-center">Basic Care Plan</h3>
-                <p class="text-[#1A5EDB] text-center font-semibold mt-1">Starts from ₹3 Lakhs</p>
-
-                <ul class="mt-4 text-gray-700 space-y-2">
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB] text-lg">✔</span><span>Starting at ₹3 Lakhs</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB] text-lg">✔</span><span>Room rent: Single Private AC</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB] text-lg">✔</span><span>Cashless hospitals: 13,000+</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB] text-lg">✔</span><span>Pre & post hospitalization covered</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB] text-lg">✔</span><span>Daycare procedures covered</span></li>
-                </ul>
-            </div>
-
-            <button class="mt-auto w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
-                View Details
-            </button>
-        </article>
-
-        <!-- CARD 2 -->
-        <article class="border-2 border-[#1A5EDB] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col relative">
-            <div class="BestSeller">Best Seller</div>
-            <div class="h-24 flex items-center justify-center mb-4">
-                <img src="./images/RECOMMENDED_PLANS/family_1.png" class="w-16" alt="Family Shield Plan" />
-            </div>
-
-            <div class="flex flex-col grow">
-                <h3 class="text-xl font-bold text-center">Family Shield Plan</h3>
-                <p class="text-[#1A5EDB] text-center font-semibold mt-1">Starts from ₹10 Lakhs</p>
-
-                <ul class="mt-4 text-gray-700 space-y-2">
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Coverage up to ₹10 Lakhs</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Covers spouse + children</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Free annual health checkup</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>No claim bonus benefits</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Maternity coverage included</span></li>
-                </ul>
-            </div>
-
-            <button class="mt-auto w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
-                View Details
-            </button>
-        </article>
-
-        <!-- CARD 3 -->
-        <article class="border-2 border-[#1A5EDB] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
-            <div class="h-24 flex items-center justify-center mb-4">
-                <img src="./images/RECOMMENDED_PLANS/Senior.png" class="w-24" alt="Senior Protect Plan" />
-            </div>
-
-            <div class="flex flex-col grow">
-                <h3 class="text-xl font-bold text-center">Senior Protect Plan</h3>
-                <p class="text-[#1A5EDB] text-center font-semibold mt-1">Starts from ₹5 Lakhs</p>
-
-                <ul class="mt-4 text-gray-700 space-y-2">
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Special for 60+ years</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Reduced waiting period</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Tele-OPD Consultation</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Pre-existing diseases covered from 31st day</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>No Sub-Limits</span></li>
-                </ul>
-            </div>
-
-            <button class="mt-auto w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
-                View Details
-            </button>
-        </article>
-
-        <!-- CARD 4 -->
-        <article class="border-2 border-[#1A5EDB] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
-            <div class="h-24 flex items-center justify-center mb-4">
-                <img src="./images/RECOMMENDED_PLANS/di.png" class="w-17" alt="Universal Coverage Plan" />
-            </div>
-
-            <div class="flex flex-col grow">
-                <h3 class="text-xl font-bold text-center">Universal Coverage</h3>
-                <p class="text-[#1A5EDB] text-center font-semibold mt-1">Up to ₹25L – 99Cr</p>
-
-                <ul class="mt-4 text-gray-700 space-y-2">
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>₹25 Lakhs – 99Cr Coverage</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Any room category</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Inbuilt unlimited care</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Hospital Daily Cash Benefit</span></li>
-                    <li class="flex items-start gap-2"><span class="text-[#1A5EDB]">✔</span><span>Worldwide validity</span></li>
-                </ul>
-            </div>
-
-            <button class="mt-auto w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
-                View Details
-            </button>
-        </article>
-
-        </div>
-    </section>
-
-
+        </section>
 
         <!-- CUSTOMIZATION SECTION -->
-        <section class="bg-[#CFE6FF] py-16  border-[#1A5EDB] border-2">
+        <section class="bg-[#CFE6FF] py-16 border-[#1A5EDB] border-2">
             <div class="max-w-7xl mx-auto grid md:grid-cols-2 items-center px-6 gap-12">
 
                 <div>
@@ -292,11 +285,11 @@
 
         <!-- BENEFITS SECTION -->
         <section class="max-w-7xl mx-auto py-16 px-6">
-            <div class=" text-center mb-10 p-4">
+            <div class="text-center mb-10 p-4">
                 <h2 class="text-4xl font-bold text-black tex">Why Choose Bharat Suraksha</h2>
                 <p class="mt-3">We're committed to providing the best insurance experience</p>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-center ">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
                 
                 <div>
                     <div class="w-20 h-20 bg-[#1A5EDB] rounded-full flex items-center justify-center mx-auto mb-4">
@@ -329,15 +322,54 @@
             </div>
         </section>
 
+        <!-- Customer Reviews Section -->
+        <section class="bg-gradient-to-b from-[#DDF0FF] to-[#B3DAFF] py-20">
+            <div class="max-w-5xl mx-auto px-6 text-center">
+
+                <h2 class="text-4xl font-bold text-black mb-12">
+                    What Our Customers Say
+                </h2>
+
+                <div class="bg-white rounded-3xl shadow-xl p-10 max-w-3xl mx-auto">
+                    <div class="flex flex-col items-center">
+                        <div class="w-28 h-28 rounded-full relative mb-6 flex items-center justify-center shadow-[inset_0_0_12px_rgba(0,0,0,0.25)] transition-all duration-300 hover:scale-105">
+                            <div class="absolute inset-0 rounded-full border-4 border-[#3171FF] shadow-[0_0_20px_#3b82f6aa]">
+                            </div>
+                            <div class="w-24 h-24 rounded-full overflow-hidden bg-white flex items-center justify-center">
+                                <img id="customer-img" src="./images/Customer_rating/Customer_rating1.png" alt="Customer Photo" class="w-full h-full object-contain">
+                            </div>
+                        </div>
+                        <h3 id="customer-name" class="text-2xl font-semibold text-gray-800">
+                            Customer Name
+                        </h3>
+                        <p id="customer-text" class="mt-4 text-gray-600 leading-relaxed max-w-xl">
+                            Customer review text will appear here…
+                        </p>
+
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="flex justify-center gap-6 mt-10">
+                    <button id="prevBtn" title="Previous Review" class="w-12 h-12 bg-[#3171FF] text-white rounded-full flex items-center justify-center text-2xl hover:bg-[#1E5CE5] transition shadow-md hover:shadow-xl">
+                        ‹
+                    </button>
+
+                    <button id="nextBtn" title="Next Review" class="w-12 h-12 bg-[#3171FF] text-white rounded-full flex items-center justify-center text-2xl hover:bg-[#1E5CE5] transition shadow-md hover:shadow-xl">
+                        ›
+                    </button>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- FOOTER -->
-    <footer class="bg-black text-white py-12 mt-10 border-t-2 border-[#1A5EDB]">
+    <footer class="bg-black text-white py-12 border-t-2 border-[#1A5EDB]">
         <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 px-6 gap-12">
 
             <div class="flex flex-col items-start">
                 <div class="flex items-center gap-4">
-                    <img src="./images/Logo-circle.png" class=" w-28 sm:w-32" alt="Logo">
+                    <img src="./images/Logo-circle.png" class="w-28 sm:w-32" alt="Logo">
                     <h2 class="text-2xl font-bold leading-tight">Bharat <br> Suraksha</h2>
                 </div>
 
@@ -386,6 +418,6 @@
         </p>
     </footer>
 
-    <script src="./app.js"></script>
+   <script src="./app.js"></script>
 </body>
 </html>
