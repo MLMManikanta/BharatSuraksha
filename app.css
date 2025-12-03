@@ -379,6 +379,9 @@
   .w-\[90\%\] {
     width: 90%;
   }
+  .w-\[100px\] {
+    width: 100px;
+  }
   .w-auto {
     width: auto;
   }
@@ -853,6 +856,10 @@
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
   .outline {
+    outline-style: var(--tw-outline-style);
+    outline-width: 1px;
+  }
+  .outline-1 {
     outline-style: var(--tw-outline-style);
     outline-width: 1px;
   }
