@@ -77,3 +77,27 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
+
+ const buttons = document.querySelectorAll(".term-btn");
+    const boxes = document.querySelectorAll(".content-box");
+
+    // Default active = Introduction
+    document.getElementById("intro").classList.remove("hidden");
+
+    buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const target = btn.dataset.target;
+
+            // Hide all
+            boxes.forEach(b => b.classList.add("hidden"));
+
+            // Show selected
+            document.getElementById(target).classList.remove("hidden");
+
+            // Remove highlight from all
+            buttons.forEach(b => b.classList.remove("text-blue-300", "font-semibold"));
+
+            // Highlight selected
+            btn.classList.add("text-blue-300", "font-semibold");
+        });
+    });
