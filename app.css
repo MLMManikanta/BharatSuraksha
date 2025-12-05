@@ -241,11 +241,62 @@
   .inset-y-0 {
     inset-block: calc(var(--spacing) * 0);
   }
+  .-top-0 {
+    top: calc(var(--spacing) * -0);
+  }
+  .-top-2 {
+    top: calc(var(--spacing) * -2);
+  }
+  .-top-3 {
+    top: calc(var(--spacing) * -3);
+  }
+  .-top-5 {
+    top: calc(var(--spacing) * -5);
+  }
+  .-top-50 {
+    top: calc(var(--spacing) * -50);
+  }
+  .top-0 {
+    top: calc(var(--spacing) * 0);
+  }
+  .top-2 {
+    top: calc(var(--spacing) * 2);
+  }
+  .top-50 {
+    top: calc(var(--spacing) * 50);
+  }
   .right-3 {
     right: calc(var(--spacing) * 3);
   }
   .left-0 {
     left: calc(var(--spacing) * 0);
+  }
+  .left-2 {
+    left: calc(var(--spacing) * 2);
+  }
+  .left-24 {
+    left: calc(var(--spacing) * 24);
+  }
+  .left-35 {
+    left: calc(var(--spacing) * 35);
+  }
+  .left-50 {
+    left: calc(var(--spacing) * 50);
+  }
+  .left-\[05px\] {
+    left: 05px;
+  }
+  .left-\[5px\] {
+    left: 5px;
+  }
+  .left-\[35px\] {
+    left: 35px;
+  }
+  .left-\[50px\] {
+    left: 50px;
+  }
+  .left-\[150px\] {
+    left: 150px;
   }
   .mx-auto {
     margin-inline: auto;
@@ -384,6 +435,21 @@
   }
   .w-100 {
     width: calc(var(--spacing) * 100);
+  }
+  .w-\[1px\] {
+    width: 1px;
+  }
+  .w-\[7\] {
+    width: 7;
+  }
+  .w-\[75px\] {
+    width: 75px;
+  }
+  .w-\[80px\] {
+    width: 80px;
+  }
+  .w-\[90px\] {
+    width: 90px;
   }
   .w-\[100px\] {
     width: 100px;
@@ -548,8 +614,23 @@
   .rounded-3xl {
     border-radius: var(--radius-3xl);
   }
+  .rounded-\[2px\] {
+    border-radius: 2px;
+  }
+  .rounded-\[4px\] {
+    border-radius: 4px;
+  }
+  .rounded-\[10px\] {
+    border-radius: 10px;
+  }
+  .rounded-\[20px\] {
+    border-radius: 20px;
+  }
   .rounded-\[30px\] {
     border-radius: 30px;
+  }
+  .rounded-\[40px\] {
+    border-radius: 40px;
   }
   .rounded-full {
     border-radius: calc(infinity * 1px);
@@ -623,6 +704,9 @@
   }
   .bg-blue-50 {
     background-color: var(--color-blue-50);
+  }
+  .bg-blue-100 {
+    background-color: var(--color-blue-100);
   }
   .bg-white {
     background-color: var(--color-white);
