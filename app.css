@@ -790,9 +790,6 @@
   .text-\[\#4B5D9A\] {
     color: #4B5D9A;
   }
-  .text-\[\#6B7FB8\] {
-    color: #6B7FB8;
-  }
   .text-\[\#123C8A\] {
     color: #123C8A;
   }
@@ -834,6 +831,9 @@
   }
   .text-white {
     color: var(--color-white);
+  }
+  .underline {
+    text-decoration-line: underline;
   }
   .opacity-0 {
     opacity: 0%;
