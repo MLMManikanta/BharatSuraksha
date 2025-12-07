@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./app.css">
+    <link rel="icon" href="./images/Logo-circle.png" type="image/png" sizes="180x180">
+    <title>BharatSuraksha</title>
+</head>
+
+<body class="bg-white text-gray-900">
+
+    <!-- Skip Link -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-white focus:text-black focus:px-4 focus:py-2 focus:rounded">
+        Skip to main content
+    </a>
+
+    <!-- NAVBAR -->
+    <header class="w-full bg-white shadow-md">
+        <nav class="max-w-7xl mx-auto flex items-center justify-between py-4 px-6" aria-label="Primary navigation">
+
+            <!-- LOGO + NAME -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 left-0">
+                <img src="./images/Logo-circle.png" alt="Bharat Suraksha logo" class="h-20 w-auto sm:h-20 sm:w-auto">
+                <span class="text-2xl font-bold text-[#1A5EDB] leading-tight">
+                    Bharat<br>Suraksha
+                </span>
+            </div>
+
+            <!-- NAV LINKS (Desktop Only) -->
+            <div class="hidden md:flex gap-8 text-lg font-medium">
+                <a href="./index.html" class="hover:text-[#1149AE] text-[#1A5EDB]">Home</a>
+                <a href="#" class="hover:text-[#1149AE]  text-[#1A5EDB]">Plans</a>
+                <a href="#" class="hover:text-[#1149AE] text-[#1A5EDB]">Claim</a>
+                <a href="./about_us.html" class="hover:text-[#1149AE] text-[#1A5EDB]">About Us</a>
+                <a href="#" class="hover:text-[#1149AE] text-[#000000] ">Contact Us</a>
+            </div>
+
+            <!-- BUTTONS (Desktop Only) -->
+            <div class="hidden md:flex gap-4">
+                <a href="./login.html" class="px-5 py-2 border border-[#1A5EDB] text-[#1A5EDB] rounded-lg hover:bg-[#1149AE] hover:text-white transition outline-2">
+                    Login
+                </a>
+                <button class="px-5 py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
+                    Get Quote
+                </button>
+            </div>
+
+            <!-- MOBILE MENU BUTTON -->
+            <button id="menuBtn" title="Open navigation menu" class="md:hidden flex flex-col gap-1" aria-label="Toggle navigation menu" aria-controls="mobileMenu" aria-expanded="false">
+                <span class="w-8 h-1 bg-[#1A5EDB] rounded"></span>
+                <span class="w-8 h-1 bg-[#1A5EDB] rounded"></span>
+                <span class="w-8 h-1 bg-[#1A5EDB] rounded"></span>
+            </button>
+        </nav>
+
+        <!-- MOBILE MENU -->
+        <div id="mobileMenu" class="hidden md:hidden bg-white shadow-md px-6 py-5 space-y-4 text-lg font-medium">
+            <a href="./index.html" class="block text-[#1A5EDB] hover:text-[#1149AE]">Home</a>
+            <a href="#" class="block text-[#1A5EDB] hover:text-[#1149AE]">Plans</a>
+            <a href="#" class="block text-[#1A5EDB] hover:text-[#1149AE]">Claim</a>
+            <a href="./about_us.html" class="block text-[#1A5EDB] hover:text-[#1149AE]">About Us</a>
+            <a href="./Contact_Us.html" class="block  text-[#000000] hover:text-[#1149AE]">Contact Us</a>
+
+            <hr class="border-gray-300">
+
+            <a href="./login.html" class="w-full border border-[#1A5EDB] text-[#1A5EDB] rounded text-center hover:bg-[#1149AE] hover:text-white transition
+            flex justify-center items-center font-semibold ">
+                Login
+            </a>
+
+            <button class="w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition ">
+                Get Quote
+            </button>
+        </div>
+    </header>
+
+  <hr class="outline-1 border-[#1A5EDB] outline-[#1A5EDB]">
+    <!-- MAIN CONTENT -->
+    <main class="bg-white py-20">
+    <section class="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 px-6 items-center">
+        
+        <div>
+            <h1 class="text-4xl font-bold text-[#1A5EDB] leading-tight">
+                Need Expert Assistance? We're Here to Help! 👋
+            </h1>
+
+            <p class="mt-4 text-gray-700 leading-relaxed text-lg">
+                Whether you have questions about your policy, need help with claims,
+                or want to locate a nearby branch our customer care team is ready
+                to support you across chat, call, and email.
+            </p>
+        </div>
+
+        <div class="flex justify-center">
+            <img src="./images/contact_us/support_team.jpeg"
+                 alt="Customer support team assisting users"
+                 class="rounded-3xl shadow-lg w-96 object-cover">
+        </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto mt-20 px-6">
+        <h2 class="text-3xl font-bold text-black text-center">Reach out to us</h2>
+
+        <p class="text-center text-gray-600 mt-3 max-w-2xl mx-auto leading-relaxed">
+            Our dedicated support team for claims, policies, policy updates,
+            or any service-related questions.
+        </p>
+
+        <div class="grid md:grid-cols-3 gap-10 mt-14">
+
+            <!-- Claims Page -->
+            <a href="#"
+               class="p-8 bg-[#CFE6FF] border-2 border-[#1A5EDB] rounded-[25px] shadow hover:shadow-lg 
+                      transition block text-center">
+                <h3 class="text-xl font-semibold text-black">📋 Claims Page</h3>
+                <p class="text-gray-700 mt-2 text-sm">Raise or track your claim easily.</p>
+            </a>
+
+            <!-- Call Us -->
+            <div class="p-8 bg-[#CFE6FF] border-2 border-[#1A5EDB] rounded-[25px] shadow text-center">
+                <h3 class="text-xl font-semibold text-black">📞Call Us</h3>
+                <a href="tel:9063807489"
+                   class="text-[#1A5EDB] font-bold text-lg underline block mt-2">
+                    9063807489
+                </a>
+                <p class="text-gray-700 text-sm">Available 24/7</p>
+            </div>
+
+            <!-- Email Us -->
+            <div class="p-8 bg-[#CFE6FF] border-2 border-[#1A5EDB] rounded-[25px] shadow text-center">
+                <h3 class="text-xl font-semibold text-black">✉️Email Us</h3>
+                <a href=" mlmmanikanta@outlook.com"
+                   class="text-[#1A5EDB] font-bold underline break-all block mt-2">
+                    mlmmanikanta@outlook.com
+                </a>
+                <p class="text-gray-700 text-sm">Response within 24 hours</p>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- FIND US SECTION -->
+    <section class="max-w-7xl mx-auto mt-24 px-6">
+
+        <h2 class="text-3xl font-bold text-black text-center">Find Us 📍</h2>
+        <p class="text-center text-gray-600 mt-3 max-w-xl mx-auto leading-relaxed">
+            Locate nearby branches or network hospitals to get assistance with your policy.
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-10 mt-14">
+
+            <!-- Branch Office -->
+            <a href="#"
+               class="p-8 bg-white border-2 border-[#1A5EDB] rounded-[25px] shadow hover:shadow-xl 
+                      transition block text-center">
+                <h3 class="text-xl font-semibold text-black"> 🏢Nearest Branch Office</h3>
+                <p class="text-gray-700 mt-2 text-sm">Locate now</p>
+            </a>
+
+            <!-- Hospital -->
+            <a href="#"
+               class="p-8 bg-white border-2 border-[#1A5EDB] rounded-[25px] shadow hover:shadow-xl 
+                      transition block text-center">
+                <h3 class="text-xl font-semibold text-black"> 🚑 Nearest Network Hospital</h3>
+                <p class="text-gray-700 mt-2 text-sm">Locate now</p>
+            </a>
+        </div>
+    </section>
+
+
+    <!-- CONTACT FORM SECTION -->
+    <section class="max-w-4xl mx-auto mt-24 px-6">
+        <h2 class="text-3xl font-bold text-black text-center">Write to Us ✍️ </h2>
+
+        <form class="mt-12 space-y-6">
+
+            <!-- NAME -->
+            <div>
+                <label for="name" class="block font-semibold text-gray-800 mb-1">Full Name</label>
+                <input id="name" type="text" required
+                       class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 ring-[#1A5EDB] outline-none"
+                       placeholder="Enter your full name">
+            </div>
+
+            <!-- PHONE -->
+            <div>
+                <label for="phone" class="block font-semibold text-gray-800 mb-1">Phone Number</label>
+                <input id="phone" type="tel" required
+                       class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 ring-[#1A5EDB] outline-none"
+                       placeholder="Enter your phone number">
+            </div>
+
+            <!-- EMAIL -->
+            <div>
+                <label for="email" class="block font-semibold text-gray-800 mb-1">Email Address</label>
+                <input id="email" type="email" required
+                       class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 ring-[#1A5EDB] outline-none"
+                       placeholder="Enter your email">
+            </div>
+
+            <!-- QUERY TYPE -->
+            <div>
+                <label for="queryType" class="block font-semibold text-gray-800 mb-1">Query Type</label>
+                <select id="queryType"
+                        class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 ring-[#1A5EDB] outline-none">
+                    <option>Select Query Type</option>
+                    <option>Claim Issue</option>
+                    <option>Policy Update</option>
+                    <option>New Policy Inquiry</option>
+                    <option>Branch / Hospital Info</option>
+                </select>
+            </div>
+
+            <!-- MESSAGE -->
+            <div>
+                <label for="message" class="block font-semibold text-gray-800 mb-1">Your Message</label>
+                <textarea id="message" rows="4"
+                          class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 ring-[#1A5EDB] outline-none"
+                          placeholder="Enter your message"></textarea>
+            </div>
+
+            <!-- CAPTCHA -->
+            <div>
+                <label for="captcha" class="block font-semibold text-gray-800 mb-1">Captcha</label>
+                <input id="captcha" type="text"
+                       class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 ring-[#1A5EDB] outline-none"
+                       placeholder="Enter captcha">
+            </div>
+
+            <!-- SUBMIT -->
+            <button
+                class="w-full py-4 bg-[#1A5EDB] text-white rounded-xl font-semibold text-lg hover:bg-[#114BB7] transition focus:ring-2 ring-[#1A5EDB] outline-none">
+                Submit
+            </button>
+
+        </form>
+    </section>
+
+</main>
+
+
+
+    <!-- FOOTER -->
+    <footer class="bg-black text-white py-12 border-t-2 border-[#1A5EDB]">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 px-6 gap-12">
+
+            <div class="flex flex-col items-start">
+                <div class="flex items-center gap-4">
+                    <img src="./images/Logo-circle.png" class="w-28 sm:w-32" alt="Logo">
+                    <h2 class="text-2xl font-bold leading-tight">Bharat <br> Suraksha</h2>
+                </div>
+
+                <p class="text-gray-300 text-sm leading-relaxed mt-4">
+                    Your trusted partner for comprehensive health 
+                    insurance solutions. Protecting what matters most.
+                </p>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2 text-gray-300 text-sm">
+                    <li><a href="#" class="hover:text-[#1A5EDB]">Plans</a></li>
+                    <li><a href="#" class="hover:text-[#1A5EDB]">Claims</a></li>
+                    <li><a href="#" class="hover:text-[#1A5EDB]">About Us</a></li>
+                    <li><a href="#" class="hover:text-[#1A5EDB]">FAQs</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
+
+                <a href="tel:9063807489" class="flex items-center gap-3 mb-3 hover:text-[#1A5EDB] transition">
+                    <img src="./images/footer/phone.png" class="w-6" alt="Phone">
+                    <span class="text-gray-300 text-sm">9063807489</span>
+                </a>
+
+                <a href="mailto:mlmmanikanta@outlook.com" class="flex items-center gap-3 hover:text-[#1A5EDB] transition">
+                    <img src="./images/footer/mail.png" class="w-7" alt="mail">
+                    <span class="text-gray-300 text-sm">mlmmanikanta@outlook.com</span>
+                </a>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Follow Us</h3>
+                <div class="flex items-center gap-4">
+                    <img src="./images/footer/instagram.png" class="w-10" alt="instagram">
+                    <img src="./images/footer/whatapp.png" class="w-10" alt="Whatapp">
+                </div>
+            </div>
+
+        </div>
+
+        <p class="text-center mt-12 text-sm">
+            © 2025 Bharat Suraksha. All Rights Reserved.
+        </p>
+    </footer>
+
+   <script src="./app.js"></script>
+</body>
+</html>
