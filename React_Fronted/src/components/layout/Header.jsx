@@ -39,8 +39,8 @@ function Header() {
            {/*  - Placeholder context */}
           <img
             src="/images/Logo-circle.png"
-            alt="" // Decorative since the Link has aria-label
-            className="h-12 w-auto group-hover:opacity-90 transition-opacity"
+            alt="Bharat Suraksha Logo"
+            className="h-20 w-auto group-hover:opacity-90 transition-opacity"
           />
           <span className="text-xl md:text-2xl font-bold text-[#1A5EDB] leading-tight">
             Bharat <br /> Suraksha
