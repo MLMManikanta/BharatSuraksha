@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
 
+// --- DATA: TERMS TABS CONTENT ---
+const TAB_CONTENT = {
+  intro: {
+    title: "Policy Introduction",
+    content: "Bharat Suraksha provides comprehensive coverage designed to protect your family's future. Our plans are crafted to offer financial security against rising medical costs."
+  },
+  eligibility: {
+    title: "Eligibility Criteria",
+    content: "Adults aged 18-65 years are eligible. Dependent children can be covered from 90 days to 25 years. Senior citizen plans are available for those above 60."
+  },
+  documents: {
+    title: "Required Documents",
+    content: "You will need KYC documents (Aadhar/PAN), previous medical records (if any), and a recent passport-sized photograph for policy issuance."
+  }
+};
+
 function Home() {
   // --- STATE 1: FOR TESTIMONIALS SLIDER ---
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Your specific testimonial data
   const testimonials = [
     {
       name: "Maruthi Gupta",
@@ -27,176 +42,173 @@ function Home() {
   const handleNext = () => {
     setIsAnimating(true);
     setTimeout(() => {
-        setCurrentReviewIndex((prev) => (prev + 1) % testimonials.length);
-        setIsAnimating(false);
-    }, 150); // Small delay for fade effect
+      setCurrentReviewIndex((prev) => (prev + 1) % testimonials.length);
+      setIsAnimating(false);
+    }, 150);
   };
 
   const handlePrev = () => {
     setIsAnimating(true);
     setTimeout(() => {
-        setCurrentReviewIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-        setIsAnimating(false);
+      setCurrentReviewIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+      setIsAnimating(false);
     }, 150);
   };
 
   const currentReview = testimonials[currentReviewIndex];
 
-  // --- STATE 2: FOR INFO TABS (Intro/Eligibility/Documents) ---
+  // --- STATE 2: FOR INFO TABS ---
   const [activeTab, setActiveTab] = useState('intro');
 
   return (
-    <main id="main-content">
+    <main id="main-content" className="font-sans text-gray-900 bg-white">
       
       {/* 1. HERO SECTION */}
-      <section className="bg-blue-50 py-16">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 items-center px-6 gap-10">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight text-[#000000]">
-              Secure Your Health with <br /> Flexible & Affordable Insurance Plans
+      <section className="bg-gradient-to-b from-blue-50 to-white py-20 px-6">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 items-center gap-12">
+          <div className="text-center md:text-left">
+            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900">
+              Secure Your Health with <br />
+              <span className="text-[#1A5EDB]">Flexible & Affordable Plans</span>
             </h1>
-            <p className="text-lg mt-4 text-gray-600">
-              Protect your loved ones with our easy claim process and wide plan coverage
+            <p className="text-lg mt-6 text-gray-600 max-w-lg mx-auto md:mx-0">
+              Protect your loved ones with our easy claim process, wide coverage, and 24/7 support.
             </p>
-            <div className="flex flex-wrap gap-5 mt-6">
-              <button className="px-6 py-3 bg-[#1A5EDB] text-white rounded-lg text-lg hover:bg-[#1149AE] transition">
+            <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-8">
+              <button className="px-8 py-3.5 bg-[#1A5EDB] text-white rounded-xl text-lg font-semibold hover:bg-[#1149AE] hover:shadow-lg transition transform hover:-translate-y-1">
                 Explore Plans
               </button>
-              <button className="px-6 py-3 border border-[#1A5EDB] text-[#1A5EDB] rounded-lg text-lg hover:bg-blue-100 transition outline-2">
-                Customize Your Plan
+              <button className="px-8 py-3.5 border-2 border-[#1A5EDB] text-[#1A5EDB] rounded-xl text-lg font-semibold hover:bg-blue-50 transition">
+                Customize Plan
               </button>
             </div>
           </div>
-          <div className="flex justify-center">
+          <div className="flex justify-center relative">
+             {/* Decorative blob */}
+             <div className="absolute top-10 right-10 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
             <img
               src="./images/hero_section/shield.png"
-              alt="Illustration of shield representing health insurance protection"
-              className="w-72 md:w-80"
+              alt="Health Insurance Protection Shield"
+              className="w-72 md:w-96 relative z-10 drop-shadow-xl"
             />
           </div>
         </div>
       </section>
 
       {/* 2. STATS SECTION */}
-      <section className="max-w-7xl mx-auto py-12 px-6 text-center">
-        <h2 className="text-3xl font-bold mb-10">Trusted by Thousands</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-          <div className="flex flex-col items-center text-center">
-            <img src="./images/TRUSTED_STATS/star.png" width="90" alt="" aria-hidden="true" />
-            <p className="text-4xl font-bold text-[#1A5EDB]">98.7%</p>
-            <p className="text-gray-600 mt-2">Claim Settlement Ratio</p>
-          </div>
-          <div className="flex flex-col items-center text-center">
-            <img src="./images/TRUSTED_STATS/shield.png" width="90" alt="" aria-hidden="true" />
-            <p className="text-4xl font-bold text-[#1A5EDB] mt-2">4.9/5</p>
-            <p className="text-gray-600 mt-1">10,000+ Customer Reviews</p>
-          </div>
-          <div className="flex flex-col items-center text-center">
-            <img src="./images/TRUSTED_STATS/clock.png" width="60" alt="" aria-hidden="true" />
-            <p className="text-4xl font-bold text-[#1A5EDB]">6–12 hrs</p>
-            <p className="text-gray-600 mt-2">Fast Claim Approval</p>
-          </div>
-          <div className="flex flex-col items-center text-center">
-            <img src="./images/TRUSTED_STATS/hospital.png" width="60" alt="" aria-hidden="true" />
-            <p className="text-4xl font-bold text-[#1A5EDB]">13,000+</p>
-            <p className="text-gray-600 mt-2">Network Hospitals</p>
-          </div>
+      <section className="max-w-7xl mx-auto py-16 px-6">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900">Trusted by Thousands</h2>
+          <p className="text-gray-500 mt-2">Our numbers speak for our commitment</p>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {[
+            { img: "./images/TRUSTED_STATS/star.png", val: "98.7%", label: "Claim Settlement Ratio" },
+            { img: "./images/TRUSTED_STATS/shield.png", val: "4.9/5", label: "10,000+ Reviews" },
+            { img: "./images/TRUSTED_STATS/clock.png", val: "6–12 hrs", label: "Fast Claim Approval" },
+            { img: "./images/TRUSTED_STATS/hospital.png", val: "13,000+", label: "Network Hospitals" }
+          ].map((stat, idx) => (
+            <div key={idx} className="flex flex-col items-center text-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+              <img src={stat.img} width="60" alt="" className="mb-4 object-contain" aria-hidden="true" />
+              <p className="text-3xl font-bold text-[#1A5EDB]">{stat.val}</p>
+              <p className="text-gray-600 mt-1 text-sm font-medium">{stat.label}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      <hr className="outline-1 border-[#1A5EDB] outline-[#1A5EDB]" />
+      <div className="max-w-7xl mx-auto px-6"><hr className="border-gray-200" /></div>
 
       {/* 3. PLANS SECTION */}
-      <section className="max-w-7xl mx-auto py-16 px-6">
-        <h2 className="text-3xl font-bold text-center">Recommended Insurance Plans</h2>
-        <p className="text-center text-gray-500 mt-2">
-          Choose From Our Carefully Designed Plans That Suit Different Needs And Budgets
-        </p>
+      <section className="max-w-7xl mx-auto py-20 px-6">
+        <div className="text-center mb-12">
+           <h2 className="text-3xl font-bold text-gray-900">Recommended Insurance Plans</h2>
+           <p className="text-gray-500 mt-2 max-w-2xl mx-auto">
+             Choose from our carefully designed plans that suit different needs and budgets.
+           </p>
+        </div>
 
-        <div className="grid md:grid-cols-4 gap-8 mt-12">
+        <div className="grid md:grid-cols-4 gap-8">
           {/* CARD 1 */}
-          <article className="border-2 border-[#1A5EDB] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
-            <div className="h-24 flex items-center justify-center mb-4">
-              <img src="./images/RECOMMENDED_PLANS/basic.png" className="w-14" alt="Basic Care Plan" />
+          <article className="border border-gray-200 rounded-3xl p-6 bg-white shadow-sm hover:shadow-xl hover:border-[#1A5EDB] transition duration-300 flex flex-col group">
+            <div className="h-20 flex items-center justify-center mb-6 bg-blue-50 rounded-2xl group-hover:bg-white transition">
+              <img src="./images/RECOMMENDED_PLANS/basic.png" className="w-12" alt="Basic Care Plan" />
             </div>
             <div className="flex flex-col grow">
-              <h3 className="text-xl font-bold text-center">Basic Care Plan</h3>
-              <p className="text-[#1A5EDB] text-center font-semibold mt-1">Starts from ₹3 Lakhs</p>
-              <ul className="mt-4 text-gray-700 space-y-2">
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB] text-lg">✔</span><span>Starting at ₹3 Lakhs</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB] text-lg">✔</span><span>Room rent: Single Private AC</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB] text-lg">✔</span><span>Cashless hospitals: 13,000+</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB] text-lg">✔</span><span>Pre & post hospitalization covered</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB] text-lg">✔</span><span>Daycare procedures covered</span></li>
+              <h3 className="text-xl font-bold text-center text-gray-900">Basic Care Plan</h3>
+              <p className="text-[#1A5EDB] text-center font-bold text-sm mt-1 bg-blue-50 py-1 px-3 rounded-full mx-auto w-fit">Starts @ ₹3 Lakhs</p>
+              <ul className="mt-6 text-gray-600 space-y-3 text-sm">
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> Single Private AC Room</li>
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> 13,000+ Cashless Hospitals</li>
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> Pre & Post Hospitalization</li>
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> Daycare Procedures</li>
               </ul>
             </div>
-            <button className="mt-auto w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
+            <button className="mt-8 w-full py-3 bg-[#1A5EDB] text-white rounded-xl font-semibold hover:bg-[#1149AE] transition shadow-md">
               View Details
             </button>
           </article>
 
-          {/* CARD 2 */}
-          <article className="border-2 border-[#1A5EDB] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col relative">
-            <div className="BestSeller absolute -top-3 left-[150px] bg-[#1A5EDB] text-white w-[90px] h- border-2 border-[#1A5EDB] rounded-[10px] flex justify-center items-center">
+          {/* CARD 2 (Best Seller) */}
+          <article className="border-2 border-[#1A5EDB] rounded-3xl p-6 bg-white shadow-lg hover:shadow-2xl transition duration-300 flex flex-col relative transform scale-105 md:scale-100 md:hover:scale-105 z-10">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#1A5EDB] text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-md">
               Best Seller
             </div>
-            <div className="h-24 flex items-center justify-center mb-4">
-              <img src="./images/RECOMMENDED_PLANS/family_1.png" className="w-16" alt="Family Shield Plan" />
+            <div className="h-20 flex items-center justify-center mb-6 bg-blue-50 rounded-2xl">
+              <img src="./images/RECOMMENDED_PLANS/family_1.png" className="w-14" alt="Family Shield Plan" />
             </div>
             <div className="flex flex-col grow">
-              <h3 className="text-xl font-bold text-center">Family Shield Plan</h3>
-              <p className="text-[#1A5EDB] text-center font-semibold mt-1">Starts from ₹10 Lakhs</p>
-              <ul className="mt-4 text-gray-700 space-y-2">
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>Coverage up to ₹10 Lakhs</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>Covers spouse + children</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>Free annual health checkup</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>No claim bonus benefits</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>Maternity coverage included</span></li>
+              <h3 className="text-xl font-bold text-center text-gray-900">Family Shield Plan</h3>
+              <p className="text-[#1A5EDB] text-center font-bold text-sm mt-1 bg-blue-50 py-1 px-3 rounded-full mx-auto w-fit">Starts @ ₹10 Lakhs</p>
+              <ul className="mt-6 text-gray-600 space-y-3 text-sm">
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> Spouse + Children Covered</li>
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> Free Annual Health Checkup</li>
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> No Claim Bonus Benefits</li>
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> Maternity Coverage Included</li>
               </ul>
             </div>
-            <button className="mt-auto w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
+            <button className="mt-8 w-full py-3 bg-[#1A5EDB] text-white rounded-xl font-semibold hover:bg-[#1149AE] transition shadow-md">
               View Details
             </button>
           </article>
 
           {/* CARD 3 */}
-          <article className="border-2 border-[#1A5EDB] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
-            <div className="h-24 flex items-center justify-center mb-4">
-              <img src="./images/RECOMMENDED_PLANS/Senior.png" className="w-24" alt="Senior Protect Plan" />
+          <article className="border border-gray-200 rounded-3xl p-6 bg-white shadow-sm hover:shadow-xl hover:border-[#1A5EDB] transition duration-300 flex flex-col group">
+            <div className="h-20 flex items-center justify-center mb-6 bg-blue-50 rounded-2xl group-hover:bg-white transition">
+              <img src="./images/RECOMMENDED_PLANS/Senior.png" className="w-16" alt="Senior Protect Plan" />
             </div>
             <div className="flex flex-col grow">
-              <h3 className="text-xl font-bold text-center">Senior Protect Plan</h3>
-              <p className="text-[#1A5EDB] text-center font-semibold mt-1">Starts from ₹5 Lakhs</p>
-              <ul className="mt-4 text-gray-700 space-y-2">
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>Special for 60+ years</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>Reduced waiting period</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>Tele-OPD Consultation</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>Pre-existing diseases covered from 31st day</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>No Sub-Limits</span></li>
+              <h3 className="text-xl font-bold text-center text-gray-900">Senior Protect Plan</h3>
+              <p className="text-[#1A5EDB] text-center font-bold text-sm mt-1 bg-blue-50 py-1 px-3 rounded-full mx-auto w-fit">Starts @ ₹5 Lakhs</p>
+              <ul className="mt-6 text-gray-600 space-y-3 text-sm">
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> Special for 60+ Years</li>
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> Reduced Waiting Period</li>
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> Tele-OPD Consultation</li>
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> No Sub-Limits</li>
               </ul>
             </div>
-            <button className="mt-auto w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
+            <button className="mt-8 w-full py-3 bg-[#1A5EDB] text-white rounded-xl font-semibold hover:bg-[#1149AE] transition shadow-md">
               View Details
             </button>
           </article>
 
           {/* CARD 4 */}
-          <article className="border-2 border-[#1A5EDB] rounded-2xl p-6 bg-white shadow hover:shadow-xl transition duration-300 flex flex-col">
-            <div className="h-24 flex items-center justify-center mb-4">
-              <img src="./images/RECOMMENDED_PLANS/di.png" className="w-17" alt="Universal Coverage Plan" />
+          <article className="border border-gray-200 rounded-3xl p-6 bg-white shadow-sm hover:shadow-xl hover:border-[#1A5EDB] transition duration-300 flex flex-col group">
+            <div className="h-20 flex items-center justify-center mb-6 bg-blue-50 rounded-2xl group-hover:bg-white transition">
+              <img src="./images/RECOMMENDED_PLANS/di.png" className="w-14" alt="Universal Coverage Plan" />
             </div>
             <div className="flex flex-col grow">
-              <h3 className="text-xl font-bold text-center">Universal Coverage</h3>
-              <p className="text-[#1A5EDB] text-center font-semibold mt-1">Up to ₹25L – 99Cr</p>
-              <ul className="mt-4 text-gray-700 space-y-2">
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>₹25 Lakhs – 99Cr Coverage</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>Any room category</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>Inbuilt unlimited care</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>Hospital Daily Cash Benefit</span></li>
-                <li className="flex items-start gap-2"><span className="text-[#1A5EDB]">✔</span><span>Worldwide validity</span></li>
+              <h3 className="text-xl font-bold text-center text-gray-900">Universal Coverage</h3>
+              <p className="text-[#1A5EDB] text-center font-bold text-sm mt-1 bg-blue-50 py-1 px-3 rounded-full mx-auto w-fit">Up to ₹25L – 99Cr</p>
+              <ul className="mt-6 text-gray-600 space-y-3 text-sm">
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> High Sum Insured Options</li>
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> Any Room Category</li>
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> Global Coverage Validity</li>
+                <li className="flex gap-3"><span className="text-[#1A5EDB] font-bold">✔</span> Hospital Daily Cash</li>
               </ul>
             </div>
-            <button className="mt-auto w-full py-2 bg-[#1A5EDB] text-white rounded-lg hover:bg-[#1149AE] transition">
+            <button className="mt-8 w-full py-3 bg-[#1A5EDB] text-white rounded-xl font-semibold hover:bg-[#1149AE] transition shadow-md">
               View Details
             </button>
           </article>
@@ -204,160 +216,125 @@ function Home() {
       </section>
 
       {/* 4. CUSTOMIZATION SECTION */}
-      <section className="bg-[#CFE6FF] py-16 border-[#1A5EDB] border-2">
+      <section className="bg-blue-50 py-20 border-y border-blue-100">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 items-center px-6 gap-12">
           <div>
-            <h2 className="text-4xl font-bold text-black">Customize Your Health Insurance Plan</h2>
-            <p className="text-gray-700 mt-3 leading-relaxed">
-              Create a policy that fits your needs. Choose your base plan, add-ons, riders, and adjust your premium.
+            <span className="text-[#1A5EDB] font-bold tracking-wide uppercase text-sm">Flexible Options</span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mt-2">Customize Your Plan</h2>
+            <p className="text-gray-600 mt-4 leading-relaxed text-lg">
+              Create a policy that fits your lifestyle perfectly. Choose your base plan, add riders, and adjust your premium to suit your budget.
             </p>
-            <p className="font-semibold text-xl mt-8 mb-4">Customize with:</p>
-            <ul className="space-y-6 text-lg text-gray-800">
-              <li className="flex items-center gap-3 ml-5"><img src="./images/CUSTOMIZATION_SECTION/room.png" className="w-8" alt="" />Room Rent Options </li>
-              <li className="flex items-center gap-3 ml-5"><img src="./images/CUSTOMIZATION_SECTION/maternity.png" className="w-8" alt="" />Maternity & Newborn Add-ons</li>
-              <li className="flex items-center gap-3 ml-5"><img src="./images/CUSTOMIZATION_SECTION/cash.png" className="w-8" alt="" />Daily Hospital Cash</li>
-              <li className="flex items-center gap-3 ml-5"><img src="./images/CUSTOMIZATION_SECTION/care.png " className="w-8" alt="" />Unlimited Care</li>
-              <li className="flex items-center gap-3 ml-5"><img src="./images/RECOMMENDED_PLANS/globe.png" className="w-8" alt="" />Global Cover</li>
-            </ul>
+            
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { icon: "./images/CUSTOMIZATION_SECTION/room.png", text: "Room Rent Options" },
+                { icon: "./images/CUSTOMIZATION_SECTION/maternity.png", text: "Maternity Add-ons" },
+                { icon: "./images/CUSTOMIZATION_SECTION/cash.png", text: "Daily Hospital Cash" },
+                { icon: "./images/CUSTOMIZATION_SECTION/care.png", text: "Unlimited Care" },
+                { icon: "./images/RECOMMENDED_PLANS/globe.png", text: "Global Cover" }
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+                  <img src={item.icon} className="w-8 h-8 object-contain" alt="" />
+                  <span className="font-medium text-gray-800">{item.text}</span>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="flex justify-center">
-            <div className="bg-white rounded-3xl shadow-lg p-8">
-              <img src="./images/CUSTOMIZATION_SECTION/CUSTOMIZATION_SECTION.png" className="w-80" alt="" />
+            <div className="bg-white rounded-3xl shadow-2xl p-6 rotate-1 hover:rotate-0 transition duration-500">
+              <img src="./images/CUSTOMIZATION_SECTION/CUSTOMIZATION_SECTION.png" className="w-full max-w-sm rounded-xl" alt="Customization Preview" />
             </div>
           </div>
         </div>
       </section>
 
       {/* 5. BENEFITS SECTION */}
-      <section className="max-w-7xl mx-auto py-16 px-6">
-        <div className="text-center mb-10 p-4">
-          <h2 className="text-4xl font-bold text-black">Why Choose Bharat Suraksha</h2>
-          <p className="mt-3">We're committed to providing the best insurance experience</p>
+      <section className="max-w-7xl mx-auto py-20 px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900">Why Choose Bharat Suraksha?</h2>
+          <p className="mt-4 text-gray-500 max-w-2xl mx-auto">We are committed to providing the best insurance experience with transparency and care.</p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
-          <div>
-            <div className="w-20 h-20 bg-[#1A5EDB] rounded-full flex items-center justify-center mx-auto mb-4">
-              <img src="./images/BENEFITS_SECTION/mark.png" className="w-10" alt="" />
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {[
+            { img: "./images/BENEFITS_SECTION/mark.png", title: "Hassle-free Claims", desc: "Cashless claims at all network hospitals." },
+            { img: "./images/BENEFITS_SECTION/comment.png", title: "Real-time Updates", desc: "Instant SMS/Email alerts on claim status." },
+            { img: "./images/BENEFITS_SECTION/team.png", title: "24/7 Support", desc: "Dedicated team ready to help anytime." },
+            { img: "./images/BENEFITS_SECTION/card.png", title: "Best Prices", desc: "Affordable premiums with flexible payment." }
+          ].map((benefit, idx) => (
+            <div key={idx} className="flex flex-col items-center text-center p-6 rounded-2xl hover:bg-gray-50 transition duration-300">
+              <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+                <img src={benefit.img} className="w-10 h-10 object-contain" alt="" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">{benefit.title}</h3>
+              <p className="text-gray-500 text-sm mt-2 leading-relaxed">{benefit.desc}</p>
             </div>
-            <p className="text-gray-700 text-sm leading-tight">Hassle-free cashless <br />claims at all our <br />network hospitals</p>
-          </div>
-          <div>
-            <div className="flex items-center justify-center mx-auto mb-4">
-              <img src="./images/BENEFITS_SECTION/comment.png" className="w-20" alt="" />
-            </div>
-            <p className="text-gray-700 text-sm leading-tight">Real-time updates on <br />your claim status and <br />policy details</p>
-          </div>
-          <div>
-            <div className="flex items-center justify-center mx-auto mb-4">
-              <img src="./images/BENEFITS_SECTION/team.png" className="w-20" alt="" />
-            </div>
-            <p className="text-gray-700 text-sm leading-tight">24/7 support team ready <br />to help you with any <br />queries</p>
-          </div>
-          <div>
-            <div className="flex items-center justify-center mx-auto mb-4">
-              <img src="./images/BENEFITS_SECTION/card.png" className="w-20" alt="" />
-            </div>
-            <p className="text-gray-700 text-sm leading-tight">Best prices in the <br />market with flexible <br />payment options</p>
-          </div>
+          ))}
         </div>
       </section>
 
-      <hr className="outline-1 outline-[#1A5EDB]" />
+      {/* 6. CUSTOMER REVIEWS */}
+      <section className="bg-gradient-to-b from-[#E7F2FF] to-[#CBE4FF] py-24">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-12">What Our Customers Say 💬</h2>
 
-      {/* 6. CUSTOMER REVIEWS SECTION (Dynamic) */}
-      <section className="bg-gradient-to-b from-[#DDF0FF] to-[#B3DAFF] py-20">
-        <div className="max-w-5xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold text-black mb-12">
-            What Our Customers Say
-          </h2>
-
-          <div className="bg-white rounded-3xl shadow-xl p-10 max-w-3xl mx-auto">
-            <div className={`flex flex-col items-center transition-opacity duration-200 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
-              
-              <div className="w-28 h-28 rounded-full relative mb-6 flex items-center justify-center shadow-[inset_0_0_12px_rgba(0,0,0,0.25)]">
-                <div className="absolute inset-0 rounded-full border-4 border-[#3171FF] shadow-[0_0_20px_#3b82f6aa]"></div>
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-white flex items-center justify-center">
-                  <img
-                    src={currentReview.img}
-                    alt={currentReview.name}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
+          <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 relative">
+            {/* Review Content */}
+            <div className={`flex flex-col items-center transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
+              <div className="w-24 h-24 rounded-full border-4 border-[#1A5EDB] p-1 mb-6 shadow-md">
+                <img
+                  src={currentReview.img}
+                  alt={currentReview.name}
+                  className="w-full h-full object-cover rounded-full"
+                />
               </div>
-
-              <h3 className="text-2xl font-semibold text-gray-800">
-                {currentReview.name}
-              </h3>
-              
-              <p className="mt-4 text-gray-600 leading-relaxed max-w-xl italic">
+              <h3 className="text-2xl font-bold text-gray-900">{currentReview.name}</h3>
+              <div className="flex gap-1 my-3 text-yellow-400 text-lg">
+                <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+              </div>
+              <p className="text-gray-600 text-lg italic leading-relaxed max-w-xl">
                 "{currentReview.text}"
               </p>
-
             </div>
-          </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-center gap-6 mt-10">
-            <button
-              onClick={handlePrev}
-              className="w-12 h-12 bg-[#3171FF] text-white rounded-full flex items-center justify-center text-2xl hover:bg-[#1E5CE5] transition shadow-md hover:shadow-xl cursor-pointer"
+            {/* Nav Buttons (Absolute Positioned for cleaner look) */}
+            <button 
+              onClick={handlePrev} 
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white shadow-md rounded-full flex items-center justify-center text-[#1A5EDB] hover:bg-blue-50 transition cursor-pointer md:-left-14"
             >
-              ‹
+              ❮
             </button>
-            <button
-              onClick={handleNext}
-              className="w-12 h-12 bg-[#3171FF] text-white rounded-full flex items-center justify-center text-2xl hover:bg-[#1E5CE5] transition shadow-md hover:shadow-xl cursor-pointer"
+            <button 
+              onClick={handleNext} 
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white shadow-md rounded-full flex items-center justify-center text-[#1A5EDB] hover:bg-blue-50 transition cursor-pointer md:-right-14"
             >
-              ›
+              ❯
             </button>
           </div>
         </div>
       </section>
 
-      {/* 7. TERMS / INFO SECTION (Dynamic Tabs) */}
-      <section className="max-w-5xl mx-auto py-16 px-6">
-          <div className="flex justify-center gap-8 mb-8 border-b border-gray-200 pb-4">
-              <button 
-                onClick={() => setActiveTab('intro')}
-                className={`text-lg transition-colors ${activeTab === 'intro' ? 'text-blue-600 font-bold border-b-2 border-blue-600' : 'text-gray-500 hover:text-blue-400'}`}
-              >
-                Introduction
-              </button>
-              <button 
-                onClick={() => setActiveTab('eligibility')}
-                className={`text-lg transition-colors ${activeTab === 'eligibility' ? 'text-blue-600 font-bold border-b-2 border-blue-600' : 'text-gray-500 hover:text-blue-400'}`}
-              >
-                Eligibility
-              </button>
-              <button 
-                onClick={() => setActiveTab('documents')}
-                className={`text-lg transition-colors ${activeTab === 'documents' ? 'text-blue-600 font-bold border-b-2 border-blue-600' : 'text-gray-500 hover:text-blue-400'}`}
-              >
-                Documents
-              </button>
+      {/* 7. INFO TABS SECTION */}
+      <section className="max-w-5xl mx-auto py-20 px-6">
+          <div className="flex flex-wrap justify-center gap-4 mb-8 border-b border-gray-200 pb-1">
+             {Object.keys(TAB_CONTENT).map((key) => (
+               <button
+                 key={key}
+                 onClick={() => setActiveTab(key)}
+                 className={`px-6 py-3 text-lg font-medium transition-all duration-200 border-b-4 rounded-t-lg ${
+                   activeTab === key 
+                   ? 'border-[#1A5EDB] text-[#1A5EDB] bg-blue-50' 
+                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                 }`}
+               >
+                 {TAB_CONTENT[key].title}
+               </button>
+             ))}
           </div>
 
-          <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 min-h-[150px]">
-              {activeTab === 'intro' && (
-                  <div className="animate-fade-in">
-                      <h3 className="text-xl font-bold mb-2">Policy Introduction</h3>
-                      <p className="text-gray-700">Bharat Suraksha provides comprehensive coverage designed to protect your family's future. (This content appears when "Introduction" is active).</p>
-                  </div>
-              )}
-
-              {activeTab === 'eligibility' && (
-                  <div className="animate-fade-in">
-                      <h3 className="text-xl font-bold mb-2">Eligibility Criteria</h3>
-                      <p className="text-gray-700">Adults aged 18-65 years are eligible. Dependent children can be covered from 90 days to 25 years.</p>
-                  </div>
-              )}
-
-              {activeTab === 'documents' && (
-                  <div className="animate-fade-in">
-                      <h3 className="text-xl font-bold mb-2">Required Documents</h3>
-                      <p className="text-gray-700">You will need KYC documents (Aadhar/PAN), previous medical records (if any), and a passport-sized photograph.</p>
-                  </div>
-              )}
+          <div className="bg-white p-10 rounded-3xl shadow-lg border border-gray-100 text-center md:text-left animate-fade-in">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">{TAB_CONTENT[activeTab].title}</h3>
+              <p className="text-gray-600 text-lg leading-relaxed">{TAB_CONTENT[activeTab].content}</p>
           </div>
       </section>
 
