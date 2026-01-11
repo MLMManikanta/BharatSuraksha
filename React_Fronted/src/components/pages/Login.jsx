@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Login() {
   return (
     <>
@@ -52,7 +54,7 @@ function Login() {
             </div>
 
             <div className="flex items-center justify-end">
-              <a href="#" className="text-xs font-medium text-[#1A5EDB] hover:text-[#0F3C9F] transition-colors duration-150 underline">Forgot Password?</a>
+              <Link to="#" className="text-xs font-medium text-[#1A5EDB] hover:text-[#0F3C9F] transition-colors duration-150 underline">Forgot Password?</Link>
             </div>
 
           
@@ -65,7 +67,7 @@ function Login() {
 
           <div className="mt-6 sm:mt-8 text-center text-sm text-[#000000] ">
             <p>Insure yourself and family</p>
-            <a href="#" className="font-semibold text-[#1A5EDB] hover:text-[#0F3C9F] transition-colors duration-150 text-lg underline">Get Quote and secure </a>
+            <Link to="#" className="font-semibold text-[#1A5EDB] hover:text-[#0F3C9F] transition-colors duration-150 text-lg underline">Get Quote and secure </Link>
           </div>
         </div>
 
