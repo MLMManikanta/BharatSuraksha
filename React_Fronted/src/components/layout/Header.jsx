@@ -1,13 +1,18 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const navClass = ({ isActive }) =>
+    isActive
+      ? "text-black font-semibold"
+      : "text-[#1A5EDB] hover:text-[#1149AE]";
+
   return (
     <header className="w-full bg-white shadow-md relative z-50">
 
-      {/* Skip to main content (Accessibility) */}
+      {/* Skip to main content */}
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-white focus:text-black focus:px-4 focus:py-2 focus:rounded"
@@ -16,10 +21,7 @@ function Header() {
       </a>
 
       {/* NAV BAR */}
-      <nav
-        className="max-w-7xl mx-auto flex items-center justify-between py-4 px-6"
-        aria-label="Primary navigation"
-      >
+      <nav className="max-w-7xl mx-auto flex items-center justify-between py-4 px-6">
         {/* LOGO */}
         <div className="flex items-center gap-3">
           <img
@@ -36,21 +38,11 @@ function Header() {
 
         {/* DESKTOP LINKS */}
         <div className="hidden md:flex gap-8 text-lg font-medium">
-          <Link to="/" className="text-black hover:text-[#1149AE]">
-            Home
-          </Link>
-          <Link to="/plans" className="text-[#1A5EDB] hover:text-[#1149AE]">
-            Plans
-          </Link>
-          <Link to="/claims" className="text-[#1A5EDB] hover:text-[#1149AE]">
-            Claims
-          </Link>
-          <Link to="/about" className="text-[#1A5EDB] hover:text-[#1149AE]">
-            About Us
-          </Link>
-          <Link to="/contact" className="text-[#1A5EDB] hover:text-[#1149AE]">
-            Contact Us
-          </Link>
+          <NavLink to="/" end className={navClass}>Home</NavLink>
+          <NavLink to="/plans" className={navClass}>Plans</NavLink>
+          <NavLink to="/claims" className={navClass}>Claims</NavLink>
+          <NavLink to="/about" className={navClass}>About Us</NavLink>
+          <NavLink to="/contact" className={navClass}>Contact Us</NavLink>
         </div>
 
         {/* DESKTOP ACTIONS */}
@@ -70,7 +62,6 @@ function Header() {
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="md:hidden flex flex-col gap-1"
-          aria-label="Toggle navigation menu"
           aria-expanded={menuOpen}
         >
           <span className="w-8 h-1 bg-[#1A5EDB] rounded"></span>
@@ -79,24 +70,14 @@ function Header() {
         </button>
       </nav>
 
-      {/* MOBILE MENU (FLOATING – NO OVERLAP) */}
+      {/* MOBILE MENU */}
       {menuOpen && (
-        <div className="absolute top-full left-0 w-full md:hidden bg-white shadow-lg px-6 py-5 space-y-4 text-lg font-medium border-t border-gray-200 transition-all duration-300">
-          <Link to="/" className="block text-black hover:text-[#1149AE]" onClick={() => setMenuOpen(false)}>
-            Home
-          </Link>
-          <Link to="/plans" className="block text-[#1A5EDB] hover:text-[#1149AE]" onClick={() => setMenuOpen(false)}>
-            Plans
-          </Link>
-          <Link to="/claims" className="block text-[#1A5EDB] hover:text-[#1149AE]" onClick={() => setMenuOpen(false)}>
-            Claims
-          </Link>
-          <Link to="/about" className="block text-[#1A5EDB] hover:text-[#1149AE]" onClick={() => setMenuOpen(false)}>
-            About Us
-          </Link>
-          <Link to="/contact" className="block text-[#1A5EDB] hover:text-[#1149AE]" onClick={() => setMenuOpen(false)}>
-            Contact Us
-          </Link>
+        <div className="absolute top-full left-0 w-full md:hidden bg-white shadow-lg px-6 py-5 space-y-4 text-lg font-medium border-t border-gray-200">
+          <NavLink to="/" end className={navClass} onClick={() => setMenuOpen(false)}>Home</NavLink>
+          <NavLink to="/plans" className={navClass} onClick={() => setMenuOpen(false)}>Plans</NavLink>
+          <NavLink to="/claims" className={navClass} onClick={() => setMenuOpen(false)}>Claims</NavLink>
+          <NavLink to="/about" className={navClass} onClick={() => setMenuOpen(false)}>About Us</NavLink>
+          <NavLink to="/contact" className={navClass} onClick={() => setMenuOpen(false)}>Contact Us</NavLink>
 
           <hr className="border-gray-300" />
 
