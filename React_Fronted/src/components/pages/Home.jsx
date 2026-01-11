@@ -96,7 +96,7 @@ function Home() {
       </section>
 
       {/* 2. STATS SECTION */}
-      <section className="max-w-7xl mx-auto py-16 px-6">
+      <section className=" px-6 py-20  bg-[#F0F6FF]">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900">Trusted by Thousands</h2>
           <p className="text-gray-500 mt-2">Our numbers speak for our commitment</p>
