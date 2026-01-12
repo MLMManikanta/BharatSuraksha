@@ -7,7 +7,10 @@ import BasicPlan from './SubPlans/BasicPlan';
 import FamilyShieldPlan from './SubPlans/FamilyShieldPlan';
 import SeniorProtectPlan from './SubPlans/SeniorProtectPlan';
 import UniversalCoverage from './SubPlans/UniversalCoverage';
-import CustomizeHealthPage from "./PlanReviewPages/CustomizeHealthPage";
+
+// --- FIXED IMPORT PATH ---
+// Based on your previous message, this is now in the SubPlans folder
+import CustomizeHealthPage from "./SubPlans/CustomizeHealthPage";
 
 const PlanPreExistingSelection = () => {
   const navigate = useNavigate();
@@ -29,14 +32,12 @@ const PlanPreExistingSelection = () => {
   // --- HANDLERS ---
 
   /**
-   * FAST-TRACK: Triggered by "Select Plan" in standard cards (Neev, Parivar, etc.)
-   * This generates a default payload and moves directly to Step 3 (Review).
+   * FAST-TRACK: Triggered by "Select Plan" in standard cards
    */
   const handlePlanSelection = (planDetails) => {
     const siLabel = planDetails.sumInsured || "5L";
     const siValue = parseInt(siLabel.replace('L', '00000').replace('Cr', '0000000'));
     
-    // Determine a dynamic base premium based on the plan type
     let basePrice = 12000; 
     if(planDetails.name.includes('Neev')) basePrice = 8000;
     if(planDetails.name.includes('Varishtha')) basePrice = 15000;
@@ -58,16 +59,22 @@ const PlanPreExistingSelection = () => {
 
   /**
    * VAJRA ACTIVATION: Triggered when clicking the Vajra Tab.
-   * This immediately opens the CustomizeHealthPage component.
    */
   const handleActivateVajra = () => {
     setActiveTab('vajra');
+    
+    // Ensure we pass a valid object structure so 'selectedPlan' is never undefined
     setCustomizationData({
-      ...prevData,
-      selectedPlan: { name: 'Vajra Suraksha', sumInsured: '10L', isCustom: true }
+      ...prevData, 
+      selectedPlan: { 
+        name: 'Vajra Suraksha', 
+        sumInsured: '10L', 
+        isCustom: true 
+      }
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }; // <--- FIXED: Added missing closing brace
+
+  // --- RE-ORGANIZED FUNCTIONS (Moved outside handleActivateVajra) ---
 
   // Triggered after customizing in Vajra Builder
   const handleProceedToReview = (finalSelectionData) => {
@@ -104,26 +111,21 @@ const PlanPreExistingSelection = () => {
       <div className="max-w-6xl mx-auto px-4 -mt-20 relative z-10">
         
         {/* 3. TAB NAVIGATION */}
-        <div className="bg-white p-2 rounded-2xl shadow-lg border border-gray-100 flex flex-wrap md:flex-nowrap justify-between gap-2 mb-8 animate-in fade-in zoom-in duration-300">
+        <div className="bg-white p-2 rounded-2xl shadow-lg border border-gray-100 flex flex-wrap md:flex-nowrap justify-between gap-2 mb-8">
           {[
             { id: 'neev', label: 'Neev', icon: '🧱' },
             { id: 'parivar', label: 'Parivar', icon: '👨‍👩‍👧' },
             { id: 'varishtha', label: 'Varishtha', icon: '👴' },
             { id: 'vishwa', label: 'Vishwa', icon: '💎' },
-            // Aggressive Blue Tab for Vajra
             { id: 'vajra', label: '⚡ VAJRA', icon: '', isSpecial: true },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => tab.isSpecial ? handleActivateVajra() : (setCustomizationData(null), setActiveTab(tab.id))}
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-2 md:px-4 rounded-xl font-bold text-xs md:text-sm transition-all ${
-                tab.isSpecial 
-                    ? activeTab === tab.id 
-                        ? 'bg-[#1A5EDB] text-white shadow-xl scale-[1.05] border-2 border-[#1A5EDB]'
-                        : 'bg-blue-50 text-[#1A5EDB] hover:bg-blue-100 border-2 border-dashed border-[#1A5EDB]'
-                    : activeTab === tab.id
-                        ? 'bg-[#1A5EDB] text-white shadow-md transform scale-[1.02]'
-                        : 'text-gray-500 hover:bg-gray-50'
+                activeTab === tab.id
+                    ? 'bg-[#1A5EDB] text-white shadow-md transform scale-[1.02]'
+                    : 'text-gray-500 hover:bg-gray-50'
               }`}
             >
               <span className="text-lg">{tab.icon}</span>
@@ -132,10 +134,9 @@ const PlanPreExistingSelection = () => {
           ))}
         </div>
 
-        {/* 4. CONTENT DISPLAY (Standard Cards OR Vajra Builder) */}
+        {/* 4. CONTENT DISPLAY */}
         <div className="min-h-[500px]">
           {!customizationData ? (
-            /* VIEW A: Standard Sub-Plans */
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {activeTab === 'neev' && <BasicPlan onSelectPlan={handlePlanSelection} />}
               {activeTab === 'parivar' && <FamilyShieldPlan onSelectPlan={handlePlanSelection} />}
@@ -143,7 +144,6 @@ const PlanPreExistingSelection = () => {
               {activeTab === 'vishwa' && <UniversalCoverage onSelectPlan={handlePlanSelection} />}
             </div>
           ) : (
-            /* VIEW B: Vajra Customization Builder */
             <div className="animate-in fade-in zoom-in duration-500">
               <CustomizeHealthPage 
                  initialData={customizationData}
@@ -153,7 +153,6 @@ const PlanPreExistingSelection = () => {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

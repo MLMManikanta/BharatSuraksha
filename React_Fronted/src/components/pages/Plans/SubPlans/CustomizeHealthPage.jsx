@@ -50,13 +50,16 @@ const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
     { id: 'maternity_boost', label: 'Maternity Booster', desc: 'Up to ₹3L Worldwide Limit', icon: '🤰', active: false, price: 12000 }
   ];
 
-  // --- 2. HELPERS ---
-  const getInitialIndex = () => {
-    if (!initialData?.selectedPlan?.sumInsured) return 0; 
-    const targetLabel = initialData.selectedPlan.sumInsured.replace(/[₹\s]/g, ''); 
-    const idx = sumInsuredSteps.findIndex(s => s.label.includes(targetLabel));
-    return idx !== -1 ? idx : 0;
-  };
+ // --- 2. HELPERS ---
+const getInitialIndex = () => {
+  if (!initialData || !initialData.selectedPlan || !initialData.selectedPlan.sumInsured) {
+    return 0; 
+  }
+  
+  const targetLabel = initialData.selectedPlan.sumInsured.replace(/[₹\s]/g, ''); 
+  const idx = sumInsuredSteps.findIndex(s => s.label.includes(targetLabel));
+  return idx !== -1 ? idx : 0;
+};
 
   // --- 3. STATE ---
   const [sliderIndex, setSliderIndex] = useState(getInitialIndex()); 
@@ -180,9 +183,6 @@ const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
                 </p>
              </div>
          </div>
-         <button onClick={onBack} className="text-sm font-bold text-blue-200 hover:text-white transition-colors bg-white/10 px-3 py-1 rounded">
-            ✕ Abort
-         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
