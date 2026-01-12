@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
 const UniversalCoverage = ({ onSelectPlan }) => {
-  const [view, setView] = useState('covered'); // State to toggle views
-  const [selectedSumInsured, setSelectedSumInsured] = useState('1Cr'); // Default Sum Insured
+  const [view, setView] = useState('covered');
+  const [selectedSumInsured, setSelectedSumInsured] = useState('1Cr'); 
 
-  // Data: Features (What is covered)
+  // --- 1. FEATURES LIST (Global/Premium Focused) ---
   const features = [
     { title: "Global Coverage", icon: "🌍" },
     { title: "100% Claim Coverage", icon: "💯" }, 
@@ -24,7 +24,7 @@ const UniversalCoverage = ({ onSelectPlan }) => {
     { title: "Lifelong Renewal", icon: "♾️" },
   ];
 
-  // Data: Exclusions (What is NOT covered)
+  // --- 2. EXCLUSIONS LIST ---
   const exclusions = [
     { title: "Adventure Sport Injuries", icon: "🪂" },
     { title: "Self-Inflicted Injuries", icon: "🤕" },
@@ -35,21 +35,23 @@ const UniversalCoverage = ({ onSelectPlan }) => {
   ];
 
   const handleSelect = () => {
+      // Pass selected plan details to parent
       if (onSelectPlan) {
-          onSelectPlan({ name: 'Universal Coverage Plan', sumInsured: selectedSumInsured });
+          onSelectPlan({ name: 'Vishwa Suraksha', sumInsured: selectedSumInsured });
       }
   };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
-      {/* 1. HEADER */}
+      {/* 1. HEADER with Dropdown (Emerald Theme) */}
       <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="absolute top-0 right-0 bg-[#1A5EDB] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl shadow-sm">PREMIUM</div>
+        
+
         <div className="flex items-start gap-5">
           <div className="text-5xl">💎</div>
           <div>
-            <h2 className="text-2xl font-bold text-[#1A5EDB]">Universal Coverage Plan</h2>
+            <h2 className="text-2xl font-bold text-emerald-700">Vishwa Suraksha</h2>
             <p className="text-gray-600 mt-1 max-w-xl text-sm">
               Experience borderless healthcare. Coverage up to ₹99Cr with global validity.
             </p>
@@ -61,7 +63,7 @@ const UniversalCoverage = ({ onSelectPlan }) => {
             <select
                 value={selectedSumInsured}
                 onChange={(e) => setSelectedSumInsured(e.target.value)}
-                className="p-2 border border-emerald-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white text-gray-800 font-medium"
+                className="p-2 border border-emerald-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-emerald-900 font-medium"
             >
                 <option value="50L">₹50 Lakhs</option>
                 <option value="1Cr">₹1 Crore</option>
@@ -71,7 +73,7 @@ const UniversalCoverage = ({ onSelectPlan }) => {
             </select>
             <button
                 onClick={handleSelect}
-                className="bg-[#1A5EDB] text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors duration-300 w-full sm:w-auto shadow-md shadow-blue-200"
+                className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-emerald-700 transition-colors duration-300 w-full sm:w-auto shadow-md shadow-emerald-200"
             >
                 Select Plan
             </button>
@@ -91,7 +93,7 @@ const UniversalCoverage = ({ onSelectPlan }) => {
           <button
             onClick={() => setView('covered')}
             className={`relative z-10 px-8 py-2.5 rounded-lg text-sm font-bold transition-colors duration-300 ${
-              view === 'covered' ? 'text-[#1A5EDB]' : 'text-gray-500 hover:text-gray-700'
+              view === 'covered' ? 'text-emerald-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             ✅ What is Covered
@@ -107,7 +109,7 @@ const UniversalCoverage = ({ onSelectPlan }) => {
         </div>
       </div>
 
-      {/* 3. FLEX GRID DISPLAY (CENTERED ITEMS) */}
+      {/* 3. FLEX GRID DISPLAY (Centered Items) */}
       <div className="min-h-[300px]">
         {view === 'covered' ? (
           <div className="flex flex-wrap justify-center gap-4 animate-in fade-in zoom-in-95 duration-300">

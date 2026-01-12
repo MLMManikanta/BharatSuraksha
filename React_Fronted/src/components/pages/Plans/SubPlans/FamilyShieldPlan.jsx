@@ -1,28 +1,28 @@
 import React, { useState } from 'react';
 
 const FamilyShieldPlan = ({ onSelectPlan }) => {
-  const [view, setView] = useState('covered'); // State to toggle views
-  const [selectedSumInsured, setSelectedSumInsured] = useState('10L'); // Default Sum Insured
+  const [view, setView] = useState('covered');
+  const [selectedSumInsured, setSelectedSumInsured] = useState('10L'); 
 
-  // Data: Features matches your screenshot exactly
+  // --- 1. FEATURES LIST (Family/Parivar Focused) ---
   const features = [
     { title: "Any Room Category", icon: "🛏️" },
-    { title: "Maternity Coverage (Up to ₹2L)", icon: "🤰" }, // Updated limit
+    { title: "Maternity Coverage (Up to ₹2L)", icon: "🤰" },
     { title: "Newborn Baby Cover Expenses", icon: "👶" },
     { title: "100% Restoration of Cover", icon: "🔄" },
     { title: "Free Annual Health Checkup", icon: "🩺" },
     { title: "Sum Insured: ₹10L to Unlimited", icon: "💰" },
-    { title: "100% Claim Coverage", icon: "💯" }, // Added
+    { title: "100% Claim Coverage", icon: "💯" },
     { title: "Day Care Procedures", icon: "💊" },
     { title: "Pre & Post Hospitalization", icon: "📄" },
     { title: "No Claim Bonus (50% per year)", icon: "📈" },
     { title: "Ayush Treatment (Ayurveda/Homeo)", icon: "🌿" },
     { title: "Ambulance Charges", icon: "🚑" },
-    { title: "Discount on Renewal", icon: "🏷️" }, // Added
-    { title: "Non-Deductible Items Covered", icon: "🧾" }, // Added
+    { title: "Discount on Renewal", icon: "🏷️" },
+    { title: "Non-Deductible Items Covered", icon: "🧾" },
   ];
 
-  // Data: Exclusions (What is NOT covered)
+  // --- 2. EXCLUSIONS LIST ---
   const exclusions = [
     { title: "Infertility / IVF Treatments", icon: "🧬" },
     { title: "Cosmetic & Plastic Surgery", icon: "💄" },
@@ -33,21 +33,27 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
   ];
 
   const handleSelect = () => {
+      // Pass selected plan details to parent component
       if (onSelectPlan) {
-          onSelectPlan({ name: 'Family Shield Plan', sumInsured: selectedSumInsured });
+          onSelectPlan({ name: 'Parivar Suraksha', sumInsured: selectedSumInsured });
       }
   };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
-      {/* 1. HEADER */}
+      {/* 1. HEADER with Dropdown (Purple Theme) */}
       <div className="bg-purple-50 border border-purple-100 rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="absolute top-0 right-0 bg-[#1A5EDB] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl shadow-sm">BEST SELLER</div>
+        
+        {/* Badge */}
+        <div className="absolute top-0 right-0 bg-purple-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl shadow-sm">
+            BEST SELLER
+        </div>
+
         <div className="flex items-start gap-5">
           <div className="text-5xl">👨‍👩‍👧</div>
           <div>
-            <h2 className="text-2xl font-bold text-[#1A5EDB]">Family Shield Plan</h2>
+            <h2 className="text-2xl font-bold text-purple-700">Parivar Suraksha</h2>
             <p className="text-gray-600 mt-1 max-w-xl text-sm">
               Complete protection for your loved ones. Now includes coverage for any room category, newborn expenses, and non-deductibles.
             </p>
@@ -59,7 +65,7 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
             <select
                 value={selectedSumInsured}
                 onChange={(e) => setSelectedSumInsured(e.target.value)}
-                className="p-2 border border-purple-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-purple-900 font-medium"
+                className="p-2 border border-purple-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white font-medium"
             >
                 <option value="10L">₹10 Lakhs</option>
                 <option value="15L">₹15 Lakhs</option>
@@ -69,7 +75,7 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
             </select>
             <button
                 onClick={handleSelect}
-                className="bg-[#1A5EDB] text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors duration-300 w-full sm:w-auto shadow-md shadow-blue-200"
+                className="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-purple-700 transition-colors duration-300 w-full sm:w-auto shadow-md shadow-purple-200"
             >
                 Select Plan
             </button>
@@ -89,7 +95,7 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
           <button
             onClick={() => setView('covered')}
             className={`relative z-10 px-8 py-2.5 rounded-lg text-sm font-bold transition-colors duration-300 ${
-              view === 'covered' ? 'text-[#1A5EDB]' : 'text-gray-500 hover:text-gray-700'
+              view === 'covered' ? 'text-purple-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             ✅ What is Covered
@@ -108,7 +114,6 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
       {/* 3. FLEX GRID DISPLAY (Centered Items) */}
       <div className="min-h-[300px]">
         {view === 'covered' ? (
-          // Using Flex + Justify Center to handle the last row alignment perfectly
           <div className="flex flex-wrap justify-center gap-4 animate-in fade-in zoom-in-95 duration-300">
             {features.map((item, idx) => (
               <div 

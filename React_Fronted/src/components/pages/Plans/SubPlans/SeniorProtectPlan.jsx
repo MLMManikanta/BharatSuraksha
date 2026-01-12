@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
 const SeniorProtectPlan = ({ onSelectPlan }) => {
-  const [view, setView] = useState('covered'); // State to toggle views
-  const [selectedSumInsured, setSelectedSumInsured] = useState('5L'); // Default Sum Insured
+  const [view, setView] = useState('covered');
+  const [selectedSumInsured, setSelectedSumInsured] = useState('5L'); 
 
-  // Data: Features (What is covered)
+  // --- 1. FEATURES LIST (Senior Focused) ---
   const features = [
     { title: "Tele-OPD Consultations", icon: "📞" },
     { title: "Copay Starting @ 5%", icon: "📉" },
@@ -22,7 +22,7 @@ const SeniorProtectPlan = ({ onSelectPlan }) => {
     { title: "Lifelong Renewal", icon: "♾️" },
   ];
 
-  // Data: Exclusions (What is NOT covered)
+  // --- 2. EXCLUSIONS LIST ---
   const exclusions = [
     { title: "Adventure Sport Injuries", icon: "🪂" },
     { title: "Self-Inflicted Injuries", icon: "🤕" },
@@ -34,22 +34,27 @@ const SeniorProtectPlan = ({ onSelectPlan }) => {
 
   const handleSelect = () => {
       if (onSelectPlan) {
-          onSelectPlan({ name: 'Senior Protect Plan', sumInsured: selectedSumInsured });
+          onSelectPlan({ name: 'Varishtha Suraksha', sumInsured: selectedSumInsured });
       }
   };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
-      {/* 1. HEADER */}
+      {/* 1. HEADER with Dropdown (Orange Theme) */}
       <div className="bg-orange-50 border border-orange-100 rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="absolute top-0 right-0 bg-[#1A5EDB] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl shadow-sm">SENIOR SPECIAL</div>
+        
+        {/* Badge */}
+        <div className="absolute top-0 right-0 bg-orange-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl shadow-sm">
+            SENIOR SPECIAL
+        </div>
+
         <div className="flex items-start gap-5">
           <div className="text-5xl">👴</div>
           <div>
-            <h2 className="text-2xl font-bold text-[#1A5EDB]">Senior Protect Plan</h2>
+            <h2 className="text-2xl font-bold text-orange-700">Varishtha Suraksha</h2>
             <p className="text-gray-600 mt-1 max-w-xl text-sm">
-              Designed for ages 60+. drastically reduced waiting periods and flexible copay options.
+              Designed for ages 60+. Reduced waiting periods and flexible copay options.
             </p>
           </div>
         </div>
@@ -59,7 +64,7 @@ const SeniorProtectPlan = ({ onSelectPlan }) => {
             <select
                 value={selectedSumInsured}
                 onChange={(e) => setSelectedSumInsured(e.target.value)}
-                className="p-2 border border-orange-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white text-gray-800 font-medium"
+                className="p-2 border border-orange-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white text-orange-900 font-medium"
             >
                 <option value="5L">₹5 Lakhs</option>
                 <option value="10L">₹10 Lakhs</option>
@@ -69,7 +74,7 @@ const SeniorProtectPlan = ({ onSelectPlan }) => {
             </select>
             <button
                 onClick={handleSelect}
-                className="bg-[#1A5EDB] text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors duration-300 w-full sm:w-auto shadow-md shadow-blue-200"
+                className="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-orange-700 transition-colors duration-300 w-full sm:w-auto shadow-md shadow-orange-200"
             >
                 Select Plan
             </button>
@@ -89,7 +94,7 @@ const SeniorProtectPlan = ({ onSelectPlan }) => {
           <button
             onClick={() => setView('covered')}
             className={`relative z-10 px-8 py-2.5 rounded-lg text-sm font-bold transition-colors duration-300 ${
-              view === 'covered' ? 'text-[#1A5EDB]' : 'text-gray-500 hover:text-gray-700'
+              view === 'covered' ? 'text-orange-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             ✅ What is Covered
@@ -105,7 +110,7 @@ const SeniorProtectPlan = ({ onSelectPlan }) => {
         </div>
       </div>
 
-      {/* 3. FLEX GRID DISPLAY (CENTERED ITEMS) */}
+      {/* 3. FLEX GRID DISPLAY (Centered Items) */}
       <div className="min-h-[300px]">
         {view === 'covered' ? (
           <div className="flex flex-wrap justify-center gap-4 animate-in fade-in zoom-in-95 duration-300">
