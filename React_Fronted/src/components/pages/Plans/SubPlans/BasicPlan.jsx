@@ -75,7 +75,7 @@ const BasicPlan = () => {
       </div>
 
       {/* 3. FLEX GRID DISPLAY (CENTERED ITEMS) */}
-      <div className="min-h-[300px]">
+      <div className="min-h-75">
         {view === 'covered' ? (
           <div className="flex flex-wrap justify-center gap-4 animate-in fade-in zoom-in-95 duration-300">
             {features.map((item, idx) => (
