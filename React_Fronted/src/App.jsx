@@ -1,68 +1,57 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// --- LAYOUT & PAGES ---
+// --- 1. LAYOUT & GENERAL PAGES ---
 import Layout from "./components/layout/Layout";
 import Login from "./components/pages/Login";
 import Home from "./components/pages/Home";
 import Aboutus from "./components/pages/Aboutus";
 import ContactUs from "./components/pages/ContactUs";
 
-// --- PLANS PAGES ---
-// 1. Step 1: Member Selection (Entry point)
+// --- 2. PLANS FLOW PAGES ---
+
+// Step 1: Member Selection (Entry point)
 import PlanDetails from "./components/pages/Plans/PlanDetails"; 
 
-// 2. Step 2: Final Plan Selection (Base Plan)
+// Step 2: Final Plan Selection (The 5 Tabs: Neev, Parivar, etc.)
 import PlanPreExistingSelection from "./components/pages/Plans/PlanPreExistingSelection";
 
-// 3. Step 3: Advanced Customization (Riders, Tenure, Sum Insured)
-import CustomizeHealthPage from "./components/pages/Plans/CustomizeHealthPage"; 
-
-// 4. Step 4: Plan Review (Covered/Not Covered & OPD)
-import PlanReviewPage from "./components/pages/Plans/PlanReviewPage"; 
-
-// --- FUTURE STEPS (Uncomment as you create these files) ---
-// import KYCPage from "./components/pages/Plans/KYCPage";             // Step 5
-// import MedicalHistory from "./components/pages/Plans/MedicalHistory"; // Step 6
-// import BankDetails from "./components/pages/Plans/BankDetails";       // Step 7
-// import PaymentPage from "./components/pages/Plans/PaymentPage";       // Step 8
+// Step 3 & 4: Customization & Review (Located in the PlanReviewPages sub-folder)
+// Path: src/components/pages/Plans/PlanReviewPages/
+import CustomizeHealthPage from "./components/pages/Plans/PlanReviewPages/CustomizeHealthPage.jsx"; 
+import PlanReviewPage from "./components/pages/Plans/PlanReviewPages/PlanReviewPage.jsx"; 
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* PUBLIC ROUTES */}
+        {/* --- PUBLIC & HOME ROUTES --- */}
         <Route path="/login" element={<Login />} />
-        
-        {/* MAIN LAYOUT ROUTES */}
         <Route path="/" element={ <Layout> <Home /> </Layout>}/>
         <Route path="/home" element={ <Layout> <Home /> </Layout>}/>
         
-        {/* --- PLANS FLOW --- */}
+        {/* --- INSURANCE PLANS FLOW --- */}
         
-        {/* Step 1: Member Selection */}
+        {/* Step 1: Tell us who to cover */}
         <Route path="/plans" element={ <Layout> <PlanDetails /> </Layout> } />
         <Route path="/plan-details" element={ <Layout> <PlanDetails /> </Layout> } />
 
-        {/* Step 2: Base Plan Selection */}
+        {/* Step 2: Choose the Base Plan (Neev, Parivar, Varishtha, Vishwa, Vajra) */}
         <Route path="/select-plan" element={ <Layout> <PlanPreExistingSelection /> </Layout> } />
 
-        {/* Step 3: Customization (Riders & Logic) */}
+        {/* Step 3: Customize (The Vajra Builder interface) */}
         <Route path="/customize" element={ <Layout> <CustomizeHealthPage /> </Layout> } />
 
-        {/* Step 4: Review Plan (Truth Table & OPD Toggle) */}
+        {/* Step 4: Final Review (Summary and Payment Breakdown) */}
         <Route path="/plan-review" element={ <Layout> <PlanReviewPage /> </Layout> } />
 
-        {/* --- FUTURE ROUTES (Placeholders) --- */}
-        {/* <Route path="/kyc" element={ <Layout> <KYCPage /> </Layout> } /> */}
-        {/* <Route path="/medical" element={ <Layout> <MedicalHistory /> </Layout> } /> */}
-        {/* <Route path="/bank-details" element={ <Layout> <BankDetails /> </Layout> } /> */}
-        {/* <Route path="/payment" element={ <Layout> <PaymentPage /> </Layout> } /> */}
-
-        {/* --- OTHER PAGES --- */}
+        {/* --- ADDITIONAL PAGES --- */}
         <Route path="/about" element={ <Layout> <Aboutus /> </Layout> } />
         <Route path="/contact" element={ <Layout> <ContactUs /> </Layout> } />
 
+        {/* --- ERROR CATCHING --- */}
+        {/* Redirects any invalid URL back to Home */}
+        <Route path="*" element={<Layout><Home /></Layout>} />
       </Routes>
     </BrowserRouter>
   );

@@ -7,9 +7,7 @@ import BasicPlan from './SubPlans/BasicPlan';
 import FamilyShieldPlan from './SubPlans/FamilyShieldPlan';
 import SeniorProtectPlan from './SubPlans/SeniorProtectPlan';
 import UniversalCoverage from './SubPlans/UniversalCoverage';
-
-// --- IMPORT: Customization Component ---
-import CustomizeHealthPage from './CustomizeHealthPage'; 
+import CustomizeHealthPage from "./PlanReviewPages/CustomizeHealthPage";
 
 const PlanPreExistingSelection = () => {
   const navigate = useNavigate();
