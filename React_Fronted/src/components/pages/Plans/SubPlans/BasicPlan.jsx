@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
-const BasicPlan = ({ onSelectPlan }) => { // Accept onSelectPlan prop
+const BasicPlan = ({ onSelectPlan }) => { 
   const [view, setView] = useState('covered');
-  const [selectedSumInsured, setSelectedSumInsured] = useState('5L'); // Default value
+  const [selectedSumInsured, setSelectedSumInsured] = useState('5L'); 
 
-  // ... (features and exclusions arrays remain the same) ...
+  // --- 1. FEATURES LIST (Updated per your request) ---
   const features = [
     { title: "Sum Insured: ₹3L - ₹5L", icon: "💰" },
     { title: "Room Rent: 1% of Sum Insured", icon: "🏥" },
@@ -20,6 +20,7 @@ const BasicPlan = ({ onSelectPlan }) => { // Accept onSelectPlan prop
     { title: "Lifelong Renewal", icon: "♾️" },
   ];
 
+  // --- 2. EXCLUSIONS LIST (Updated per your request) ---
   const exclusions = [
     { title: "Global Coverage", icon: "🌍" },
     { title: "Air Ambulance", icon: "🚁" },
@@ -32,7 +33,7 @@ const BasicPlan = ({ onSelectPlan }) => { // Accept onSelectPlan prop
   const handleSelect = () => {
       // Pass selected plan details to parent component for navigation
       if (onSelectPlan) {
-          onSelectPlan({ name: 'Basic Care Plan', sumInsured: selectedSumInsured });
+          onSelectPlan({ name: 'Neev Suraksha', sumInsured: selectedSumInsured });
       }
   };
 
@@ -40,13 +41,13 @@ const BasicPlan = ({ onSelectPlan }) => { // Accept onSelectPlan prop
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
       {/* 1. HEADER with Dropdown */}
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-cyan-50 border border-cyan-100 rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-start gap-5">
-          <div className="text-5xl">👤</div>
+          <div className="text-5xl">🧱</div>
           <div>
-            <h2 className="text-2xl font-bold text-[#1A5EDB]">Basic Care Plan</h2>
+            <h2 className="text-2xl font-bold text-cyan-700">Neev Suraksha</h2>
             <p className="text-gray-600 mt-1 max-w-xl text-sm">
-              Perfect for individuals just starting out. Essential coverage at an affordable price.
+              The solid foundation for your health. Essential coverage at an affordable price.
             </p>
           </div>
         </div>
@@ -56,7 +57,7 @@ const BasicPlan = ({ onSelectPlan }) => { // Accept onSelectPlan prop
             <select
                 value={selectedSumInsured}
                 onChange={(e) => setSelectedSumInsured(e.target.value)}
-                className="p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="p-2 border border-cyan-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 bg-white font-medium"
             >
                 <option value="3L">₹3 Lakhs</option>
                 <option value="4L">₹4 Lakhs</option>
@@ -64,14 +65,14 @@ const BasicPlan = ({ onSelectPlan }) => { // Accept onSelectPlan prop
             </select>
             <button
                 onClick={handleSelect}
-                className="bg-[#1A5EDB] text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors duration-300 w-full sm:w-auto"
+                className="bg-cyan-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-cyan-700 transition-colors duration-300 w-full sm:w-auto shadow-md"
             >
                 Select Plan
             </button>
         </div>
       </div>
 
-      {/* 2. TOGGLE SWITCH ... (rest of the code remains the same) */}
+      {/* 2. TOGGLE SWITCH */}
        <div className="flex justify-center">
         <div className="bg-gray-100 p-1.5 rounded-xl inline-flex relative">
           {/* Slider Background Animation */}
@@ -84,7 +85,7 @@ const BasicPlan = ({ onSelectPlan }) => { // Accept onSelectPlan prop
           <button
             onClick={() => setView('covered')}
             className={`relative z-10 px-8 py-2.5 rounded-lg text-sm font-bold transition-colors duration-300 ${
-              view === 'covered' ? 'text-[#1A5EDB]' : 'text-gray-500 hover:text-gray-700'
+              view === 'covered' ? 'text-cyan-700' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             ✅ What is Covered
@@ -100,14 +101,14 @@ const BasicPlan = ({ onSelectPlan }) => { // Accept onSelectPlan prop
         </div>
       </div>
 
-      {/* 3. FLEX GRID DISPLAY (CENTERED ITEMS) ... (rest of the code remains the same) */}
+      {/* 3. FLEX GRID DISPLAY (CENTERED ITEMS) */}
       <div className="min-h-75">
         {view === 'covered' ? (
           <div className="flex flex-wrap justify-center gap-4 animate-in fade-in zoom-in-95 duration-300">
             {features.map((item, idx) => (
               <div
                 key={idx}
-                className="w-[45%] md:w-[30%] lg:w-[22%] flex flex-col items-center text-center p-4 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300 group"
+                className="w-[45%] md:w-[30%] lg:w-[22%] flex flex-col items-center text-center p-4 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-cyan-200 transition-all duration-300 group"
               >
                 <div className="text-4xl mb-3 group-hover:scale-110 transition-transform cursor-default">
                   {item.icon}

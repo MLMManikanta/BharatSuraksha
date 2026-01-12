@@ -39,7 +39,6 @@ const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
     { id: 'opd', label: 'OPD Care', icon: '🏥', active: false, price: 3000 },
   ];
 
-  // Premium Riders
   const initialRiders = [
     { id: 'unlimited_care', label: 'Unlimited Care', desc: 'Never run out of cover.', icon: '♾️', active: false, price: 25000 },
     { id: 'chronic_care', label: 'Chronic Care', desc: 'Day 1 cover for managed conditions', icon: '💊', active: false, price: 4000, isMultiSelect: true, selectedConditions: ['Diabetes'] },
@@ -51,7 +50,7 @@ const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
     { id: 'maternity_boost', label: 'Maternity Booster', desc: 'Up to ₹3L Worldwide Limit', icon: '🤰', active: false, price: 12000 }
   ];
 
-  // --- HELPERS ---
+  // --- 2. HELPERS ---
   const getInitialIndex = () => {
     if (!initialData?.selectedPlan?.sumInsured) return 0; 
     const targetLabel = initialData.selectedPlan.sumInsured.replace(/[₹\s]/g, ''); 
@@ -59,7 +58,7 @@ const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
     return idx !== -1 ? idx : 0;
   };
 
-  // --- STATE ---
+  // --- 3. STATE ---
   const [sliderIndex, setSliderIndex] = useState(getInitialIndex()); 
   const [roomRent, setRoomRent] = useState("private");
   const [preHospitalization, setPreHospitalization] = useState(60);
@@ -93,7 +92,7 @@ const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
     }));
   }, [sliderIndex, tenure, isBaseUnlimited]); 
 
-  // --- HANDLERS ---
+  // --- 4. HANDLERS ---
   const toggleFeature = (id) => {
     setFeatures(prev => prev.map(f => (f.isDisabledByBase ? f : f.id === id ? { ...f, active: !f.active } : f)));
   };
@@ -144,37 +143,47 @@ const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
     return Math.round(base);
   };
 
-  const handleBuyNow = () => {
-      onProceed({
+  const handleSelection = () => {
+      // Package data specifically as Review Page expects it
+      const selectionData = {
+          selectedPlan: {
+              ...initialData.selectedPlan,
+              name: 'Vajra Suraksha'
+          },
           sumInsured: sumInsuredSteps[sliderIndex],
           roomRent: roomRentOptions.find(r => r.value === roomRent),
           hospitalization: { pre: preHospitalization, post: postHospitalization },
           tenure: tenure,
           activeFeatures: features.filter(f => f.active),
           activeRiders: riders.filter(r => r.active),
-          basePremium: calculatePremium()
-      });
+          basePremium: calculatePremium() // returns Number
+      };
+
+      if (onProceed) {
+          onProceed(selectionData);
+      }
   };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
       
-      {/* --- AGGRESSIVE VAJRA HEADER START --- */}
-      <div className="flex justify-between items-center mb-6 px-4 py-4 bg-gradient-to-r from-[#1F2937] to-[#111827] rounded-xl text-white shadow-lg border-b-4 border-[#EA580C]">
+      {/* --- POLISHED BLUE AGGRESSIVE HEADER --- */}
+      <div className="flex justify-between items-center mb-6 px-4 py-4 bg-gradient-to-r from-[#0f172a] to-[#1e3a8a] rounded-xl text-white shadow-lg border-b-4 border-[#1A5EDB]">
          <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-[#EA580C] rounded-full flex items-center justify-center text-xl shadow shadow-orange-500/50">⚡</div>
+             <div className="w-10 h-10 bg-[#1A5EDB] rounded-full flex items-center justify-center text-xl shadow shadow-blue-500/50">⚡</div>
              <div>
                 <h2 className="text-xl font-black uppercase tracking-widest italic">
                     {initialData?.selectedPlan?.isCustom ? 'Vajra Suraksha Builder' : `Modify ${initialData?.selectedPlan?.name}`}
                 </h2>
-                <p className="text-xs text-gray-400 font-bold">Forged for {initialData?.user?.fullName || 'You'}</p>
+                <p className="text-xs font-bold text-blue-200 uppercase tracking-wide">
+                    Configure your ultimate shield. No compromises, just pure protection.
+                </p>
              </div>
          </div>
-         <button onClick={onBack} className="text-sm font-bold text-gray-400 hover:text-white transition-colors bg-white/10 px-3 py-1 rounded">
+         <button onClick={onBack} className="text-sm font-bold text-blue-200 hover:text-white transition-colors bg-white/10 px-3 py-1 rounded">
             ✕ Abort
          </button>
       </div>
-      {/* --- AGGRESSIVE HEADER END --- */}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
@@ -273,10 +282,6 @@ const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
                     <h3 className={`text-xs font-bold leading-tight ${feature.active ? 'text-[#1A5EDB]' : 'text-slate-700'}`}>
                       {feature.label}
                     </h3>
-                    
-                    {feature.isDisabledByBase && (
-                        <span className="text-[9px] text-green-600 font-bold block mt-1">Included in Unlimited</span>
-                    )}
                   </div>
                 );
               })}
@@ -289,91 +294,32 @@ const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
               <span className="w-8 h-8 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center text-xl">🚀</span> 
               Premium Riders & Boosters
             </h2>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {riders.map((rider) => {
-                const isTenureDisabled = rider.minTenure && tenure < rider.minTenure; 
-                const isBaseDisabled = rider.isDisabledByBase; 
-                const isDisabled = isTenureDisabled || isBaseDisabled;
-                
-                let displayDesc = rider.desc;
-                if(rider.id === 'flexi_year' && tenure > 1) {
-                    displayDesc = `Use ${tenure}x coverage amount in 1st Year`;
-                }
-
+                const isDisabled = (rider.minTenure && tenure < rider.minTenure) || rider.isDisabledByBase;
                 return (
                   <div 
                     key={rider.id}
                     onClick={() => !isDisabled && toggleRider(rider.id)}
-                    className={`relative p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-stretch gap-2 ${
+                    className={`relative p-4 rounded-xl border-2 transition-all duration-200 flex flex-col gap-2 ${
                       isDisabled ? 'opacity-60 bg-gray-50 border-gray-100 cursor-not-allowed' :
-                      rider.active ? 'border-teal-500 bg-teal-50 cursor-pointer' : 'border-gray-200 hover:border-teal-200 hover:bg-teal-50/30 cursor-pointer'
+                      rider.active ? 'border-teal-500 bg-teal-50 cursor-pointer' : 'border-gray-200 hover:border-teal-200 cursor-pointer'
                     }`}
                   >
                     <div className="flex items-start gap-4">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 ${
-                          rider.active ? 'bg-teal-100 text-teal-600' : 'bg-gray-100 text-gray-500'
-                        }`}>
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 ${rider.active ? 'bg-teal-100 text-teal-600' : 'bg-gray-100 text-gray-500'}`}>
                           {rider.icon}
                         </div>
-
                         <div className="flex-1">
                           <h3 className={`font-bold ${rider.active ? 'text-teal-700' : 'text-slate-700'}`}>{rider.label}</h3>
-                          <p className="text-xs text-gray-500 mt-1 leading-relaxed">{displayDesc}</p>
-                          
-                          {isBaseDisabled && (
-                              <span className="text-[10px] font-bold text-green-600 mt-1 block">Not needed for Unlimited Plan</span>
-                          )}
-                          {isTenureDisabled && !isBaseDisabled && (
-                              <span className="text-[10px] font-bold text-red-500 mt-1 block">Requires {rider.minTenure}+ Year Tenure</span>
-                          )}
-
-                          {!isDisabled && (
-                              <p className={`text-xs font-bold mt-2 ${rider.active ? 'text-teal-600' : 'text-gray-400'}`}>
-                                {rider.active ? 'Added (+₹' + rider.price.toLocaleString() + ')' : '+ ₹' + rider.price.toLocaleString()}
-                              </p>
-                          )}
-                        </div>
-
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                          rider.active ? 'border-teal-500 bg-teal-500 text-white' : 'border-gray-300'
-                        }`}>
-                          {rider.active && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
+                          <p className="text-xs text-gray-500 mt-1 leading-relaxed">{rider.desc}</p>
                         </div>
                     </div>
-
-                    {rider.isMultiSelect && rider.active && (
-                       <div className="mt-3 pt-3 border-t border-teal-200 animate-in fade-in zoom-in duration-300">
-                          <label className="text-[10px] font-bold text-teal-600 uppercase mb-2 block flex justify-between">
-                              <span>Select Conditions ({rider.selectedConditions.length})</span>
-                              <span>Price increases with count</span>
-                          </label>
-                          <div className="flex flex-wrap gap-2">
-                             {chronicDiseases.map(disease => {
-                                 const isSelected = rider.selectedConditions.includes(disease);
-                                 return (
-                                     <button
-                                         key={disease}
-                                         onClick={(e) => toggleChronicCondition(disease, e)}
-                                         className={`px-3 py-1.5 rounded-full text-[10px] font-bold border transition-all ${
-                                             isSelected 
-                                             ? 'bg-teal-600 text-white border-teal-600 shadow-sm' 
-                                             : 'bg-white text-slate-600 border-gray-300 hover:border-teal-400'
-                                         }`}
-                                      >
-                                           {disease} {isSelected && '✓'}
-                                      </button>
-                                 )
-                             })}
-                          </div>
-                       </div>
-                    )}
                   </div>
                 );
               })}
             </div>
           </div>
-
         </div>
 
         {/* --- RIGHT COLUMN: SUMMARY --- */}
@@ -386,30 +332,7 @@ const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
                 <span className="text-gray-500">Sum Insured</span>
                 <span className="font-bold text-[#1A5EDB] text-lg">{sumInsuredSteps[sliderIndex].label}</span>
               </div>
-              
-              {riders.some(r => r.active) && (
-                  <div className="pt-2 border-t border-dashed border-gray-200">
-                      <span className="text-xs font-bold text-gray-400 uppercase">Active Riders</span>
-                      <div className="flex flex-col gap-2 mt-2">
-                          {riders.filter(r => r.active).map(r => (
-                              <div key={r.id} className="flex flex-col text-[11px] bg-teal-50 p-2 rounded gap-1">
-                                  <div className="flex justify-between items-center">
-                                     <span className="font-bold text-teal-700">{r.label}</span>
-                                     <span className="text-teal-700 font-bold">+₹{r.price.toLocaleString()}</span>
-                                  </div>
-                                  {r.isMultiSelect && (
-                                     <div className="text-[9px] text-teal-600 flex flex-wrap gap-1">
-                                           {r.selectedConditions.map(c => <span key={c} className="bg-teal-100 px-1 rounded">{c}</span>)}
-                                     </div>
-                                  )}
-                              </div>
-                          ))}
-                      </div>
-                  </div>
-              )}
 
-              <div className="border-t border-dashed border-gray-200 my-2"></div>
-              
               <div className="flex justify-between text-sm items-center">
                 <span className="text-gray-500 font-medium">Policy Tenure</span>
                 <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
@@ -433,8 +356,11 @@ const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
               </div>
             </div>
 
-            <button onClick={handleBuyNow} className="w-full py-4 bg-[#1A5EDB] text-white font-bold rounded-xl shadow-lg hover:bg-[#1149AE] transition-all transform active:scale-[0.98]">
-              Buy Now &rarr;
+            <button 
+              onClick={handleSelection} 
+              className="w-full py-4 bg-[#1A5EDB] text-white font-bold rounded-xl shadow-lg hover:bg-[#1149AE] transition-all transform active:scale-[0.98]"
+            >
+              Select Plan &rarr;
             </button>
           </div>
         </div>
