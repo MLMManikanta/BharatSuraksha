@@ -64,7 +64,7 @@ function Home() {
     <main id="main-content" className="font-sans text-gray-900 bg-white">
       
       {/* 1. HERO SECTION */}
-      <section className="bg-gradient-to-b from-blue-50 to-white py-20 px-6">
+      <section className="bg-linear-to-b from-blue-50 to-white py-20 px-6">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 items-center gap-12">
           <div className="text-center md:text-left">
             <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900">
@@ -274,7 +274,7 @@ function Home() {
       </section>
 
       {/* 6. CUSTOMER REVIEWS */}
-      <section className="bg-gradient-to-b from-[#E7F2FF] to-[#CBE4FF] py-24">
+      <section className="bg-linear-to-b from-[#E7F2FF] to-[#CBE4FF] py-24">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-12">What Our Customers Say 💬</h2>
 
