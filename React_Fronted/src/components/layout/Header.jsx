@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
-// 1. Define links outside component to keep code DRY (Don't Repeat Yourself)
+// 1. Define links outside component to keep code DRY
 const NAV_LINKS = [
   { name: "Home", path: "/" },
   { name: "Plans", path: "/plans" },
@@ -12,14 +12,25 @@ const NAV_LINKS = [
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation(); // Hook to get current URL path
+
+  // Define routes that should keep the "Plans" menu item active
+  const planRelatedRoutes = ["/select-plan", "/plan-details", "/customize"];
 
   // Helper for consistent link styling
-  const getNavClass = ({ isActive }) =>
-    `transition-colors duration-200 ${
-      isActive
+  const getNavClass = ({ isActive, path }) => {
+    // Check if we are on the specific link OR if we are on a related sub-page
+    const isPlanSectionActive = path === "/plans" && planRelatedRoutes.includes(location.pathname);
+    
+    // Final active condition
+    const shouldBeActive = isActive || isPlanSectionActive;
+
+    return `transition-colors duration-200 ${
+      shouldBeActive
         ? "text-black font-bold"
         : "text-[#1A5EDB] hover:text-[#1149AE] font-medium"
     }`;
+  };
 
   return (
     <header className="w-full bg-white shadow-md relative z-50 font-sans">
@@ -34,9 +45,8 @@ function Header() {
 
       <nav className="max-w-7xl mx-auto flex items-center justify-between py-4 px-6">
         
-        {/* LOGO - Wrapped in Link for better UX */}
+        {/* LOGO */}
         <Link to="/" className="flex items-center gap-3 group" aria-label="Bharat Suraksha Home">
-           {/*  - Placeholder context */}
           <img
             src="/images/Logo-circle.png"
             alt="Bharat Suraksha Logo"
@@ -47,10 +57,16 @@ function Header() {
           </span>
         </Link>
 
-        {/* DESKTOP LINKS - Mapped from Array */}
+        {/* DESKTOP LINKS */}
         <div className="hidden md:flex items-center gap-8 text-lg">
           {NAV_LINKS.map((link) => (
-            <NavLink key={link.name} to={link.path} end={link.path === "/"} className={getNavClass}>
+            <NavLink 
+              key={link.name} 
+              to={link.path} 
+              end={link.path === "/"} 
+              // We pass an object to className function, but we also need the 'path' for our custom check
+              className={({ isActive }) => getNavClass({ isActive, path: link.path })}
+            >
               {link.name}
             </NavLink>
           ))}
@@ -69,7 +85,7 @@ function Header() {
           </button>
         </div>
 
-        {/* MOBILE MENU TOGGLE - Accessible Button */}
+        {/* MOBILE MENU TOGGLE */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="md:hidden p-2 text-[#1A5EDB] focus:outline-none focus:ring-2 focus:ring-[#1A5EDB] rounded-md"
@@ -77,12 +93,10 @@ function Header() {
           aria-label={menuOpen ? "Close menu" : "Open menu"}
         >
           {menuOpen ? (
-            // Close Icon (X)
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           ) : (
-            // Hamburger Icon
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
             </svg>
@@ -90,7 +104,7 @@ function Header() {
         </button>
       </nav>
 
-      {/* MOBILE MENU - with Backdrop Blur */}
+      {/* MOBILE MENU */}
       {menuOpen && (
         <div className="absolute top-full left-0 w-full md:hidden bg-white/95 backdrop-blur-md shadow-xl border-t border-gray-100 px-6 py-6 flex flex-col gap-4 animate-in slide-in-from-top-2 duration-200">
           
@@ -99,9 +113,13 @@ function Header() {
               key={link.name}
               to={link.path}
               end={link.path === "/"}
-              className={({ isActive }) => 
-                `text-lg py-2 border-b border-gray-100 ${isActive ? "text-[#1A5EDB] font-bold" : "text-gray-600 font-medium"}`
-              }
+              className={({ isActive }) => {
+                // Duplicate logic for mobile to ensure consistency
+                const isPlanSectionActive = link.path === "/plans" && planRelatedRoutes.includes(location.pathname);
+                const shouldBeActive = isActive || isPlanSectionActive;
+                
+                return `text-lg py-2 border-b border-gray-100 ${shouldBeActive ? "text-[#1A5EDB] font-bold" : "text-gray-600 font-medium"}`;
+              }}
               onClick={() => setMenuOpen(false)}
             >
               {link.name}
