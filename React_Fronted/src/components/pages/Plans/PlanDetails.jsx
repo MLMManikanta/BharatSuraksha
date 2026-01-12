@@ -1,483 +1,266 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import CheckoutStepper from '../../layout/CheckoutStepper';
 
-// --- CUSTOM DATE PICKER COMPONENT ---
-const CustomDatePicker = ({ label, value, onChange, error }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [view, setView] = useState('day'); // 'day', 'month', 'year'
-  const [displayDate, setDisplayDate] = useState(value ? new Date(value) : new Date());
-  const containerRef = useRef(null);
-  const today = new Date();
-
-  // Close calendar when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    if (value) setDisplayDate(new Date(value));
-  }, [value]);
-
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  
-  const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
-  const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
-
-  // Navigation
-  const handlePrev = () => {
-    if (view === 'day') setDisplayDate(new Date(displayDate.getFullYear(), displayDate.getMonth() - 1, 1));
-    if (view === 'month') setDisplayDate(new Date(displayDate.getFullYear() - 1, displayDate.getMonth(), 1));
-    if (view === 'year') setDisplayDate(new Date(displayDate.getFullYear() - 12, displayDate.getMonth(), 1));
-  };
-
-  const handleNext = () => {
-    const nextDate = view === 'day' 
-      ? new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 1)
-      : view === 'month' 
-        ? new Date(displayDate.getFullYear() + 1, displayDate.getMonth(), 1)
-        : new Date(displayDate.getFullYear() + 12, displayDate.getMonth(), 1);
-
-    if (nextDate <= new Date(today.getFullYear() + 1, 0, 1)) { 
-       setDisplayDate(nextDate);
-    }
-  };
-
-  // Selections
-  const selectDate = (day) => {
-    const newDate = new Date(displayDate.getFullYear(), displayDate.getMonth(), day);
-    const offset = newDate.getTimezoneOffset();
-    const adjustedDate = new Date(newDate.getTime() - (offset*60*1000));
-    onChange(adjustedDate.toISOString().split('T')[0]);
-    setIsOpen(false);
-  };
-
-  const selectMonth = (monthIndex) => {
-    setDisplayDate(new Date(displayDate.getFullYear(), monthIndex, 1));
-    setView('day');
-  };
-
-  const selectYear = (year) => {
-    setDisplayDate(new Date(year, displayDate.getMonth(), 1));
-    setView('month');
-  };
-
-  // Renderers
-  const renderDayView = () => {
-    const year = displayDate.getFullYear();
-    const month = displayDate.getMonth();
-    const daysInMonth = getDaysInMonth(year, month);
-    const firstDay = getFirstDayOfMonth(year, month);
-    const days = [];
-
-    for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="h-10"></div>);
-    }
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const currentDate = new Date(year, month, d);
-      const isSelected = value && new Date(value).toDateString() === currentDate.toDateString();
-      const isFuture = currentDate > today; // Disable future dates
-      const dayOfWeek = currentDate.getDay();
-      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-
-      days.push(
-        <button
-          key={d}
-          disabled={isFuture}
-          onClick={() => !isFuture && selectDate(d)}
-          className={`h-10 w-full flex items-center justify-center rounded-xl text-sm font-medium transition-all
-            ${isSelected ? 'border-2 border-purple-600 text-black font-bold' : ''}
-            ${!isSelected && !isFuture && isWeekend ? 'bg-gray-200 text-gray-700' : ''}
-            ${!isSelected && !isFuture && !isWeekend ? 'bg-white hover:bg-blue-50 text-gray-700' : ''}
-            ${isFuture ? 'text-gray-300 cursor-not-allowed' : ''}
-          `}
-        >
-          {d}
-        </button>
-      );
-    }
-
-    return (
-      <div className="p-2">
-        <div className="grid grid-cols-7 mb-2 text-center">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <span key={day} className="text-xs font-bold text-slate-500">{day}</span>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-1 md:gap-2">
-          {days}
-        </div>
-      </div>
-    );
-  };
-
-  const renderMonthView = () => (
-    <div className="grid grid-cols-3 gap-4 p-4">
-      {months.map((m, i) => (
-        <button
-          key={m}
-          onClick={() => selectMonth(i)}
-          className={`py-2 rounded-lg text-sm font-bold transition-colors ${
-            displayDate.getMonth() === i ? 'border-2 border-purple-600 text-black' : 'text-[#1A5EDB] hover:bg-blue-50'
-          }`}
-        >
-          {m}
-        </button>
-      ))}
-    </div>
-  );
-
-  const renderYearView = () => {
-    const currentYear = today.getFullYear();
-    const startYear = displayDate.getFullYear() - 6;
-    const years = [];
-    for (let i = 0; i < 12; i++) {
-      years.push(startYear + i);
-    }
-    return (
-      <div className="grid grid-cols-3 gap-4 p-4">
-        {years.map(y => (
-          <button
-            key={y}
-            disabled={y > currentYear}
-            onClick={() => y <= currentYear && selectYear(y)}
-            className={`py-2 rounded-lg text-sm font-bold transition-colors ${
-              displayDate.getFullYear() === y ? 'border-2 border-purple-600 text-black' : 
-              y > currentYear ? 'text-gray-300 cursor-not-allowed' : 'text-[#1A5EDB] hover:bg-blue-50'
-            }`}
-          >
-            {y}
-          </button>
-        ))}
-      </div>
-    );
-  };
-
-  return (
-    <div className="relative group" ref={containerRef}>
-      <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide group-focus-within:text-[#1A5EDB] transition-colors">
-        {label} <span className="text-red-500">*</span>
-      </label>
-      
-      <div onClick={() => setIsOpen(!isOpen)} className="relative cursor-pointer">
-        <input 
-          type="text" 
-          readOnly
-          value={value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
-          placeholder="Select DOB"
-          className={`w-full pl-4 pr-10 py-3 rounded-xl border ${error ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-white'} text-gray-700 font-medium focus:border-[#1A5EDB] outline-none cursor-pointer`}
-        />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-           </svg>
-        </div>
-      </div>
-      {error && <p className="text-xs text-red-500 mt-1 font-bold">{error}</p>}
-
-      {/* POPUP */}
-      {isOpen && (
-        <div className="absolute z-50 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 animate-in fade-in zoom-in-95 duration-200 left-0 sm:left-auto">
-          <div className="flex items-center justify-between px-2 py-2 mb-2">
-            <button onClick={handlePrev} className="p-1 hover:bg-gray-100 rounded-full text-[#1A5EDB] font-bold">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <div className="flex gap-4 text-[#1A5EDB] font-bold text-base">
-              <button onClick={() => setView('month')} className="hover:underline">{months[displayDate.getMonth()]}</button>
-              <button onClick={() => setView('year')} className="hover:underline">{displayDate.getFullYear()}</button>
-            </div>
-            <button onClick={handleNext} disabled={displayDate > today} className={`p-1 rounded-full font-bold ${displayDate > today ? 'text-gray-300' : 'text-[#1A5EDB] hover:bg-gray-100'}`}>
-               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-            </button>
-          </div>
-          {view === 'day' && renderDayView()}
-          {view === 'month' && renderMonthView()}
-          {view === 'year' && renderYearView()}
-        </div>
-      )}
-    </div>
-  );
-};
-
-
-// --- MAIN PLAN DETAILS ---
 const PlanDetails = () => {
   const navigate = useNavigate();
 
-  // 1. MEMBER SELECTION STATE
-  const [members, setMembers] = useState({
-    self: true,
-    spouse: false,
-    mother: false,
-    father: false,
+  // --- 1. MEMBER SELECTION STATE ---
+  const [memberCounts, setMemberCounts] = useState({
+    self: 1,
+    spouse: 0,
     son: 0,
-    daughter: 0
+    daughter: 0,
+    father: 0,
+    mother: 0,
+    father_in_law: 0,
+    mother_in_law: 0
   });
 
-  // 2. PERSONAL DETAILS STATE
-  const [proposer, setProposer] = useState({
-    name: '',
+  // --- 2. PERSONAL DETAILS STATE ---
+  const [userDetails, setUserDetails] = useState({
+    fullName: '',
     pincode: '',
-    phone: '' 
+    age: ''
   });
 
-  // 3. AGE & DOB STATE
-  const [memberData, setMemberData] = useState({});
+  // --- 3. ERROR STATE ---
+  const [errors, setErrors] = useState({});
 
-  // --- AGE CALCULATION LOGIC ---
-  const calculateAgeDetails = (dobString) => {
-    if (!dobString) return { display: '', value: 0, error: '' };
-    
-    const today = new Date();
-    const birthDate = new Date(dobString);
-    
-    // Calculate raw difference
-    let years = today.getFullYear() - birthDate.getFullYear();
-    let months = today.getMonth() - birthDate.getMonth();
-    
-    // Adjust if current month is earlier than birth month
-    if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
-      years--;
-      months += 12;
-    }
+  // Member Options Configuration
+  const memberOptions = [
+    { id: 'self', label: 'Self', icon: '👤', isMulti: false },
+    { id: 'spouse', label: 'Spouse', icon: '👩‍❤️‍👨', isMulti: false },
+    { id: 'son', label: 'Son', icon: '👦', isMulti: true },
+    { id: 'daughter', label: 'Daughter', icon: '👧', isMulti: true },
+    { id: 'father', label: 'Father', icon: '👴', isMulti: false },
+    { id: 'mother', label: 'Mother', icon: '👵', isMulti: false },
+    { id: 'father_in_law', label: 'Father-in-law', icon: '👴', isMulti: false },
+    { id: 'mother_in_law', label: 'Mother-in-law', icon: '👵', isMulti: false },
+  ];
 
-    // Adjust months if current day is earlier than birth day
-    if (today.getDate() < birthDate.getDate()) {
-        months--;
-    }
+  // --- HANDLERS ---
 
-    // Logic for Infant Validation (< 3 months)
-    const totalMonths = (years * 12) + months;
-    
-    if (totalMonths < 3) {
-        return { display: `${totalMonths} Months`, value: 0, error: 'Min. age 3 months' };
-    }
-
-    // Logic for display (< 1 year shows Months)
-    if (years === 0) {
-        return { display: `${months} Months`, value: 0, error: '' };
-    }
-
-    return { display: `${years} Years`, value: years, error: '' };
-  };
-
-  const handleDobChange = (memberKey, value) => {
-    const { display, error } = calculateAgeDetails(value);
-    setMemberData(prev => ({
-      ...prev,
-      [memberKey]: { dob: value, ageDisplay: display, error: error }
-    }));
-  };
-
-  const toggleMember = (key) => {
-    setMembers(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const updateCount = (key, operation) => {
-    setMembers(prev => ({
-      ...prev,
-      [key]: operation === 'inc' 
-        ? Math.min(prev[key] + 1, 5) 
-        : Math.max(prev[key] - 1, 0)
-    }));
-  };
-
-  const handleNext = () => {
-    // 1. Check Personal Details
-    if (!proposer.name || !proposer.pincode) {
-      alert("Please enter Name and Pincode.");
-      return;
-    }
-
-    // 2. Check if all selected members have DOB and Valid Age
-    let isValid = true;
-    let missingInfo = false;
-
-    // Helper to check a specific member key
-    const checkMember = (key) => {
-        const data = memberData[key];
-        if (!data || !data.dob) {
-            missingInfo = true;
-        } else if (data.error) {
-            isValid = false;
-        }
-    };
-
-    Object.entries(members).forEach(([key, value]) => {
-        if (key === 'son' || key === 'daughter') {
-            for (let i = 0; i < value; i++) checkMember(`${key}_${i}`);
-        } else if (value === true) {
-            checkMember(key);
-        }
+  const toggleMember = (id, isMulti) => {
+    setMemberCounts(prev => {
+      const currentCount = prev[id];
+      if (isMulti) {
+        return { ...prev, [id]: currentCount > 0 ? currentCount : 1 };
+      }
+      return { ...prev, [id]: currentCount === 1 ? 0 : 1 };
     });
+    // Clear member error if selected
+    if (errors.members) setErrors(prev => ({ ...prev, members: '' }));
+  };
 
-    if (missingInfo) {
-        alert("Please enter Date of Birth for all selected members.");
-        return;
+  const updateCount = (e, id, increment) => {
+    e.stopPropagation();
+    setMemberCounts(prev => {
+      const current = prev[id];
+      
+      // LIMIT CHECK: Max 4 Children allowed
+      if (increment && current >= 4) {
+          alert(`You can add a maximum of 4 ${id}s.`);
+          return prev;
+      }
+
+      const newCount = increment ? current + 1 : current - 1;
+      return { ...prev, [id]: Math.max(0, newCount) };
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    // Allow only numbers for pincode and age
+    if ((name === 'pincode' || name === 'age') && isNaN(value)) return;
+    
+    setUserDetails(prev => ({ ...prev, [name]: value }));
+    // Clear specific field error on change
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Check Members
+    const totalMembers = Object.values(memberCounts).reduce((a, b) => a + b, 0);
+    if (totalMembers === 0) newErrors.members = "Please select at least one member.";
+
+    // Check Fields
+    if (!userDetails.fullName.trim()) newErrors.fullName = "Full Name is required.";
+    if (!userDetails.pincode || userDetails.pincode.length !== 6) newErrors.pincode = "Enter a valid 6-digit Pincode.";
+    if (!userDetails.age || parseInt(userDetails.age) < 18 || parseInt(userDetails.age) > 100) newErrors.age = "Valid Age (18-100) is required.";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleContinue = () => {
+    if (validateForm()) {
+      navigate('/select-plan', { 
+        state: { 
+          counts: memberCounts, 
+          user: userDetails 
+        } 
+      });
+    } else {
+        // Scroll to top if errors exist
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-
-    if (!isValid) {
-        alert("Some members are not eligible (Min. age 3 months). Please check errors.");
-        return;
-    }
-
-    navigate('/select-plan', { state: { members, proposer, memberData } });
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 font-sans">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 pb-32">
+      
+      {/* 1. STEPPER */}
+      <CheckoutStepper currentStep={1} />
+
+      <div className="max-w-4xl mx-auto px-4 pt-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         
-        {/* PROGRESS HEADER */}
-        <div className="flex items-center justify-center mb-10">
-          <div className="flex items-center gap-2 text-[#1A5EDB] font-bold">
-            <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm border-2 border-[#1A5EDB] bg-blue-50">1</span>
-            Details
-          </div>
-          <div className="w-16 h-1 mx-4 rounded-full bg-gray-200"></div>
-          <div className="flex items-center gap-2 text-gray-400">
-            <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm border-2 border-gray-300">2</span>
-            Select Plan
-          </div>
+        {/* HEADER */}
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-bold text-slate-800 mb-3">Who would you like to insure?</h1>
+          <p className="text-gray-500 max-w-lg mx-auto">
+            Select the family members you want to cover.
+          </p>
+          {errors.members && (
+             <p className="text-red-500 font-bold mt-2 animate-pulse">{errors.members}</p>
+          )}
         </div>
 
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Tell us about yourself</h1>
-          <p className="text-slate-500 mt-2">We need a few details to calculate your premium accurately.</p>
-        </div>
+        {/* 2. MEMBER SELECTION GRID */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
+          {memberOptions.map((member) => {
+            const count = memberCounts[member.id];
+            const isSelected = count > 0;
 
-        {/* --- SECTION 1: PERSONAL DETAILS --- */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-8">
-          <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-            <span className="w-8 h-8 bg-blue-100 text-[#1A5EDB] rounded-full flex items-center justify-center text-sm">1</span>
-            Proposer Details
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Full Name <span className="text-red-500">*</span></label>
-              <input 
-                type="text" 
-                placeholder="Enter your name"
-                value={proposer.name}
-                onChange={(e) => setProposer({...proposer, name: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A5EDB] focus:ring-4 focus:ring-blue-50 outline-none transition-all font-medium text-gray-700"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Pincode <span className="text-red-500">*</span></label>
-              <input 
-                type="text" 
-                maxLength="6"
-                placeholder="Ex: 560001"
-                value={proposer.pincode}
-                onChange={(e) => setProposer({...proposer, pincode: e.target.value.replace(/\D/g,'')})}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A5EDB] focus:ring-4 focus:ring-blue-50 outline-none transition-all font-medium text-gray-700"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Mobile Number <span className="text-gray-400 font-normal">(Optional)</span></label>
-              <input 
-                type="tel" 
-                maxLength="10"
-                placeholder="9876543210"
-                value={proposer.phone}
-                onChange={(e) => setProposer({...proposer, phone: e.target.value.replace(/\D/g,'')})}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A5EDB] focus:ring-4 focus:ring-blue-50 outline-none transition-all font-medium text-gray-700"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* --- SECTION 2: MEMBER SELECTION --- */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-8">
-          <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-            <span className="w-8 h-8 bg-blue-100 text-[#1A5EDB] rounded-full flex items-center justify-center text-sm">2</span>
-            Select Members
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              { key: 'self', label: 'Self', icon: '👨' },
-              { key: 'spouse', label: 'Spouse', icon: '👩' },
-              { key: 'father', label: 'Father', icon: '👴' },
-              { key: 'mother', label: 'Mother', icon: '👵' },
-            ].map(m => (
-              <div key={m.key} onClick={() => toggleMember(m.key)} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition ${members[m.key] ? 'border-[#1A5EDB] bg-blue-50 shadow-sm' : 'border-gray-200 hover:bg-gray-50'}`}>
-                <div className={`w-10 h-10 rounded-full text-white flex items-center justify-center transition-colors ${members[m.key] ? 'bg-[#1A5EDB]' : 'bg-gray-400'}`}>{m.icon}</div>
-                <span className={`font-bold transition-colors ${members[m.key] ? 'text-[#1A5EDB]' : 'text-slate-700'}`}>{m.label}</span>
-                {members[m.key] && <span className="ml-auto text-[#1A5EDB]">✓</span>}
-              </div>
-            ))}
-            {[{ key: 'son', label: 'Son', icon: '👦' }, { key: 'daughter', label: 'Daughter', icon: '👧' }].map(k => (
-              <div key={k.key} className={`flex items-center justify-between p-4 rounded-xl border transition ${members[k.key] > 0 ? 'border-[#1A5EDB] bg-blue-50 shadow-sm' : 'border-gray-200'}`}>
-                <div className="flex items-center gap-3">
-                   <div className={`w-10 h-10 rounded-full text-white flex items-center justify-center transition-colors ${members[k.key] > 0 ? 'bg-[#1A5EDB]' : 'bg-gray-400'}`}>{k.icon}</div>
-                   <span className={`font-bold transition-colors ${members[k.key] > 0 ? 'text-[#1A5EDB]' : 'text-slate-700'}`}>{k.label}</span>
+            return (
+              <div
+                key={member.id}
+                onClick={() => toggleMember(member.id, member.isMulti)}
+                className={`cursor-pointer rounded-2xl p-6 flex flex-col items-center justify-center gap-3 transition-all duration-300 border-2 shadow-sm relative overflow-hidden
+                  ${isSelected 
+                    ? 'border-[#1A5EDB] bg-blue-50/60 shadow-blue-100 scale-[1.02]' 
+                    : 'border-white bg-white hover:border-gray-200 hover:shadow-md'
+                  }
+                `}
+              >
+                <div className={`text-4xl transition-transform duration-300 ${isSelected ? 'scale-110' : 'grayscale opacity-70'}`}>
+                  {member.icon}
                 </div>
-                <div className="flex items-center gap-3 bg-white px-2 py-1 rounded-lg border border-gray-200">
-                  <button onClick={() => updateCount(k.key, 'dec')} className="w-8 h-8 flex items-center justify-center font-bold text-gray-400 hover:text-[#1A5EDB] hover:bg-blue-50 rounded-full transition">-</button>
-                  <span className="font-bold w-4 text-center">{members[k.key]}</span>
-                  <button onClick={() => updateCount(k.key, 'inc')} className="w-8 h-8 flex items-center justify-center font-bold text-gray-400 hover:text-[#1A5EDB] hover:bg-blue-50 rounded-full transition">+</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* --- SECTION 3: MEMBER AGES (DYNAMIC) --- */}
-        {(Object.values(members).some(val => val === true || val > 0)) && (
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-8 animate-in fade-in slide-in-from-bottom-4">
-            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 bg-blue-100 text-[#1A5EDB] rounded-full flex items-center justify-center text-sm">3</span>
-              Age Details
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              {Object.entries(members).map(([key, value]) => {
-                const renderInput = (memberKey, label) => (
-                  <div key={memberKey} className="flex gap-4 items-start">
-                    <div className="flex-1">
-                      <CustomDatePicker 
-                        label={label}
-                        value={memberData[memberKey]?.dob || ''}
-                        onChange={(val) => handleDobChange(memberKey, val)}
-                        error={memberData[memberKey]?.error}
-                      />
+                
+                <div className="flex flex-col items-center">
+                  <span className={`font-bold text-sm ${isSelected ? 'text-[#1A5EDB]' : 'text-gray-600'}`}>
+                    {member.label}
+                  </span>
+                  
+                  {/* Counter Controls for Multiple (Son/Daughter) */}
+                  {member.isMulti && isSelected ? (
+                     <div className="flex items-center gap-3 mt-2 bg-white rounded-full px-2 py-1 shadow-sm border border-blue-100" onClick={(e) => e.stopPropagation()}>
+                        <button 
+                          onClick={(e) => updateCount(e, member.id, false)}
+                          className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-100 text-[#1A5EDB] font-bold hover:bg-blue-200 disabled:opacity-50"
+                          disabled={count <= 1}
+                        >-</button>
+                        <span className="text-xs font-bold text-slate-800 w-3 text-center">{count}</span>
+                        <button 
+                          onClick={(e) => updateCount(e, member.id, true)}
+                          className="w-6 h-6 flex items-center justify-center rounded-full bg-[#1A5EDB] text-white font-bold hover:bg-blue-700 disabled:opacity-50"
+                          disabled={count >= 4}
+                        >+</button>
+                     </div>
+                  ) : isSelected && (
+                    <div className="mt-2 w-5 h-5 bg-[#1A5EDB] rounded-full flex items-center justify-center">
+                       <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                     </div>
-                    <div className="w-28">
-                      <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Age</label>
-                      <input 
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 3. PERSONAL DETAILS FORM */}
+        <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 mb-24">
+            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-blue-100 text-[#1A5EDB] flex items-center justify-center text-sm">📝</span>
+                Proposer Details <span className="text-xs font-normal text-gray-400 ml-2">(All fields required)</span>
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                {/* Name Input */}
+                <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input 
                         type="text" 
-                        readOnly
-                        placeholder="--"
-                        value={memberData[memberKey]?.ageDisplay || ''}
-                        className={`w-full px-2 py-3 rounded-xl border ${memberData[memberKey]?.error ? 'border-red-500 text-red-500' : 'border-gray-200 text-gray-700'} bg-gray-50 outline-none text-center font-bold transition-all text-sm`}
-                      />
-                    </div>
-                  </div>
-                );
+                        name="fullName"
+                        value={userDetails.fullName}
+                        onChange={handleInputChange}
+                        placeholder="Enter your full name"
+                        className={`w-full p-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white transition-all ${errors.fullName ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#1A5EDB]'}`}
+                    />
+                    {errors.fullName && <p className="text-xs text-red-500 font-bold">{errors.fullName}</p>}
+                </div>
 
-                if (key === 'son' || key === 'daughter') {
-                  return Array.from({ length: value }).map((_, i) => renderInput(`${key}_${i}`, `${key} ${i + 1}`));
-                } else if (value === true) {
-                  return renderInput(key, key);
-                }
-                return null;
-              })}
+                {/* Pincode Input */}
+                <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        Pincode <span className="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="pincode"
+                        maxLength="6"
+                        value={userDetails.pincode}
+                        onChange={handleInputChange}
+                        placeholder="e.g. 560001"
+                        className={`w-full p-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white transition-all ${errors.pincode ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#1A5EDB]'}`}
+                    />
+                    {errors.pincode && <p className="text-xs text-red-500 font-bold">{errors.pincode}</p>}
+                </div>
+
+                {/* Age Input */}
+                <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        Your Age <span className="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="age"
+                        maxLength="3"
+                        value={userDetails.age}
+                        onChange={handleInputChange}
+                        placeholder="Years"
+                        className={`w-full p-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white transition-all ${errors.age ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#1A5EDB]'}`}
+                    />
+                    {errors.age && <p className="text-xs text-red-500 font-bold">{errors.age}</p>}
+                </div>
+
             </div>
-          </div>
-        )}
+        </div>
 
-        <button 
-          onClick={handleNext}
-          className="w-full py-4 bg-[#1A5EDB] text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-[#1149AE] hover:shadow-blue-300 transition-all text-lg transform active:scale-[0.99]"
-        >
-          View Plans &rarr;
-        </button>
+        {/* 4. BOTTOM ACTION BAR */}
+        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 md:static md:bg-transparent md:border-0 md:p-0 z-40">
+           <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+              
+              <div className="hidden md:block text-sm text-gray-500">
+                 <strong className="text-slate-800">
+                    {Object.values(memberCounts).reduce((a, b) => a + b, 0)} Members
+                 </strong> selected
+              </div>
+
+              <button 
+                onClick={handleContinue}
+                className="w-full md:w-auto px-12 py-4 bg-[#1A5EDB] text-white font-bold rounded-xl shadow-lg hover:bg-[#1149AE] transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
+              >
+                View Plans
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </button>
+           </div>
+        </div>
 
       </div>
     </div>

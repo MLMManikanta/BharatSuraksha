@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 
-const FamilyShieldPlan = () => {
+const FamilyShieldPlan = ({ onSelectPlan }) => {
   const [view, setView] = useState('covered'); // State to toggle views
+  const [selectedSumInsured, setSelectedSumInsured] = useState('10L'); // Default Sum Insured
 
   // Data: Features matches your screenshot exactly
   const features = [
@@ -31,11 +32,17 @@ const FamilyShieldPlan = () => {
     { title: "Unproven / Experimental Treatment", icon: "🧪" },
   ];
 
+  const handleSelect = () => {
+      if (onSelectPlan) {
+          onSelectPlan({ name: 'Family Shield Plan', sumInsured: selectedSumInsured });
+      }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
       {/* 1. HEADER */}
-      <div className="bg-purple-50 border border-purple-100 rounded-2xl p-6 relative overflow-hidden">
+      <div className="bg-purple-50 border border-purple-100 rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="absolute top-0 right-0 bg-[#1A5EDB] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl shadow-sm">BEST SELLER</div>
         <div className="flex items-start gap-5">
           <div className="text-5xl">👨‍👩‍👧</div>
@@ -45,6 +52,27 @@ const FamilyShieldPlan = () => {
               Complete protection for your loved ones. Now includes coverage for any room category, newborn expenses, and non-deductibles.
             </p>
           </div>
+        </div>
+
+        {/* Sum Insured Dropdown and Select Button */}
+        <div className="flex flex-col sm:flex-row gap-3 items-center w-full md:w-auto mt-6 md:mt-0">
+            <select
+                value={selectedSumInsured}
+                onChange={(e) => setSelectedSumInsured(e.target.value)}
+                className="p-2 border border-purple-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white text-purple-900 font-medium"
+            >
+                <option value="10L">₹10 Lakhs</option>
+                <option value="15L">₹15 Lakhs</option>
+                <option value="25L">₹25 Lakhs</option>
+                <option value="50L">₹50 Lakhs</option>
+                <option value="1Cr">₹1 Crore</option>
+            </select>
+            <button
+                onClick={handleSelect}
+                className="bg-[#1A5EDB] text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors duration-300 w-full sm:w-auto shadow-md shadow-blue-200"
+            >
+                Select Plan
+            </button>
         </div>
       </div>
 

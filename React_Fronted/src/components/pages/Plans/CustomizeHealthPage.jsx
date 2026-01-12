@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
-const CustomizeHealthPage = ({ members, proposer, onBack }) => {
+const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
 
   // --- 1. DATA CONFIGURATION ---
-  
   const sumInsuredSteps = [
     { label: "₹10L", value: 1000000 },
     { label: "₹15L", value: 1500000 },
@@ -26,14 +25,7 @@ const CustomizeHealthPage = ({ members, proposer, onBack }) => {
     { label: "Any Room Category", value: "any" }
   ];
 
-  const chronicDiseases = [
-    "Diabetes",
-    "High Cholesterol",
-    "COPD",
-    "Heart Disease",
-    "Hypertension",
-    "Asthma"
-  ];
+  const chronicDiseases = ["Diabetes", "High Cholesterol", "COPD", "Heart Disease", "Hypertension", "Asthma"];
 
   const initialFeatures = [
     { id: 'global', label: 'Global Coverage', icon: '🌍', active: false, price: 2000 },
@@ -49,192 +41,90 @@ const CustomizeHealthPage = ({ members, proposer, onBack }) => {
 
   // Premium Riders
   const initialRiders = [
-    { 
-      id: 'unlimited_care', 
-      label: 'Unlimited Care', 
-      desc: 'Never run out of cover.', 
-      icon: '♾️', 
-      active: false, 
-      price: 25000
-    },
-    { 
-      id: 'chronic_care', 
-      label: 'Chronic Care', 
-      desc: 'Day 1 cover for managed conditions', 
-      icon: '💊', 
-      active: false, 
-      price: 4000, 
-      isMultiSelect: true, 
-      selectedConditions: ['Diabetes'] 
-    },
-    { 
-      id: 'tele_consult', 
-      label: 'Tele-Consultation', 
-      desc: 'Unlimited online doctor consults 24/7', 
-      icon: '📲', 
-      active: false, 
-      price: 1500 
-    },
-    { 
-      id: 'flexi_year', 
-      label: 'Smart Aggregate', 
-      desc: 'Unlock total tenure cover in 1st Year', 
-      icon: '📅', 
-      active: false, 
-      price: 5000, 
-      minTenure: 2 
-    },
-    { 
-      id: 'super_bonus', 
-      label: 'Super Bonus', 
-      desc: '7x Coverage irrespective of claims', 
-      icon: '🚀', 
-      active: false, 
-      price: 8000
-    },
-    { 
-      id: 'ped_wait', 
-      label: 'PED Wait Reduction', 
-      desc: 'Reduce Pre-existing disease wait to 1 Yr', 
-      icon: '📉', 
-      active: false, 
-      price: 6000 
-    },
-    { 
-      id: 'specific_disease', 
-      label: 'Specific Disease Wait', 
-      desc: 'Modify waiting period for listed illnesses', 
-      icon: '📋', 
-      active: false, 
-      price: 1200 
-    },
-    { 
-      id: 'maternity_boost', 
-      label: 'Maternity Booster', 
-      desc: 'Up to ₹3L Worldwide Limit', 
-      icon: '🤰', 
-      active: false, 
-      price: 12000 
-    }
+    { id: 'unlimited_care', label: 'Unlimited Care', desc: 'Never run out of cover.', icon: '♾️', active: false, price: 25000 },
+    { id: 'chronic_care', label: 'Chronic Care', desc: 'Day 1 cover for managed conditions', icon: '💊', active: false, price: 4000, isMultiSelect: true, selectedConditions: ['Diabetes'] },
+    { id: 'tele_consult', label: 'Tele-Consultation', desc: 'Unlimited online doctor consults 24/7', icon: '📲', active: false, price: 1500 },
+    { id: 'flexi_year', label: 'Smart Aggregate', desc: 'Unlock total tenure cover in 1st Year', icon: '📅', active: false, price: 5000, minTenure: 2 },
+    { id: 'super_bonus', label: 'Super Bonus', desc: '7x Coverage irrespective of claims', icon: '🚀', active: false, price: 8000 },
+    { id: 'ped_wait', label: 'PED Wait Reduction', desc: 'Reduce Pre-existing disease wait to 1 Yr', icon: '📉', active: false, price: 6000 },
+    { id: 'specific_disease', label: 'Specific Disease Wait', desc: 'Modify waiting period for listed illnesses', icon: '📋', active: false, price: 1200 },
+    { id: 'maternity_boost', label: 'Maternity Booster', desc: 'Up to ₹3L Worldwide Limit', icon: '🤰', active: false, price: 12000 }
   ];
 
-  // --- 2. STATE ---
-  const [sliderIndex, setSliderIndex] = useState(0); 
+  // --- HELPERS ---
+  const getInitialIndex = () => {
+    if (!initialData?.selectedPlan?.sumInsured) return 0; 
+    const targetLabel = initialData.selectedPlan.sumInsured.replace(/[₹\s]/g, ''); 
+    const idx = sumInsuredSteps.findIndex(s => s.label.includes(targetLabel));
+    return idx !== -1 ? idx : 0;
+  };
+
+  // --- STATE ---
+  const [sliderIndex, setSliderIndex] = useState(getInitialIndex()); 
   const [roomRent, setRoomRent] = useState("private");
   const [preHospitalization, setPreHospitalization] = useState(60);
   const [postHospitalization, setPostHospitalization] = useState(90);
   const [tenure, setTenure] = useState(1);
-  
   const [features, setFeatures] = useState(initialFeatures);
   const [riders, setRiders] = useState(initialRiders);
 
-  // --- 3. EFFECTS & LOGIC ---
+  useEffect(() => {
+    setSliderIndex(getInitialIndex());
+  }, [initialData?.selectedPlan]);
 
   const isBaseUnlimited = sumInsuredSteps[sliderIndex].value === 999999999;
 
   useEffect(() => {
-    // 1. Feature Updates
     setFeatures(prev => prev.map(f => {
-      if (f.id === 'restore') {
-         if (isBaseUnlimited) {
-           return { ...f, active: false, isDisabledByBase: true };
-         } else {
-           return { ...f, isDisabledByBase: false };
-         }
-      }
+      if (f.id === 'restore') return isBaseUnlimited ? { ...f, active: false, isDisabledByBase: true } : { ...f, isDisabledByBase: false };
       return f;
     }));
-
-    // 2. Rider Updates
     setRiders(prev => prev.map(r => {
-      // Logic A: Unlimited Base Sum Insured disables specific riders
       if (['unlimited_care', 'super_bonus', 'flexi_year'].includes(r.id)) {
-        if (isBaseUnlimited) {
-          return { ...r, active: false, isDisabledByBase: true };
-        } else {
-          if (r.id !== 'flexi_year') {
-             return { ...r, isDisabledByBase: false };
-          }
-        }
+        if (isBaseUnlimited) return { ...r, active: false, isDisabledByBase: true };
+        if (r.id !== 'flexi_year') return { ...r, isDisabledByBase: false };
       }
-
-      // Logic B: Tenure Check for Smart Aggregate
       if (r.id === 'flexi_year') {
         if (isBaseUnlimited) return { ...r, active: false, isDisabledByBase: true };
-        if (tenure < r.minTenure) {
-           return { ...r, active: false, isDisabledByBase: false }; 
-        } else {
-           return { ...r, isDisabledByBase: false };
-        }
+        if (tenure < r.minTenure) return { ...r, active: false, isDisabledByBase: false }; 
+        return { ...r, isDisabledByBase: false };
       }
-      
       return r;
     }));
-
   }, [sliderIndex, tenure, isBaseUnlimited]); 
 
-
-  // --- 4. HANDLERS ---
-  
+  // --- HANDLERS ---
   const toggleFeature = (id) => {
-    setFeatures(prev => prev.map(f => {
-      if (f.isDisabledByBase) return f;
-      return f.id === id ? { ...f, active: !f.active } : f;
-    }));
+    setFeatures(prev => prev.map(f => (f.isDisabledByBase ? f : f.id === id ? { ...f, active: !f.active } : f)));
   };
 
   const toggleRider = (id) => {
     setRiders(prev => prev.map(r => {
       if (r.id === id) {
         if (r.isDisabledByBase) return r; 
-        
-        // Tenure Check
         if (r.minTenure && tenure < r.minTenure) {
           alert(`This rider requires a policy tenure of at least ${r.minTenure} years.`);
           return r;
         }
-
         return { ...r, active: !r.active };
       }
       return r;
     }));
   };
 
-  // Logic to calculate dynamic price for Chronic Care
-  const getChronicPrice = (count) => {
-      if (count === 0) return 0;
-      if (count === 1) return 4000;
-      if (count === 2) return 7500; // Discounted combo
-      return 7500 + ((count - 2) * 3000); // 3000 for every additional
-  };
+  const getChronicPrice = (count) => (count <= 1 ? 4000 : count === 2 ? 7500 : 7500 + ((count - 2) * 3000));
 
   const toggleChronicCondition = (condition, event) => {
     event.stopPropagation();
-    
     setRiders(prev => prev.map(r => {
         if (r.id === 'chronic_care') {
             const currentList = r.selectedConditions || [];
             let newList;
-            
             if (currentList.includes(condition)) {
-                // Remove (prevent removing last one if active)
-                if (currentList.length === 1) {
-                    alert("At least one condition must be selected.");
-                    newList = currentList;
-                } else {
-                    newList = currentList.filter(c => c !== condition);
-                }
-            } else {
-                // Add
-                newList = [...currentList, condition];
-            }
-            
-            // Recalculate price
-            return { 
-                ...r, 
-                selectedConditions: newList, 
-                price: getChronicPrice(newList.length) 
-            };
+                if (currentList.length === 1) { alert("At least one condition must be selected."); newList = currentList; } 
+                else { newList = currentList.filter(c => c !== condition); }
+            } else { newList = [...currentList, condition]; }
+            return { ...r, selectedConditions: newList, price: getChronicPrice(newList.length) };
         }
         return r;
     }));
@@ -251,11 +141,41 @@ const CustomizeHealthPage = ({ members, proposer, onBack }) => {
     riders.forEach(r => { if (r.active) base += r.price; });
     if (tenure === 2) base = base * 2 * 0.9;
     if (tenure === 3) base = base * 3 * 0.85;
-    return Math.round(base).toLocaleString('en-IN');
+    return Math.round(base);
+  };
+
+  const handleBuyNow = () => {
+      onProceed({
+          sumInsured: sumInsuredSteps[sliderIndex],
+          roomRent: roomRentOptions.find(r => r.value === roomRent),
+          hospitalization: { pre: preHospitalization, post: postHospitalization },
+          tenure: tenure,
+          activeFeatures: features.filter(f => f.active),
+          activeRiders: riders.filter(r => r.active),
+          basePremium: calculatePremium()
+      });
   };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
+      
+      {/* --- AGGRESSIVE VAJRA HEADER START --- */}
+      <div className="flex justify-between items-center mb-6 px-4 py-4 bg-gradient-to-r from-[#1F2937] to-[#111827] rounded-xl text-white shadow-lg border-b-4 border-[#EA580C]">
+         <div className="flex items-center gap-3">
+             <div className="w-10 h-10 bg-[#EA580C] rounded-full flex items-center justify-center text-xl shadow shadow-orange-500/50">⚡</div>
+             <div>
+                <h2 className="text-xl font-black uppercase tracking-widest italic">
+                    {initialData?.selectedPlan?.isCustom ? 'Vajra Suraksha Builder' : `Modify ${initialData?.selectedPlan?.name}`}
+                </h2>
+                <p className="text-xs text-gray-400 font-bold">Forged for {initialData?.user?.fullName || 'You'}</p>
+             </div>
+         </div>
+         <button onClick={onBack} className="text-sm font-bold text-gray-400 hover:text-white transition-colors bg-white/10 px-3 py-1 rounded">
+            ✕ Abort
+         </button>
+      </div>
+      {/* --- AGGRESSIVE HEADER END --- */}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* --- LEFT COLUMN --- */}
@@ -363,7 +283,7 @@ const CustomizeHealthPage = ({ members, proposer, onBack }) => {
             </div>
           </div>
 
-          {/* 4. PREMIUM RIDERS (UPDATED TO TEAL THEME) */}
+          {/* 4. PREMIUM RIDERS */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
               <span className="w-8 h-8 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center text-xl">🚀</span> 
@@ -390,7 +310,6 @@ const CustomizeHealthPage = ({ members, proposer, onBack }) => {
                       rider.active ? 'border-teal-500 bg-teal-50 cursor-pointer' : 'border-gray-200 hover:border-teal-200 hover:bg-teal-50/30 cursor-pointer'
                     }`}
                   >
-                    {/* Main Row */}
                     <div className="flex items-start gap-4">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 ${
                           rider.active ? 'bg-teal-100 text-teal-600' : 'bg-gray-100 text-gray-500'
@@ -423,7 +342,6 @@ const CustomizeHealthPage = ({ members, proposer, onBack }) => {
                         </div>
                     </div>
 
-                    {/* Chronic Care Multi-Select (Chips) - Teal Theme */}
                     {rider.isMultiSelect && rider.active && (
                        <div className="mt-3 pt-3 border-t border-teal-200 animate-in fade-in zoom-in duration-300">
                           <label className="text-[10px] font-bold text-teal-600 uppercase mb-2 block flex justify-between">
@@ -435,16 +353,16 @@ const CustomizeHealthPage = ({ members, proposer, onBack }) => {
                                  const isSelected = rider.selectedConditions.includes(disease);
                                  return (
                                      <button
-                                        key={disease}
-                                        onClick={(e) => toggleChronicCondition(disease, e)}
-                                        className={`px-3 py-1.5 rounded-full text-[10px] font-bold border transition-all ${
-                                            isSelected 
-                                            ? 'bg-teal-600 text-white border-teal-600 shadow-sm' 
-                                            : 'bg-white text-slate-600 border-gray-300 hover:border-teal-400'
-                                        }`}
-                                     >
-                                         {disease} {isSelected && '✓'}
-                                     </button>
+                                         key={disease}
+                                         onClick={(e) => toggleChronicCondition(disease, e)}
+                                         className={`px-3 py-1.5 rounded-full text-[10px] font-bold border transition-all ${
+                                             isSelected 
+                                             ? 'bg-teal-600 text-white border-teal-600 shadow-sm' 
+                                             : 'bg-white text-slate-600 border-gray-300 hover:border-teal-400'
+                                         }`}
+                                      >
+                                           {disease} {isSelected && '✓'}
+                                      </button>
                                  )
                              })}
                           </div>
@@ -475,15 +393,15 @@ const CustomizeHealthPage = ({ members, proposer, onBack }) => {
                       <div className="flex flex-col gap-2 mt-2">
                           {riders.filter(r => r.active).map(r => (
                               <div key={r.id} className="flex flex-col text-[11px] bg-teal-50 p-2 rounded gap-1">
-                                 <div className="flex justify-between items-center">
-                                    <span className="font-bold text-teal-700">{r.label}</span>
-                                    <span className="text-teal-700 font-bold">+₹{r.price.toLocaleString()}</span>
-                                 </div>
-                                 {r.isMultiSelect && (
+                                  <div className="flex justify-between items-center">
+                                     <span className="font-bold text-teal-700">{r.label}</span>
+                                     <span className="text-teal-700 font-bold">+₹{r.price.toLocaleString()}</span>
+                                  </div>
+                                  {r.isMultiSelect && (
                                      <div className="text-[9px] text-teal-600 flex flex-wrap gap-1">
-                                         {r.selectedConditions.map(c => <span key={c} className="bg-teal-100 px-1 rounded">{c}</span>)}
+                                           {r.selectedConditions.map(c => <span key={c} className="bg-teal-100 px-1 rounded">{c}</span>)}
                                      </div>
-                                 )}
+                                  )}
                               </div>
                           ))}
                       </div>
@@ -506,7 +424,7 @@ const CustomizeHealthPage = ({ members, proposer, onBack }) => {
               <div className="flex justify-between items-end">
                 <div>
                    <span className="block text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">Total Premium</span>
-                   <span className="text-3xl font-bold text-[#1A5EDB]">₹{calculatePremium()}</span>
+                   <span className="text-3xl font-bold text-[#1A5EDB]">₹{calculatePremium().toLocaleString('en-IN')}</span>
                 </div>
                 <div className="text-right">
                     <span className="text-sm font-bold text-blue-400 mb-1 block">/ year</span>
@@ -515,7 +433,7 @@ const CustomizeHealthPage = ({ members, proposer, onBack }) => {
               </div>
             </div>
 
-            <button onClick={() => alert("Proceeding to payment...")} className="w-full py-4 bg-[#1A5EDB] text-white font-bold rounded-xl shadow-lg hover:bg-[#1149AE]">
+            <button onClick={handleBuyNow} className="w-full py-4 bg-[#1A5EDB] text-white font-bold rounded-xl shadow-lg hover:bg-[#1149AE] transition-all transform active:scale-[0.98]">
               Buy Now &rarr;
             </button>
           </div>

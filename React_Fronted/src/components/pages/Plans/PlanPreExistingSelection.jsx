@@ -1,120 +1,158 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import CheckoutStepper from '../../layout/CheckoutStepper';
 
-// --- IMPORT SUB-PLANS ---
+// Import Sub-Plans
 import BasicPlan from './SubPlans/BasicPlan';
 import FamilyShieldPlan from './SubPlans/FamilyShieldPlan';
 import SeniorProtectPlan from './SubPlans/SeniorProtectPlan';
 import UniversalCoverage from './SubPlans/UniversalCoverage';
 
-// --- IMPORT CUSTOMIZER COMPONENT ---
-import CustomizeHealthPage from './CustomizeHealthPage';
+// Import Customization Component
+import CustomizeHealthPage from './CustomizeHealthPage'; 
 
 const PlanPreExistingSelection = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Retrieve the passed data
-  const members = location.state?.members || {};
-  const proposer = location.state?.proposer || {};
 
-  const [activeTab, setActiveTab] = useState('Family');
-  const [isCustomizing, setIsCustomizing] = useState(false);
+  // 1. RECEIVE DATA FROM STEP 1
+  const prevData = location.state || {}; 
+
+  const [activeTab, setActiveTab] = useState('family'); 
+  const [customizationData, setCustomizationData] = useState(null); 
+
+  // Redirect if accessed directly without data
+  useEffect(() => {
+    if (!prevData.counts && !prevData.members) { 
+      navigate('/plans');
+    }
+  }, [prevData, navigate]);
+
+  // --- HANDLERS ---
+  const handlePlanSelection = (planDetails) => {
+    setCustomizationData({
+      ...prevData,
+      selectedPlan: planDetails
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCreateOwn = () => {
+    handlePlanSelection({ 
+      name: 'Vajra Suraksha Plan', 
+      sumInsured: '5L', 
+      isCustom: true 
+    });
+  };
+
+  const handleProceedToReview = (finalSelectionData) => {
+    navigate('/plan-review', { state: { ...prevData, ...finalSelectionData } });
+  };
+
+  const handleCloseCustomization = () => {
+    setCustomizationData(null); 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 font-sans">
-      <div className="max-w-6xl mx-auto">
-
-        {/* 1. PROGRESS HEADER */}
-        <div className="flex items-center justify-center mb-10">
-          <div className="flex items-center gap-2 text-[#1A5EDB] font-bold">
-            <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm border-2 border-[#1A5EDB] bg-blue-50">✓</span>
-            Members
-          </div>
-          <div className="w-16 h-1 mx-4 rounded-full bg-[#1A5EDB]"></div>
-          <div className="flex items-center gap-2 text-[#1A5EDB] font-bold">
-            <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm border-2 border-[#1A5EDB] bg-blue-50">2</span>
-            {isCustomizing ? 'Customize Plan' : 'Select Plan'}
-          </div>
+    <div className="min-h-screen bg-gray-50 pb-20">
+      
+      {/* 1. STEPPER */}
+      <CheckoutStepper currentStep={2} />
+      
+      {/* 2. HEADER */}
+      <div className="bg-[#1A5EDB] text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl relative mb-8">
+        <div className="max-w-5xl mx-auto text-center space-y-4">
+          <h1 className="text-3xl md:text-4xl font-bold">
+            {customizationData ? `Forging Your ${customizationData.selectedPlan.name}` : 'Select Your Defense'}
+          </h1>
+          <p className="text-blue-100 text-lg max-w-2xl mx-auto">
+            {customizationData 
+              ? 'Calibrate your Vajra. Total control over coverage and limits.' 
+              : 'Choose a standard plan or engage Vajra Suraksha for absolute control.'}
+          </p>
         </div>
+      </div>
 
-        {/* 2. BACK BUTTON & TITLE */}
-        <div className="flex items-center mb-6">
-          <button 
-            onClick={() => {
-              if (isCustomizing) setIsCustomizing(false);
-              else navigate(-1);
-            }} 
-            className="text-gray-400 hover:text-[#1A5EDB] font-bold text-sm flex items-center gap-1 transition-colors"
-          >
-            &larr; Back
-          </button>
-          
-          {/* GENERIC TITLE - No longer tied to specific plan names */}
-          <h2 className="text-2xl font-bold text-slate-900 mx-auto pr-10">
-            {isCustomizing ? 'Build Your Own Plan' : 'Select Your Coverage'}
-          </h2>
-        </div>
-
-        {/* 3. PLAN TABS (HIDDEN WHEN CUSTOMIZING) */}
-        {!isCustomizing && (
-          <div className="mb-8 animate-in fade-in slide-in-from-top-4">
-            <div className="flex flex-wrap justify-center gap-2 bg-white p-2 rounded-xl shadow-sm border border-gray-100 max-w-3xl mx-auto">
-              {['Basic', 'Family', 'Senior', 'Universal'].map((tab) => (
+      <div className="max-w-6xl mx-auto px-4 -mt-20 relative z-10">
+        
+        {/* --- CONDITIONAL RENDERING --- */}
+        
+        {/* VIEW A: SHOW PLAN CARDS & TABS */}
+        {!customizationData && (
+          <>
+            {/* TABS (Aggressive "Vajra" Entry) */}
+            <div className="bg-white p-2 rounded-2xl shadow-lg border border-gray-100 flex flex-wrap md:flex-nowrap justify-between gap-2 mb-8 animate-in fade-in zoom-in duration-300">
+              {[
+                { id: 'basic', label: 'Basic Care', icon: '👤' },
+                { id: 'family', label: 'Family Shield', icon: '👨‍👩‍👧' },
+                { id: 'senior', label: 'Senior Protect', icon: '👴' },
+                { id: 'universal', label: 'Universal', icon: '💎' },
+                // AGGRESSIVE TAB NAME
+                { id: 'vajra', label: '⚡ VAJRA SURAKSHA', icon: '', isSpecial: true },
+              ].map((tab) => (
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-6 py-3 rounded-lg font-bold text-sm transition-all duration-300 flex-1 md:flex-none ${
-                    activeTab === tab
-                      ? 'bg-[#1A5EDB] text-white shadow-md'
-                      : 'bg-transparent text-gray-500 hover:bg-gray-50'
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 px-2 md:px-4 rounded-xl font-bold text-xs md:text-sm transition-all ${
+                    // Special Styling for Vajra
+                    tab.isSpecial 
+                        ? activeTab === tab.id 
+                            ? 'bg-[#EA580C] text-white shadow-xl scale-[1.05] border-2 border-[#EA580C]' // Deep Orange (Saffron)
+                            : 'bg-orange-50 text-[#EA580C] hover:bg-orange-100 border-2 border-dashed border-[#EA580C]' // Inactive Orange
+                        : activeTab === tab.id
+                            ? 'bg-[#1A5EDB] text-white shadow-md transform scale-[1.02]'
+                            : 'text-gray-500 hover:bg-gray-50'
                   }`}
                 >
-                  {tab} Plan
+                  <span className="text-lg">{tab.icon}</span>
+                  {tab.label}
                 </button>
               ))}
             </div>
-          </div>
+
+            {/* PLAN CARDS AREA */}
+            <div className="min-h-[500px] mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {activeTab === 'basic' && <BasicPlan onSelectPlan={handlePlanSelection} />}
+              {activeTab === 'family' && <FamilyShieldPlan onSelectPlan={handlePlanSelection} />}
+              {activeTab === 'senior' && <SeniorProtectPlan onSelectPlan={handlePlanSelection} />}
+              {activeTab === 'universal' && <UniversalCoverage onSelectPlan={handlePlanSelection} />}
+              
+              {/* 5th Tab: Vajra Card */}
+              {activeTab === 'vajra' && (
+                <div className="bg-gradient-to-br from-[#1F2937] to-[#111827] rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-2xl border-b-8 border-[#EA580C] relative overflow-hidden group">
+                    
+                    {/* Background Texture Effect */}
+                    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-orange-500 via-transparent to-transparent"></div>
+                    
+                    <div className="w-24 h-24 bg-[#EA580C] text-white rounded-full flex items-center justify-center text-5xl mb-6 shadow-[0_0_20px_rgba(234,88,12,0.5)] z-10 group-hover:scale-110 transition-transform duration-300">
+                        ⚡
+                    </div>
+                    <h2 className="text-4xl font-black text-white mb-2 z-10 uppercase tracking-widest italic">Vajra Suraksha</h2>
+                    <p className="text-gray-300 max-w-md mb-8 z-10 font-medium text-lg">
+                        Build your fortress. <br/> Indestructible coverage tailored by you.
+                    </p>
+                    <button 
+                        onClick={handleCreateOwn}
+                        className="px-10 py-4 bg-[#EA580C] text-white font-extrabold rounded-xl shadow-lg hover:bg-orange-600 hover:shadow-orange-500/50 transition-all transform active:scale-[0.98] z-10 uppercase tracking-wider"
+                    >
+                        Initialize Builder &rarr;
+                    </button>
+                </div>
+              )}
+            </div>
+          </>
         )}
 
-        {/* 4. CONTENT AREA */}
-        {isCustomizing ? (
-          // --- CUSTOMIZE VIEW (Draft Mode) ---
-          <CustomizeHealthPage 
-             members={members} 
-             proposer={proposer}
-             onBack={() => setIsCustomizing(false)} 
-          />
-        ) : (
-          // --- STANDARD CARD VIEW ---
-          <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className="mb-8">
-              {activeTab === 'Basic' && <BasicPlan />}
-              {activeTab === 'Family' && <FamilyShieldPlan />}
-              {activeTab === 'Senior' && <SeniorProtectPlan />}
-              {activeTab === 'Universal' && <UniversalCoverage />}
-            </div>
-
-            {/* ACTION BUTTONS */}
-            <div className="flex flex-col gap-4">
-              <button 
-                onClick={() => alert(`Proceeding with ${activeTab} Plan...`)}
-                className="w-full py-4 bg-[#1A5EDB] text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-[#1149AE] transition-all text-lg transform active:scale-[0.99]"
-              >
-                  Proceed to Payment
-              </button>
-
-              <div className="text-center pt-2 pb-8">
-                  <p className="text-sm text-gray-500 mb-2">Want to build a plan from scratch?</p>
-                  <button 
-                    onClick={() => setIsCustomizing(true)}
-                    className="inline-flex items-center gap-2 text-[#1A5EDB] font-bold hover:underline"
-                  >
-                     Advanced Customization &rarr;
-                  </button>
-              </div>
-            </div>
-          </div>
+        {/* VIEW B: SHOW CUSTOMIZATION PANEL */}
+        {customizationData && (
+           <div className="animate-in fade-in zoom-in duration-500">
+              <CustomizeHealthPage 
+                 initialData={customizationData}
+                 onProceed={handleProceedToReview}
+                 onBack={handleCloseCustomization}
+              />
+           </div>
         )}
 
       </div>

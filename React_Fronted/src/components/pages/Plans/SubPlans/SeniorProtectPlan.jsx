@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 
-const SeniorProtectPlan = () => {
+const SeniorProtectPlan = ({ onSelectPlan }) => {
   const [view, setView] = useState('covered'); // State to toggle views
+  const [selectedSumInsured, setSelectedSumInsured] = useState('5L'); // Default Sum Insured
 
   // Data: Features (What is covered)
   const features = [
@@ -31,11 +32,17 @@ const SeniorProtectPlan = () => {
     { title: "Treatment Of Obesity Or Cosmetic Surgery", icon: "💄" },
   ];
 
+  const handleSelect = () => {
+      if (onSelectPlan) {
+          onSelectPlan({ name: 'Senior Protect Plan', sumInsured: selectedSumInsured });
+      }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
       {/* 1. HEADER */}
-      <div className="bg-orange-50 border border-orange-100 rounded-2xl p-6 relative overflow-hidden">
+      <div className="bg-orange-50 border border-orange-100 rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="absolute top-0 right-0 bg-[#1A5EDB] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl shadow-sm">SENIOR SPECIAL</div>
         <div className="flex items-start gap-5">
           <div className="text-5xl">👴</div>
@@ -45,6 +52,27 @@ const SeniorProtectPlan = () => {
               Designed for ages 60+. drastically reduced waiting periods and flexible copay options.
             </p>
           </div>
+        </div>
+
+        {/* Sum Insured Dropdown and Select Button */}
+        <div className="flex flex-col sm:flex-row gap-3 items-center w-full md:w-auto mt-6 md:mt-0">
+            <select
+                value={selectedSumInsured}
+                onChange={(e) => setSelectedSumInsured(e.target.value)}
+                className="p-2 border border-orange-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white text-gray-800 font-medium"
+            >
+                <option value="5L">₹5 Lakhs</option>
+                <option value="10L">₹10 Lakhs</option>
+                <option value="15L">₹15 Lakhs</option>
+                <option value="25L">₹25 Lakhs</option>
+                <option value="50L">₹50 Lakhs</option>
+            </select>
+            <button
+                onClick={handleSelect}
+                className="bg-[#1A5EDB] text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors duration-300 w-full sm:w-auto shadow-md shadow-blue-200"
+            >
+                Select Plan
+            </button>
         </div>
       </div>
 
@@ -80,12 +108,10 @@ const SeniorProtectPlan = () => {
       {/* 3. FLEX GRID DISPLAY (CENTERED ITEMS) */}
       <div className="min-h-[300px]">
         {view === 'covered' ? (
-          // CHANGED: flex flex-wrap justify-center ensures items center align
           <div className="flex flex-wrap justify-center gap-4 animate-in fade-in zoom-in-95 duration-300">
             {features.map((item, idx) => (
               <div 
                 key={idx} 
-                // CHANGED: Fixed width percentages to mimic grid but allow centering
                 className="w-[45%] md:w-[30%] lg:w-[22%] flex flex-col items-center text-center p-4 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-200 transition-all duration-300 group"
               >
                 <div className="text-4xl mb-3 group-hover:scale-110 transition-transform cursor-default">
