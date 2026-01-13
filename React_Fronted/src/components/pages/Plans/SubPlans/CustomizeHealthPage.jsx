@@ -29,7 +29,7 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
   const currentSI = sumInsuredSteps[sliderIndex];
   const isBaseUnlimited = currentSI.value === 999999999;
 
-  // Features List with Locked Items
+  // Features List with Locked (Mandatory) Items
   const [features, setFeatures] = useState([
     { id: 'global', label: 'Global Coverage', icon: '🌍', active: true },
     { id: 'claim_100', label: '100% Claim Coverage', icon: '💯', active: true, isLocked: true },
@@ -61,8 +61,12 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
   const isMaternityActive = features.find(f => f.id === 'maternity_global')?.active;
 
   // --- 3. LOGIC HANDLERS ---
+  
+  /**
+   * handleProceed
+   * Bundles the current customization state and sends it to the parent Review page controller.
+   */
   const handleProceed = () => {
-    // Bundle all state data to pass to the parent component
     const customConfig = {
       currentSI,
       tenure,
@@ -73,7 +77,6 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
       selectedChronic: chronicActive ? selectedChronic : []
     };
     
-    // Call the parent proceed function
     if (onProceed) {
       onProceed(customConfig);
     }
@@ -152,7 +155,7 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
             </div>
           </section>
 
-          {/* 3. BASE FEATURES */}
+          {/* 3. BASE FEATURES - 3 COLUMN LAYOUT */}
           <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
             <h2 className="font-bold text-slate-800 uppercase text-sm mb-6">Base Features</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -164,9 +167,6 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
                   <span className="text-[11px] font-black uppercase leading-tight text-slate-800">{f.label}</span>
                 </button>
               ))}
-            </div>
-            <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 text-blue-900 font-bold uppercase text-[10px]">
-               Note: Maternity cover starts from 10% of Sum Insured up to ₹2 Lakhs.
             </div>
           </section>
 
@@ -180,12 +180,12 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
                     <p className="text-[11px] text-orange-900 uppercase font-bold">Conditions covered from 31st day</p>
                   </div>
                 </div>
-                <button onClick={() => setChronicActive(!chronicActive)} className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${chronicActive ? 'bg-orange-800 text-white' : 'bg-orange-100 text-orange-900 border border-orange-200'}`}>
+                <button onClick={() => setChronicActive(!chronicActive)} className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${chronicActive ? 'bg-orange-800 text-white' : 'bg-orange-100 text-orange-900 border border-orange-200 hover:bg-orange-200'}`}>
                   {chronicActive ? 'Active' : 'Add Cover'}
                 </button>
              </div>
              {chronicActive && (
-                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 pt-2">
+                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 pt-2" role="group">
                     {chronicDiseases.map(d => (
                         <button key={d} onClick={() => setSelectedChronic(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])} className={`py-3 text-[10px] font-bold rounded-xl border-2 ${selectedChronic.includes(d) ? 'border-orange-800 bg-orange-800 text-white' : 'border-gray-100 text-slate-600'}`}>
                           {d}
@@ -204,7 +204,7 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
                 const isDisabled = (r.id === 'unlimited_care' && isBaseUnlimited) || (r.id === 'smart_agg' && tenure === 1);
                 return (
                   <button key={r.id} disabled={isDisabled} onClick={() => toggleRider(r.id)} 
-                    className={`flex items-start p-5 rounded-2xl border-2 text-left transition-all ${isDisabled ? 'opacity-30 grayscale cursor-not-allowed' : r.active ? 'border-teal-800 bg-teal-50' : 'border-gray-100 bg-white'}`}>
+                    className={`flex items-start p-5 rounded-2xl border-2 text-left transition-all ${isDisabled ? 'opacity-30 grayscale cursor-not-allowed' : r.active ? 'border-teal-800 bg-teal-50' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
                     <span className="text-4xl mr-4">{r.icon}</span>
                     <div className="flex-1">
                       <h3 className="font-bold text-[13px] uppercase text-slate-950 leading-tight">{r.label}</h3>
@@ -227,7 +227,7 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
                 <legend className="text-xs font-bold text-gray-600 uppercase block mb-2">Policy Tenure</legend>
                 <div className="grid grid-cols-3 bg-gray-100 p-1.5 rounded-xl border border-gray-200">
                   {[1, 2, 3].map((y) => (
-                    <button key={y} onClick={() => setTenure(y)} className={`py-3 text-sm font-bold rounded-lg transition-all ${tenure === y ? 'bg-white text-blue-800 shadow-md' : 'text-gray-500'}`}>
+                    <button key={y} onClick={() => setTenure(y)} className={`py-3 text-sm font-bold rounded-lg transition-all ${tenure === y ? 'bg-white text-blue-800 shadow-md' : 'text-gray-500 hover:text-gray-700'}`}>
                       {y} Year{y > 1 ? 's' : ''}
                     </button>
                   ))}
@@ -245,6 +245,7 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
                 </div>
               </div>
 
+              {/* CHRONIC CARE IN SUMMARY */}
               {chronicActive && (
                 <div className="space-y-3">
                   <h3 className="text-xs font-bold text-orange-700 uppercase">Chronic Conditions</h3>
@@ -287,8 +288,10 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
               </div>
             </div>
 
-            <button onClick={handleProceed} 
-              className="w-full py-5 bg-blue-800 text-white font-black rounded-xl uppercase tracking-widest italic shadow-xl hover:bg-blue-900 transition-all active:scale-95 min-h-[56px]">
+            {/* CONFIRM SELECTION BUTTON */}
+            <button 
+              onClick={handleProceed} 
+              className="w-full py-5 bg-blue-800 text-white font-black rounded-xl uppercase tracking-widest italic shadow-xl hover:bg-blue-900 transition-all active:scale-95 min-h-[56px] focus:ring-4 focus:ring-blue-300">
               Confirm Selection &rarr;
             </button>
           </div>
