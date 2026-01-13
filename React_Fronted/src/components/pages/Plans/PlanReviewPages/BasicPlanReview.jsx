@@ -60,7 +60,7 @@ const BasicPlanReview = ({ data }) => {
       {/* CORE POLICY FACTORS GRID */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12" aria-label="Core Policy Details">
         
-        {/* ROOM RENT - Darkened label to text-slate-600 */}
+        {/* ROOM RENT */}
         <article className="space-y-2">
           <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Room Rent Limit</h2>
           <p className="font-extrabold text-slate-900 text-xl">1% of Sum Insured</p>
@@ -76,21 +76,36 @@ const BasicPlanReview = ({ data }) => {
           <p className="text-sm text-slate-600">No Co-pay applicable on the specific capped treatments below.</p>
         </article>
 
-        {/* MATERNITY */}
-        <article className="space-y-2">
-          <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Maternity Benefit</h2>
-          <p className="font-extrabold text-slate-900 text-xl">{maternityLimit} Limit</p>
-          <p className="text-sm text-slate-700 font-bold underline decoration-slate-300">Waiting Period: 3 Years.</p>
+        {/* WAITING PERIOD STATUS */}
+        <article className="space-y-4">
+          <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Waiting Period Status</h2>
+          <div className="space-y-3">
+            <div className="border-l-4 border-blue-600 pl-3">
+              <p className="text-lg font-extrabold text-slate-900">30 Days Initial Waiting</p>
+              <p className="text-xs text-slate-600">Minimum period required before filing a claim (except accidents).</p>
+            </div>
+            
+            <div className="border-l-4 border-blue-600 pl-3">
+              <p className="text-lg font-extrabold text-slate-900">3 Years Existing Illness (PED)</p>
+              <p className="text-xs text-slate-600">Wait time for pre-existing illnesses like diabetes, thyroid etc.</p>
+            </div>
+
+            <div className="border-l-4 border-blue-600 pl-3">
+              <p className="text-lg font-extrabold text-slate-900">24 Months Specific Illness</p>
+              <p className="text-xs text-slate-600">For slow growing diseases like knee replacement, hernia, cataract, ENT disorders, etc.</p>
+            </div>
+          </div>
         </article>
 
-        {/* BASIC BENEFITS */}
+        {/* MATERNITY & BENEFITS */}
         <article className="space-y-2">
-          <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Basic Benefits Coverage</h2>
-          <ul className="text-sm text-slate-700 space-y-1 font-medium" aria-label="List of basic benefits">
+          <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Maternity & Coverage</h2>
+          <p className="font-extrabold text-slate-900 text-xl">{maternityLimit} Limit</p>
+          <p className="text-sm text-slate-700 font-bold underline decoration-slate-300">Maternity Waiting: 3 Years.</p>
+          <ul className="text-sm text-slate-700 space-y-1 mt-2 font-medium">
             <li>• Pre-Hospitalization: 30 Days</li>
             <li>• Post-Hospitalization: 60 Days</li>
             <li>• No Claim Bonus: 10% per year</li>
-            <li>• Ambulance Cover: Up to ₹5,000</li>
           </ul>
         </article>
       </section>
@@ -110,16 +125,17 @@ const BasicPlanReview = ({ data }) => {
         </div>
       </section>
 
-      {/* EXCLUSIONS */}
+      {/* EXCLUSIONS SECTION */}
       <section className="bg-red-50 rounded-3xl p-8 border border-red-200" aria-labelledby="exclusions-heading">
         <h2 id="exclusions-heading" className="text-sm font-black text-red-900 uppercase tracking-widest mb-6">❌ Not Covered (Exclusions)</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {['Global Coverage', 'Air Ambulance', 'Adventure Sports', 'Infertility / IVF', 'Cosmetic Surgery', 'Self-Inflicted Injuries', 'War & Nuclear'].map((exc, i) => (
-            <div key={i} className="text-[10px] font-bold text-red-800 bg-white/70 p-4 rounded-xl border border-red-200 text-center uppercase tracking-tight">
+          {['Global Coverage', 'Air Ambulance', 'Adventure Sports', 'Infertility / IVF', 'Cosmetic Surgery', 'Self-Inflicted Injuries', 'War & Nuclear Perils'].map((exc, i) => (
+            <div key={i} className="text-xs font-bold text-red-900 bg-white p-4 rounded-xl border border-red-200 text-center uppercase shadow-sm">
               {exc}
             </div>
           ))}
-          <div className="col-span-2 text-[10px] font-black text-red-800 bg-white/70 p-4 rounded-xl border border-red-200 text-center flex items-center justify-center uppercase italic">
+          {/* ADDED CONSUMABLES EXCLUSION FOR BASIC PLAN */}
+          <div className="col-span-2 text-xs font-bold text-red-900 bg-white p-4 rounded-xl border border-red-200 text-center uppercase shadow-sm italic">
             Non-Medical Expenses (Consumables)
           </div>
         </div>
