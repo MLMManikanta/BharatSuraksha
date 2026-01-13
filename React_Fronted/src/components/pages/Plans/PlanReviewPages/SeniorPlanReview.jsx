@@ -64,7 +64,7 @@ const SeniorPlanReview = ({ data }) => {
           <p className="font-extrabold text-slate-900 text-xl leading-tight">
             {roomRiderActive ? selectedRoom : "Up to Single Private Room"}
           </p>
-          <p className="text-sm text-slate-500 italic">Standard coverage includes single private rooms.</p>
+          <p className="text-sm text-slate-500 italic">Standard coverage includes single private rooms. Riders allow for upgrades.</p>
         </article>
 
         {/* CO-PAY */}
@@ -73,7 +73,32 @@ const SeniorPlanReview = ({ data }) => {
           <p className="font-extrabold text-amber-800 text-xl leading-tight">
             {copayLevel === "standard" ? "10% Standard" : copayLevel === "5%" ? "Reduced @ 5%" : "0% (Nil) Co-Pay"}
           </p>
-          <p className="text-sm text-slate-500 italic">Shared claim responsibility helps lower your annual premium.</p>
+          <p className="text-sm text-slate-500 italic">Lower co-payment riders increase company liability and protection.</p>
+        </article>
+
+        {/* WAITING PERIOD STATUS (Updated Section) */}
+        <article className="space-y-4">
+          <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Waiting Period Status</h3>
+          <div className="space-y-3">
+            <div className="border-l-4 border-amber-400 pl-3">
+              <p className="text-lg font-extrabold text-slate-900">30 Days Initial Waiting</p>
+              <p className="text-xs text-slate-600">Claims (except accidents) are not admissible during the first month.</p>
+            </div>
+            
+            <div className="border-l-4 border-amber-400 pl-3">
+              <p className="text-lg font-extrabold text-slate-900">
+                {pedCoverActive ? "Day 31 Coverage" : "3 Years Standard PED"}
+              </p>
+              <p className="text-xs text-slate-600">Waiting period for pre-existing conditions like Diabetes, Thyroid, and Cardiac issues.</p>
+            </div>
+
+            <div className="border-l-4 border-amber-400 pl-3">
+              <p className="text-lg font-extrabold text-slate-900">
+                {specificIllnessRider ? "12 Months Waiting" : "24 Months Waiting"}
+              </p>
+              <p className="text-xs text-slate-600">Covers slow-growing diseases: knee replacement, hernia, cataract, ENT disorders, etc.</p>
+            </div>
+          </div>
         </article>
 
         {/* SENIOR BENEFITS */}
@@ -89,19 +114,10 @@ const SeniorPlanReview = ({ data }) => {
             </li>
           </ul>
         </article>
-
-        {/* WAITING PERIODS */}
-        <article className="space-y-2">
-          <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Waiting Period Status</h3>
-          <p className="text-lg font-extrabold text-slate-900">
-            PED Cover: <span className="text-amber-700">{pedCoverActive ? "From Day 31" : "Standard 3 Years"}</span>
-          </p>
-          <p className="text-sm text-slate-600">Specific Illness Waiting: {specificIllnessRider ? "1 Year" : "2 Years"}.</p>
-        </article>
       </div>
 
-      {/* RIDER SECTION - ALL 5 RIDERS INCLUDED */}
-      <section className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 space-y-6">
+      {/* RIDER SECTION */}
+      <section className="bg-amber-50 border border-amber-200 rounded-[2.5rem] p-8 space-y-6 shadow-sm">
         <h2 className="text-base font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
           ✨ Senior Care Riders (Available Add-ons)
         </h2>
@@ -111,35 +127,35 @@ const SeniorPlanReview = ({ data }) => {
           {/* RIDER 1: PED COVER */}
           <div className="flex flex-col md:flex-row justify-between items-center bg-white p-5 rounded-2xl border border-amber-200 shadow-sm gap-4">
             <div className="flex-1 text-center md:text-left">
-              <p className="text-sm font-bold text-slate-900 uppercase">Pre-existing Disease Cover (Day 31)</p>
-              <p className="text-xs text-slate-500">Immediate cover for Diabetes, Hypertension, and Cardiac issues.</p>
+              <p className="text-sm font-bold text-slate-900 uppercase">PED Waiting Reduction (Day 31)</p>
+              <p className="text-xs text-slate-500">Reduce waiting for chronic illnesses from 3 years to just 30 days.</p>
             </div>
             <button onClick={() => setPedCoverActive(!pedCoverActive)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black transition-all ${pedCoverActive ? 'bg-amber-700 text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-              {pedCoverActive ? '✓ PED COVER ACTIVE' : '+ ADD RIDER'}
+              {pedCoverActive ? '✓ RIDER ACTIVE' : '+ ADD RIDER'}
             </button>
           </div>
 
-          {/* RIDER 2: CONSUMABLES */}
+          {/* RIDER 2: SPECIFIC ILLNESS */}
           <div className="flex flex-col md:flex-row justify-between items-center bg-white p-5 rounded-2xl border border-amber-200 shadow-sm gap-4">
             <div className="flex-1 text-center md:text-left">
-              <p className="text-sm font-bold text-slate-900 uppercase">Non-Medical Consumables Cover</p>
-              <p className="text-xs text-slate-500">Covers 60+ items like gloves, masks, and nebulizer kits.</p>
+              <p className="text-sm font-bold text-slate-900 uppercase">Specific Illness Waiting (1 Year)</p>
+              <p className="text-xs text-slate-500">Reduce waiting for Cataract and Joint replacement from 2 years to 1 year.</p>
             </div>
-            <button onClick={() => setConsumablesRider(!consumablesRider)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black transition-all ${consumablesRider ? 'bg-green-600 text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-              {consumablesRider ? '✓ CONSUMABLES ACTIVE' : '+ ADD RIDER'}
+            <button onClick={() => setSpecificIllnessRider(!specificIllnessRider)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black transition-all ${specificIllnessRider ? 'bg-amber-700 text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+              {specificIllnessRider ? '✓ 1 YEAR ACTIVE' : '+ REDUCE WAITING'}
             </button>
           </div>
 
           {/* RIDER 3: CO-PAY REDUCTION */}
           <div className="flex flex-col md:flex-row justify-between items-center bg-white p-5 rounded-2xl border border-amber-200 shadow-sm gap-4">
             <div className="flex-1 text-center md:text-left">
-              <p className="text-sm font-bold text-slate-900 uppercase">Co-pay Reduction Rider</p>
-              <p className="text-xs text-slate-500">Choose to pay less out-of-pocket during a claim.</p>
+              <p className="text-sm font-bold text-slate-900 uppercase">Co-pay Waiver Rider</p>
+              <p className="text-xs text-slate-500">Choose to pay 5% or 0% during a claim instead of standard 10%.</p>
             </div>
             <select 
               value={copayLevel} 
               onChange={(e) => setCopayLevel(e.target.value)}
-              className="w-full md:w-48 text-[11px] font-bold border-2 border-amber-100 rounded-lg p-2.5 bg-amber-50 focus:ring-2 focus:ring-amber-500"
+              className="w-full md:w-48 text-[11px] font-bold border-2 border-amber-100 rounded-lg p-2.5 bg-amber-50"
             >
               <option value="standard">Standard (10%)</option>
               <option value="5%">Reduce to 5%</option>
@@ -147,11 +163,21 @@ const SeniorPlanReview = ({ data }) => {
             </select>
           </div>
 
-          {/* RIDER 4: ROOM UPGRADE */}
+          {/* RIDER 4: CONSUMABLES */}
           <div className="flex flex-col md:flex-row justify-between items-center bg-white p-5 rounded-2xl border border-amber-200 shadow-sm gap-4">
             <div className="flex-1 text-center md:text-left">
-              <p className="text-sm font-bold text-slate-900 uppercase">Room Upgrade Rider</p>
-              <p className="text-xs text-slate-500">Choose a higher category room for your comfort.</p>
+              <p className="text-sm font-bold text-slate-900 uppercase">Non-Medical Consumables</p>
+              <p className="text-xs text-slate-500">Cover 60+ items like gloves and masks usually excluded.</p>
+            </div>
+            <button onClick={() => setConsumablesRider(!consumablesRider)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black transition-all ${consumablesRider ? 'bg-green-600 text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+              {consumablesRider ? '✓ COVERED' : '+ ADD COVER'}
+            </button>
+          </div>
+
+          {/* RIDER 5: ROOM UPGRADE */}
+          <div className="flex flex-col md:flex-row justify-between items-center bg-white p-5 rounded-2xl border border-amber-200 shadow-sm gap-4">
+            <div className="flex-1 text-center md:text-left">
+              <p className="text-sm font-bold text-slate-900 uppercase">Room Category Upgrade</p>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
               {roomRiderActive && (
@@ -167,11 +193,10 @@ const SeniorPlanReview = ({ data }) => {
             </div>
           </div>
 
-          {/* RIDER 5: DEDUCTIBLE OPTIONS */}
+          {/* RIDER 6: DEDUCTIBLE */}
           <div className="flex flex-col md:flex-row justify-between items-center bg-white p-5 rounded-2xl border border-amber-200 shadow-sm gap-4">
             <div className="flex-1 text-center md:text-left">
-              <p className="text-sm font-bold text-slate-900 uppercase">Deductible Benefit Options</p>
-              <p className="text-xs text-slate-500">Self-pay a small amount to significantly lower your premium.</p>
+              <p className="text-sm font-bold text-slate-900 uppercase">Deductible Options</p>
             </div>
             <select 
               value={selectedDeductible} 
@@ -180,9 +205,7 @@ const SeniorPlanReview = ({ data }) => {
             >
               <option value="None">No Deductible</option>
               <option value="10k">₹10,000</option>
-              <option value="15k">₹15,000</option>
               <option value="25k">₹25,000</option>
-              <option value="40k">₹40,000</option>
               <option value="50k">₹50,000</option>
               <option value="1L">₹1,00,000</option>
             </select>
