@@ -36,7 +36,7 @@ const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
     { id: 'health_check', label: 'Free Health Checkup', icon: '🩺', active: true, price: 0 },
     { id: 'ayush', label: 'AYUSH Benefits', icon: '🌿', active: true, price: 0 },
     { id: 'domiciliary', label: 'Domiciliary Expenses', icon: '🏠', active: true, price: 0 },
-    { id: 'opd', label: 'OPD Care', icon: '🏥', active: false, price: 3000 },
+    // { id: 'opd', label: 'OPD Care', icon: '🏥', active: false, price: 3000 },
   ];
 
   const initialRiders = [
