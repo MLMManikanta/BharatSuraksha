@@ -33,7 +33,7 @@ const FamilyPlanReview = ({ data }) => {
   return (
     <main className="p-8 space-y-10 animate-in fade-in duration-500 pb-20">
       
-      {/* HEADER - Semantic <header> and improved contrast for sub-text */}
+      {/* HEADER - Semantic <header> with WCAG high-contrast sub-text */}
       <header className="flex justify-between items-center border-b pb-6 border-slate-200">
         <div>
           <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Plan Review</h1>
@@ -43,14 +43,14 @@ const FamilyPlanReview = ({ data }) => {
         </div>
         <button 
           onClick={handleBack} 
-          aria-label="Go back to the previous step to select a different plan"
+          aria-label="Return to previous plan selection step"
           className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-xl shadow-md transition-all focus:ring-4 focus:ring-slate-300"
         >
           <span aria-hidden="true">←</span> Previous Step
         </button>
       </header>
 
-      {/* CORE POLICY FACTORS - Sectioned with darkened labels for WCAG 1.4.3 */}
+      {/* CORE POLICY FACTORS - Darkened labels (slate-600) for WCAG 1.4.3 compliance */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12" aria-labelledby="core-factors-title">
         <h2 id="core-factors-title" className="sr-only">Core Policy Factors</h2>
 
@@ -74,25 +74,42 @@ const FamilyPlanReview = ({ data }) => {
           </ul>
         </article>
 
-        <article className="space-y-2">
-          <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Maternity Benefit</h3>
-          <p className="font-extrabold text-slate-900 text-xl">{maternityLimit} Limit</p>
-          <p className="text-sm text-slate-700 font-bold underline decoration-slate-300">
-            Waiting Period: {maternityWaitingRider ? "1 Year (Rider Applied)" : "3 Years (Standard)"}
-          </p>
+        {/* WAITING PERIOD STATUS (New Section for Family Page) */}
+        <article className="space-y-4">
+          <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Waiting Period Status</h3>
+          <div className="space-y-3">
+            <div className="border-l-4 border-blue-500 pl-3">
+              <p className="text-lg font-extrabold text-slate-900">30 Days Initial Waiting</p>
+              <p className="text-xs text-slate-600">Minimum period policyholder needs to wait before filing a claim (except accidents).</p>
+            </div>
+            
+            <div className="border-l-4 border-blue-500 pl-3">
+              <p className="text-lg font-extrabold text-slate-900">3 Years Existing Illness (PED)</p>
+              <p className="text-xs text-slate-600">Waiting for pre-existing illnesses like diabetes, thyroid, etc.</p>
+            </div>
+
+            <div className="border-l-4 border-blue-500 pl-3">
+              <p className="text-lg font-extrabold text-slate-900">24 Months Specific Illness</p>
+              <p className="text-xs text-slate-600">Covers slow growing diseases like hernia, cataract, ENT disorders, and joint replacement.</p>
+            </div>
+          </div>
         </article>
 
         <article className="space-y-2">
-          <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Extended Benefits</h3>
-          <ul className="text-sm text-slate-700 space-y-1 font-medium" aria-label="Extended benefits details">
+          <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Maternity & Benefits</h3>
+          <p className="font-extrabold text-slate-900 text-xl">{maternityLimit} Limit</p>
+          <p className="text-sm text-slate-700 font-bold underline decoration-slate-300">
+            Maternity Waiting: {maternityWaitingRider ? "1 Year (Rider Applied)" : "3 Years (Standard)"}
+          </p>
+          <ul className="text-sm text-slate-700 space-y-1 mt-2 font-medium">
             <li>• Pre-Hospitalization: 60 Days</li>
             <li>• Post-Hospitalization: 180 Days</li>
-            <li className="text-green-800 font-bold">• Non-Medical Expenses (Consumables) Covered</li>
+            <li className="text-green-800 font-bold">• Non-Medical Consumables Covered</li>
           </ul>
         </article>
       </section>
 
-      {/* RIDER SECTION - Accessible controls and semantic groups */}
+      {/* RIDER SECTION */}
       <section className="bg-slate-50 border border-slate-200 rounded-[2rem] p-8 space-y-6" aria-labelledby="riders-title">
         <h2 id="riders-title" className="text-base font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
           ✨ Riders <span className="text-xs font-medium text-slate-600 normal-case tracking-normal">(Available Add-ons)</span>
@@ -103,7 +120,7 @@ const FamilyPlanReview = ({ data }) => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-shadow hover:shadow-md">
             <div className="flex-1">
               <p className="text-sm font-bold text-slate-900 uppercase">Room Type Restriction</p>
-              <p className="text-sm text-slate-600">Opt for a specific room type to reduce your premium.</p>
+              <p className="text-sm text-slate-600">Opt for a restricted room type to receive a premium discount.</p>
             </div>
             <div className="flex items-center gap-3 w-full md:w-auto">
               {roomRiderActive && (
@@ -160,7 +177,7 @@ const FamilyPlanReview = ({ data }) => {
         </div>
       </section>
 
-      {/* EXCLUSIONS - Grouped in red semantic container with higher contrast text */}
+      {/* EXCLUSIONS */}
       <section className="bg-red-50 rounded-[2rem] p-8 border border-red-200 shadow-sm" aria-labelledby="exclusions-title">
         <h2 id="exclusions-title" className="text-xs font-black text-red-900 uppercase tracking-widest mb-6">❌ Not Covered</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
