@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 
 const BasicPlanReview = ({ data }) => {
   const navigate = useNavigate();
-  const siValue = data.sumInsured?.value || 0;
-  const siLabel = data.sumInsured?.label || "₹3L";
+  const siValue = data?.sumInsured?.value || 0;
+  const siLabel = data?.sumInsured?.label || "₹3L";
 
-  // --- 1. DYNAMIC TREATMENT CAPS (Scale with SI) ---
+  // --- 1. DYNAMIC TREATMENT CAPS ---
   const getDynamicCaps = (si) => {
     const is3L = si <= 300000;
     const is4L = si > 300000 && si <= 400000;
@@ -21,14 +21,12 @@ const BasicPlanReview = ({ data }) => {
     ];
   };
 
-  // --- 2. DYNAMIC MATERNITY CAP ---
   const maternityLimit = (() => {
     if (siValue <= 300000) return "₹25,000";
     if (siValue <= 400000) return "₹30,000";
     return "₹37,000"; 
   })();
 
-  // --- 3. UPDATED BACK NAVIGATION ---
   const handleBack = () => {
     navigate('/select-plan', { 
         state: { 
@@ -39,84 +37,95 @@ const BasicPlanReview = ({ data }) => {
   };
 
   return (
-    <div className="p-8 space-y-8 animate-in fade-in duration-500 pb-20">
+    <main className="p-8 space-y-10 animate-in fade-in duration-500 pb-20">
       
-      {/* HEADER WITH UPDATED BACK UI */}
-      <div className="flex justify-between items-center border-b pb-6 border-slate-100">
+      {/* HEADER SECTION */}
+      <header className="flex justify-between items-center border-b pb-6 border-slate-200">
         <div>
-          <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tight">Plan Review</h2>
-          <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mt-1">Neev Suraksha Details ({siLabel})</p>
+          <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Plan Review</h1>
+          <p className="text-sm font-bold text-blue-700 uppercase tracking-widest mt-1">
+            Neev Suraksha Details ({siLabel})
+          </p>
         </div>
         <button 
           onClick={handleBack} 
-          className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-xl transition-all shadow-md group"
+          aria-label="Return to previous plan selection step"
+          className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-xl transition-all shadow-md focus:ring-4 focus:ring-slate-300"
         >
-          <span className="group-hover:-translate-x-1 transition-transform">←</span>
+          <span>←</span>
           Go to Previous Step
         </button>
-      </div>
+      </header>
 
-      {/* CORE POLICY FACTORS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
-        <div className="space-y-1">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Room Rent Limit</p>
-          <p className="font-bold text-slate-800 text-lg">1% of Sum Insured</p>
-          <p className="text-xs text-slate-500">₹{(siValue * 0.01).toLocaleString('en-IN')} / Day limit. Pro-rated deductions apply if exceeded.</p>
-        </div>
+      {/* CORE POLICY FACTORS GRID */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12" aria-label="Core Policy Details">
+        
+        {/* ROOM RENT - Darkened label to text-slate-600 */}
+        <article className="space-y-2">
+          <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Room Rent Limit</h2>
+          <p className="font-extrabold text-slate-900 text-xl">1% of Sum Insured</p>
+          <p className="text-sm text-slate-600 italic">
+            ₹{(siValue * 0.01).toLocaleString('en-IN')} / Day limit. Pro-rated deductions apply.
+          </p>
+        </article>
 
-        <div className="space-y-1">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Co-Payment</p>
-          <p className="font-bold text-red-600 text-lg">20% for General Hospitalization</p>
-          <p className="text-xs text-slate-500 italic">No Co-pay applicable on the specific capped treatments below.</p>
-        </div>
+        {/* CO-PAY */}
+        <article className="space-y-2">
+          <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Co-Payment</h2>
+          <p className="font-extrabold text-red-700 text-xl">20% for General Hospitalization</p>
+          <p className="text-sm text-slate-600">No Co-pay applicable on the specific capped treatments below.</p>
+        </article>
 
-        <div className="space-y-1">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Maternity Benefit</p>
-          <p className="font-bold text-slate-800 text-lg">{maternityLimit} Limit</p>
-          <p className="text-xs text-slate-500 underline font-bold">Waiting Period: 3 Years.</p>
-        </div>
+        {/* MATERNITY */}
+        <article className="space-y-2">
+          <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Maternity Benefit</h2>
+          <p className="font-extrabold text-slate-900 text-xl">{maternityLimit} Limit</p>
+          <p className="text-sm text-slate-700 font-bold underline decoration-slate-300">Waiting Period: 3 Years.</p>
+        </article>
 
-        <div className="space-y-1">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Basic Benefits</p>
-          <ul className="text-xs text-slate-500 space-y-1">
+        {/* BASIC BENEFITS */}
+        <article className="space-y-2">
+          <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">Basic Benefits Coverage</h2>
+          <ul className="text-sm text-slate-700 space-y-1 font-medium" aria-label="List of basic benefits">
             <li>• Pre-Hospitalization: 30 Days</li>
             <li>• Post-Hospitalization: 60 Days</li>
             <li>• No Claim Bonus: 10% per year</li>
             <li>• Ambulance Cover: Up to ₹5,000</li>
           </ul>
-        </div>
-      </div>
+        </article>
+      </section>
 
       {/* CAPPED TREATMENTS */}
-      <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-        <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-4">🛡️ Capped Treatments (No Co-Pay)</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <section className="bg-slate-50 rounded-3xl p-8 border border-slate-200" aria-labelledby="capped-heading">
+        <h2 id="capped-heading" className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+          🛡️ Capped Treatments <span className="text-xs font-medium text-slate-600 normal-case">(No Co-Pay)</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {getDynamicCaps(siValue).map((item, index) => (
-            <div key={index} className="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
-              <span className="text-[11px] font-bold text-slate-600">{item.disease}</span>
-              <span className="text-[11px] font-black text-slate-900">{item.limit}</span>
+            <div key={index} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+              <span className="text-xs font-bold text-slate-700">{item.disease}</span>
+              <span className="text-xs font-black text-slate-900">{item.limit}</span>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* EXCLUSIONS */}
-      <div className="bg-red-50 rounded-3xl p-6 border border-red-100 shadow-sm">
-        <h3 className="text-xs font-black text-red-900 uppercase tracking-widest mb-4">❌ Not Covered</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <section className="bg-red-50 rounded-3xl p-8 border border-red-200" aria-labelledby="exclusions-heading">
+        <h2 id="exclusions-heading" className="text-sm font-black text-red-900 uppercase tracking-widest mb-6">❌ Not Covered (Exclusions)</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {['Global Coverage', 'Air Ambulance', 'Adventure Sports', 'Infertility / IVF', 'Cosmetic Surgery', 'Self-Inflicted Injuries', 'War & Nuclear'].map((exc, i) => (
-            <div key={i} className="text-[10px] font-bold text-red-700 bg-white/60 p-3 rounded-xl border border-red-200 text-center">
+            <div key={i} className="text-[10px] font-bold text-red-800 bg-white/70 p-4 rounded-xl border border-red-200 text-center uppercase tracking-tight">
               {exc}
             </div>
           ))}
-          <div className="col-span-2 text-[10px] font-black text-red-700 bg-white/60 p-3 rounded-xl border border-red-200 text-center flex items-center justify-center uppercase italic">
+          <div className="col-span-2 text-[10px] font-black text-red-800 bg-white/70 p-4 rounded-xl border border-red-200 text-center flex items-center justify-center uppercase italic">
             Non-Medical Expenses (Consumables)
           </div>
         </div>
-      </div>
-
+      </section>
       
-    </div>
+    </main>
   );
 };
 
