@@ -7,22 +7,26 @@ import BasicPlan from './SubPlans/BasicPlan';
 import FamilyShieldPlan from './SubPlans/FamilyShieldPlan';
 import SeniorProtectPlan from './SubPlans/SeniorProtectPlan';
 import UniversalCoverage from './SubPlans/UniversalCoverage';
-
-// --- FIXED IMPORT PATH ---
-// Based on your previous message, this is now in the SubPlans folder
 import CustomizeHealthPage from "./SubPlans/CustomizeHealthPage";
 
 const PlanPreExistingSelection = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 1. RECEIVE DATA FROM STEP 1 (Members, Counts, etc.)
+  // 1. RECEIVE DATA & PERSISTENT TAB STATE
+  // If we came back from a review page, check if a specific tab was requested
   const prevData = location.state || {}; 
-
-  const [activeTab, setActiveTab] = useState('parivar'); // Default to Family (Parivar)
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'parivar');
   const [customizationData, setCustomizationData] = useState(null); 
 
-  // Redirect safety: If someone tries to access this page without filling out Step 1
+  // Sync tab if navigation state updates externally
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
+
+  // Redirect safety
   useEffect(() => {
     if (!prevData.counts && !prevData.members) { 
       navigate('/plans');
@@ -31,9 +35,6 @@ const PlanPreExistingSelection = () => {
 
   // --- HANDLERS ---
 
-  /**
-   * FAST-TRACK: Triggered by "Select Plan" in standard cards
-   */
   const handlePlanSelection = (planDetails) => {
     const siLabel = planDetails.sumInsured || "5L";
     const siValue = parseInt(siLabel.replace('L', '00000').replace('Cr', '0000000'));
@@ -57,13 +58,8 @@ const PlanPreExistingSelection = () => {
     navigate('/plan-review', { state: { ...prevData, ...payload } });
   };
 
-  /**
-   * VAJRA ACTIVATION: Triggered when clicking the Vajra Tab.
-   */
   const handleActivateVajra = () => {
     setActiveTab('vajra');
-    
-    // Ensure we pass a valid object structure so 'selectedPlan' is never undefined
     setCustomizationData({
       ...prevData, 
       selectedPlan: { 
@@ -72,16 +68,12 @@ const PlanPreExistingSelection = () => {
         isCustom: true 
       }
     });
-  }; // <--- FIXED: Added missing closing brace
+  };
 
-  // --- RE-ORGANIZED FUNCTIONS (Moved outside handleActivateVajra) ---
-
-  // Triggered after customizing in Vajra Builder
   const handleProceedToReview = (finalSelectionData) => {
     navigate('/plan-review', { state: { ...prevData, ...finalSelectionData } });
   };
 
-  // Closes customization and returns to standard plan view
   const handleCloseCustomization = () => {
     setCustomizationData(null); 
     setActiveTab('parivar');
@@ -90,11 +82,8 @@ const PlanPreExistingSelection = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      
-      {/* 1. STEPPER */}
       <CheckoutStepper currentStep={2} />
       
-      {/* 2. PAGE HEADER */}
       <div className="bg-[#1A5EDB] text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl relative mb-8">
         <div className="max-w-5xl mx-auto text-center space-y-4">
           <h1 className="text-3xl md:text-4xl font-bold italic tracking-tight">
@@ -109,8 +98,6 @@ const PlanPreExistingSelection = () => {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 -mt-20 relative z-10">
-        
-        {/* 3. TAB NAVIGATION */}
         <div className="bg-white p-2 rounded-2xl shadow-lg border border-gray-100 flex flex-wrap md:flex-nowrap justify-between gap-2 mb-8">
           {[
             { id: 'neev', label: 'Neev', icon: '🧱' },
@@ -134,7 +121,6 @@ const PlanPreExistingSelection = () => {
           ))}
         </div>
 
-        {/* 4. CONTENT DISPLAY */}
         <div className="min-h-[500px]">
           {!customizationData ? (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
