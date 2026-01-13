@@ -11,7 +11,7 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
     { title: "Newborn Baby Cover Expenses", icon: "👶" },
     { title: "100% Restoration of Cover", icon: "🔄" },
     { title: "Free Annual Health Checkup", icon: "🩺" },
-    { title: "Sum Insured: ₹10L to Unlimited", icon: "💰" },
+    { title: "Sum Insured: ₹10L to 1Cr", icon: "💰" },
     { title: "100% Claim Coverage", icon: "💯" },
     { title: "Day Care Procedures", icon: "💊" },
     { title: "Pre & Post Hospitalization", icon: "📄" },

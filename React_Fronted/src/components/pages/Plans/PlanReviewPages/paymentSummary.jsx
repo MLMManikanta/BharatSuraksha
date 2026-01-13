@@ -10,7 +10,7 @@ const PaymentSummary = ({ data }) => {
   return (
     <div className="bg-[#0F172A] rounded-[2.5rem] p-8 text-white shadow-2xl space-y-8 sticky top-6">
       <div className="border-b border-slate-700 pb-6">
-        <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest mb-2">Payment Summary</p>
+        <h2 className="text-blue-400 text-[20px] font-black  tracking-widest mb-4">Payment Summary </h2>
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
             <span className="text-slate-400">Selected Plan</span>
@@ -42,10 +42,7 @@ const PaymentSummary = ({ data }) => {
           className="w-full py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-[0.98] shadow-blue-500/20"
         >
           Proceed to KYC →
-        </button>
-        <p className="text-[9px] text-center text-slate-500 uppercase font-bold tracking-widest opacity-60 leading-relaxed">
-          GST exempt for Individual Health Insurance from Sep 22, 2025.
-        </p>
+        </button> 
       </div>
     </div>
   );
