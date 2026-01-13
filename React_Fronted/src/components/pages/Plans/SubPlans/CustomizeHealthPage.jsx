@@ -1,372 +1,285 @@
 import React, { useState, useEffect } from 'react';
 
-const CustomizeHealthPage = ({ initialData, onProceed, onBack }) => {
-
+const CustomizeHealthPage = ({ initialData, onProceed }) => {
   // --- 1. DATA CONFIGURATION ---
   const sumInsuredSteps = [
-    { label: "₹10L", value: 1000000 },
-    { label: "₹15L", value: 1500000 },
-    { label: "₹20L", value: 2000000 },
-    { label: "₹35L", value: 3500000 },
-    { label: "₹50L", value: 5000000 },
-    { label: "₹1Cr", value: 10000000 },
-    { label: "₹2Cr", value: 20000000 },
-    { label: "₹5Cr", value: 50000000 },
+    { label: "10L", value: 1000000 }, { label: "15L", value: 1500000 },
+    { label: "20L", value: 2000000 }, { label: "30L", value: 3000000 },
+    { label: "50L", value: 5000000 }, { label: "1Cr", value: 10000000 },
+    { label: "1.5Cr", value: 15000000 }, { label: "2Cr", value: 20000000 },
+    { label: "3Cr", value: 30000000 }, { label: "5Cr", value: 50000000 },
     { label: "Unlimited", value: 999999999 } 
-  ];
-
-  const roomRentOptions = [
-    { label: "₹5,000 / Day", value: "5k" },
-    { label: "₹7,500 / Day", value: "7.5k" },
-    { label: "₹10,000 / Day", value: "10k" },
-    { label: "Single Private Room", value: "private" },
-    { label: "Single Private AC Room", value: "private_ac" },
-    { label: "Deluxe Room", value: "deluxe" },
-    { label: "Any Room Category", value: "any" }
   ];
 
   const chronicDiseases = ["Diabetes", "High Cholesterol", "COPD", "Heart Disease", "Hypertension", "Asthma"];
 
-  const initialFeatures = [
-    { id: 'global', label: 'Global Coverage', icon: '🌍', active: false, price: 2000 },
-    { id: 'restore', label: 'Automatic Restore', icon: '🔄', active: true, price: 0 }, 
-    { id: 'claim_protect', label: 'Claim Protector', icon: '🛡️', active: false, price: 800 }, 
-    { id: 'dme', label: 'DME Cover', icon: '🦽', active: false, price: 500 }, 
-    { id: 'air_ambulance', label: 'Air Ambulance', icon: '🚁', active: false, price: 1500 },
-    { id: 'health_check', label: 'Free Health Checkup', icon: '🩺', active: true, price: 0 },
-    { id: 'ayush', label: 'AYUSH Benefits', icon: '🌿', active: true, price: 0 },
-    { id: 'domiciliary', label: 'Domiciliary Expenses', icon: '🏠', active: true, price: 0 },
-    // { id: 'opd', label: 'OPD Care', icon: '🏥', active: false, price: 3000 },
-  ];
-
-  const initialRiders = [
-    { id: 'unlimited_care', label: 'Unlimited Care', desc: 'Never run out of cover.', icon: '♾️', active: false, price: 25000 },
-    { id: 'chronic_care', label: 'Chronic Care', desc: 'Day 1 cover for managed conditions', icon: '💊', active: false, price: 4000, isMultiSelect: true, selectedConditions: ['Diabetes'] },
-    { id: 'tele_consult', label: 'Tele-Consultation', desc: 'Unlimited online doctor consults 24/7', icon: '📲', active: false, price: 1500 },
-    { id: 'flexi_year', label: 'Smart Aggregate', desc: 'Unlock total tenure cover in 1st Year', icon: '📅', active: false, price: 5000, minTenure: 2 },
-    { id: 'super_bonus', label: 'Super Bonus', desc: '7x Coverage irrespective of claims', icon: '🚀', active: false, price: 8000 },
-    { id: 'ped_wait', label: 'PED Wait Reduction', desc: 'Reduce Pre-existing disease wait to 1 Yr', icon: '📉', active: false, price: 6000 },
-    { id: 'specific_disease', label: 'Specific Disease Wait', desc: 'Modify waiting period for listed illnesses', icon: '📋', active: false, price: 1200 },
-    { id: 'maternity_boost', label: 'Maternity Booster', desc: 'Up to ₹3L Worldwide Limit', icon: '🤰', active: false, price: 12000 }
-  ];
-
- // --- 2. HELPERS ---
-const getInitialIndex = () => {
-  if (!initialData || !initialData.selectedPlan || !initialData.selectedPlan.sumInsured) {
-    return 0; 
-  }
-  
-  const targetLabel = initialData.selectedPlan.sumInsured.replace(/[₹\s]/g, ''); 
-  const idx = sumInsuredSteps.findIndex(s => s.label.includes(targetLabel));
-  return idx !== -1 ? idx : 0;
-};
-
-  // --- 3. STATE ---
-  const [sliderIndex, setSliderIndex] = useState(getInitialIndex()); 
-  const [roomRent, setRoomRent] = useState("private");
-  const [preHospitalization, setPreHospitalization] = useState(60);
-  const [postHospitalization, setPostHospitalization] = useState(90);
+  // --- 2. STATE ---
+  const [sliderIndex, setSliderIndex] = useState(0); 
   const [tenure, setTenure] = useState(1);
-  const [features, setFeatures] = useState(initialFeatures);
-  const [riders, setRiders] = useState(initialRiders);
+  const [preHosp, setPreHosp] = useState(60);
+  const [postHosp, setPostHosp] = useState(90);
+  const [chronicActive, setChronicActive] = useState(false);
+  const [selectedChronic, setSelectedChronic] = useState(['Diabetes']);
+
+  const currentSI = sumInsuredSteps[sliderIndex];
+  const isBaseUnlimited = currentSI.value === 999999999;
+
+  // Features List with Locked Items
+  const [features, setFeatures] = useState([
+    { id: 'global', label: 'Global Coverage', icon: '🌍', active: true },
+    { id: 'claim_100', label: '100% Claim Coverage', icon: '💯', active: true, isLocked: true }, 
+    { id: 'maternity_global', label: 'Maternity Cover', icon: '🤰', active: true }, 
+    { id: 'non_deduct', label: 'Non-Deductible Items Covered', icon: '📄', active: true },
+    { id: 'health_check', label: 'Free Health Checkup', icon: '🩺', active: true },
+    { id: 'secure', label: 'Secure Benefit', icon: '🛡️', active: true },
+    { id: 'restore', label: 'Automatic Restore Benefit', icon: '🔄', active: true },
+    { id: 'air_amb', label: 'Emergency Air Ambulance', icon: '🚁', active: false },
+    { id: 'hosp_mandatory', label: 'Hospitalisation Cover', icon: '🏥', active: true, isLocked: true },
+    { id: 'day_care', label: 'Day Care Procedures', icon: '💊', active: true },
+    { id: 'ayush', label: 'AYUSH Benefits', icon: '🌿', active: true },
+    { id: 'organ', label: 'Organ Donor Expenses', icon: '🤝', active: false },
+    { id: 'domiciliary', label: 'Domiciliary Expenses', icon: '🏠', active: true },
+    { id: 'no_sublimit', label: 'No Sublimit on Medical Treatment', icon: '🔓', active: true, isLocked: true },
+  ]);
+
+  const [riders, setRiders] = useState([
+    { id: 'unlimited_care', label: 'Unlimited Care', desc: 'Once in a lifetime benefit cover.', icon: '♾️', active: false },
+    { id: 'inflation_shield', label: 'Inflation Shield', desc: 'SI increases annually matching inflation.', icon: '📈', active: false }, // New Rider
+    { id: 'tele_consult', label: 'Tele-Consultation', desc: 'Unlimited online doctor consults 24/7', icon: '📱', active: false },
+    { id: 'smart_agg', label: 'Smart Aggregate', desc: 'Unlock total tenure cover in 1st Year', icon: '📅', active: false },
+    { id: 'super_bonus', label: 'Super Bonus', desc: '7x Coverage irrespective of claims', icon: '🚀', active: false },
+    { id: 'ped_wait', label: 'PED Wait Reduction', desc: 'Reduce Pre-existing disease wait to 1 Yr', icon: '📉', active: false },
+    { id: 'specific_wait', label: 'Specific Disease Wait', desc: 'Modify waiting period for listed illnesses', icon: '📋', active: false },
+    { id: 'maternity_boost', label: 'Maternity Booster', desc: 'Up to ₹3L Worldwide Limit', icon: '🤰', active: false, waitOption: 2 },
+  ]);
+
+  const isMaternityActive = features.find(f => f.id === 'maternity_global')?.active;
 
   useEffect(() => {
-    setSliderIndex(getInitialIndex());
-  }, [initialData?.selectedPlan]);
+    setRiders(prev => prev.map(r => r.id === 'smart_agg' ? { ...r, active: tenure > 1 } : r));
+  }, [tenure]);
 
-  const isBaseUnlimited = sumInsuredSteps[sliderIndex].value === 999999999;
-
-  useEffect(() => {
-    setFeatures(prev => prev.map(f => {
-      if (f.id === 'restore') return isBaseUnlimited ? { ...f, active: false, isDisabledByBase: true } : { ...f, isDisabledByBase: false };
-      return f;
-    }));
-    setRiders(prev => prev.map(r => {
-      if (['unlimited_care', 'super_bonus', 'flexi_year'].includes(r.id)) {
-        if (isBaseUnlimited) return { ...r, active: false, isDisabledByBase: true };
-        if (r.id !== 'flexi_year') return { ...r, isDisabledByBase: false };
-      }
-      if (r.id === 'flexi_year') {
-        if (isBaseUnlimited) return { ...r, active: false, isDisabledByBase: true };
-        if (tenure < r.minTenure) return { ...r, active: false, isDisabledByBase: false }; 
-        return { ...r, isDisabledByBase: false };
-      }
-      return r;
-    }));
-  }, [sliderIndex, tenure, isBaseUnlimited]); 
-
-  // --- 4. HANDLERS ---
-  const toggleFeature = (id) => {
-    setFeatures(prev => prev.map(f => (f.isDisabledByBase ? f : f.id === id ? { ...f, active: !f.active } : f)));
-  };
+  const toggleFeature = (id) => setFeatures(prev => prev.map(f => {
+    if (f.id === id) {
+      if (f.isLocked) return f;
+      return { ...f, active: !f.active };
+    }
+    return f;
+  }));
 
   const toggleRider = (id) => {
-    setRiders(prev => prev.map(r => {
-      if (r.id === id) {
-        if (r.isDisabledByBase) return r; 
-        if (r.minTenure && tenure < r.minTenure) {
-          alert(`This rider requires a policy tenure of at least ${r.minTenure} years.`);
-          return r;
-        }
-        return { ...r, active: !r.active };
-      }
-      return r;
-    }));
-  };
-
-  const getChronicPrice = (count) => (count <= 1 ? 4000 : count === 2 ? 7500 : 7500 + ((count - 2) * 3000));
-
-  const toggleChronicCondition = (condition, event) => {
-    event.stopPropagation();
-    setRiders(prev => prev.map(r => {
-        if (r.id === 'chronic_care') {
-            const currentList = r.selectedConditions || [];
-            let newList;
-            if (currentList.includes(condition)) {
-                if (currentList.length === 1) { alert("At least one condition must be selected."); newList = currentList; } 
-                else { newList = currentList.filter(c => c !== condition); }
-            } else { newList = [...currentList, condition]; }
-            return { ...r, selectedConditions: newList, price: getChronicPrice(newList.length) };
-        }
-        return r;
-    }));
-  };
-
-  const calculatePremium = () => {
-    let base = 12000;
-    base += sliderIndex * 2500;
-    if (roomRent === 'deluxe' || roomRent === 'any') base += 4000;
-    if (roomRent === 'private_ac') base += 2000;
-    if (preHospitalization === 90) base += 500;
-    if (postHospitalization === 180) base += 1000;
-    features.forEach(f => { if (f.active) base += f.price; });
-    riders.forEach(r => { if (r.active) base += r.price; });
-    if (tenure === 2) base = base * 2 * 0.9;
-    if (tenure === 3) base = base * 3 * 0.85;
-    return Math.round(base);
-  };
-
-  const handleSelection = () => {
-      // Package data specifically as Review Page expects it
-      const selectionData = {
-          selectedPlan: {
-              ...initialData.selectedPlan,
-              name: 'Vajra Suraksha'
-          },
-          sumInsured: sumInsuredSteps[sliderIndex],
-          roomRent: roomRentOptions.find(r => r.value === roomRent),
-          hospitalization: { pre: preHospitalization, post: postHospitalization },
-          tenure: tenure,
-          activeFeatures: features.filter(f => f.active),
-          activeRiders: riders.filter(r => r.active),
-          basePremium: calculatePremium() // returns Number
-      };
-
-      if (onProceed) {
-          onProceed(selectionData);
-      }
+    if (id === 'unlimited_care' && isBaseUnlimited) return;
+    setRiders(prev => prev.map(r => r.id === id ? { ...r, active: !r.active } : r));
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
-      
-      {/* --- POLISHED BLUE AGGRESSIVE HEADER --- */}
-      <div className="flex justify-between items-center mb-6 px-4 py-4 bg-gradient-to-r from-[#0f172a] to-[#1e3a8a] rounded-xl text-white shadow-lg border-b-4 border-[#1A5EDB]">
-         <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-[#1A5EDB] rounded-full flex items-center justify-center text-xl shadow shadow-blue-500/50">⚡</div>
-             <div>
-                <h2 className="text-xl font-black uppercase tracking-widest italic">
-                    {initialData?.selectedPlan?.isCustom ? 'Vajra Suraksha Builder' : `Modify ${initialData?.selectedPlan?.name}`}
-                </h2>
-                <p className="text-xs font-bold text-blue-200 uppercase tracking-wide">
-                    Configure your ultimate shield. No compromises, just pure protection.
-                </p>
-             </div>
-         </div>
-      </div>
+    <main className="max-w-7xl mx-auto p-4 space-y-8 bg-gray-50 min-h-screen font-sans">
+      <header className="bg-slate-900 p-6 rounded-2xl text-white shadow-xl border-b-4 border-blue-600" role="banner">
+        <h1 className="text-2xl font-black uppercase italic tracking-tighter">Vajra Suraksha Builder</h1>
+        <p className="text-blue-100 text-sm font-bold uppercase mt-1">Configure Your Ultimate Health Shield</p>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* --- LEFT COLUMN --- */}
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 space-y-8">
           
-          {/* 1. SUM INSURED */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          {/* 1. SUM INSURED SLIDER */}
+          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200" aria-labelledby="si-heading">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                <span className="w-8 h-8 rounded-full bg-blue-50 text-[#1A5EDB] flex items-center justify-center text-sm">₹</span> 
-                Sum Insured
-              </h2>
-              <span className="text-3xl font-bold text-[#1A5EDB]">{sumInsuredSteps[sliderIndex].label}</span>
+              <h2 id="si-heading" className="font-bold text-slate-800 uppercase text-sm">Sum Insured</h2>
+              <span className="text-3xl font-black text-blue-800" aria-live="polite">₹{currentSI.label}</span>
             </div>
-            
-            <div className="px-2 relative pt-2 pb-6">
-              <input 
-                type="range" min="0" max={sumInsuredSteps.length - 1} step="1"
-                value={sliderIndex} onChange={(e) => setSliderIndex(Number(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#1A5EDB] relative z-10"
-              />
-              <div className="flex justify-between mt-3 absolute w-full left-0 top-4 px-1 pointer-events-none">
-                {sumInsuredSteps.map((step, i) => (
-                    <div key={i} className="flex flex-col items-center gap-1">
-                        <div className={`w-0.5 h-2 ${i === sliderIndex ? 'bg-[#1A5EDB]' : 'bg-gray-300'}`}></div>
-                        {(i === 0 || i === sumInsuredSteps.length - 1 || i === sliderIndex) && (
-                            <span className={`text-[10px] font-bold ${i === sliderIndex ? 'text-[#1A5EDB]' : 'text-gray-400'}`}>
-                                {step.label}
-                            </span>
-                        )}
-                    </div>
-                ))}
-              </div>
+            <input 
+              id="si-range" type="range" min="0" max={sumInsuredSteps.length - 1} step="1" 
+              value={sliderIndex} aria-label="Select Sum Insured"
+              onChange={(e) => setSliderIndex(Number(e.target.value))} 
+              className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-800" 
+            />
+            <div className="flex justify-between mt-2" aria-hidden="true">
+               {sumInsuredSteps.map((s, i) => (
+                 <span key={i} className={`text-[9px] font-bold ${i === sliderIndex ? 'text-blue-800' : 'text-gray-400'}`}>{s.label}</span>
+               ))}
             </div>
-          </div>
+          </section>
 
-          {/* 2. ROOM RENT & HOSPITALIZATION */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 rounded-full bg-blue-50 text-[#1A5EDB] flex items-center justify-center text-xl">🏥</span> 
-                Room Rent Limit
-              </h2>
-              <select value={roomRent} onChange={(e) => setRoomRent(e.target.value)} className="w-full p-4 rounded-xl border border-gray-200 font-bold text-slate-700 bg-gray-50 focus:border-[#1A5EDB] outline-none">
-                {roomRentOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-              </select>
+          {/* 2. PRE/POST DURATION */}
+          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200" aria-labelledby="hosp-duration-heading">
+            <h2 id="hosp-duration-heading" className="font-bold text-slate-800 uppercase text-sm mb-6">Hospitalisation Duration</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <fieldset>
+                <legend className="text-[11px] font-bold text-gray-600 uppercase mb-3">Pre-Hospitalisation</legend>
+                <div className="flex gap-2">
+                  {[30, 60, 90].map(d => (
+                    <button key={d} onClick={() => setPreHosp(d)} aria-pressed={preHosp === d}
+                      className={`flex-1 py-3 text-sm font-bold rounded-xl border-2 transition-all min-h-[44px] ${preHosp === d ? 'border-blue-700 bg-blue-50 text-blue-900' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}>
+                      {d} Days
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend className="text-[11px] font-bold text-gray-600 uppercase mb-3">Post-Hospitalisation</legend>
+                <div className="flex gap-2">
+                  {[60, 90, 180].map(d => (
+                    <button key={d} onClick={() => setPostHosp(d)} aria-pressed={postHosp === d}
+                      className={`flex-1 py-3 text-sm font-bold rounded-xl border-2 transition-all min-h-[44px] ${postHosp === d ? 'border-blue-700 bg-blue-50 text-blue-900' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}>
+                      {d} Days
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
             </div>
+          </section>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 rounded-full bg-blue-50 text-[#1A5EDB] flex items-center justify-center text-xl">📅</span> 
-                Hospitalization
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <span className="text-xs font-bold text-gray-500 uppercase">Pre-Hospitalization</span>
-                  <div className="flex gap-2 mt-2">
-                    {[30, 60, 90].map(days => (
-                      <button key={days} onClick={() => setPreHospitalization(days)} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${preHospitalization === days ? 'bg-[#1A5EDB] text-white' : 'text-gray-500'}`}>{days} Days</button>
-                    ))}
+          {/* 3. BASE FEATURES - 3 COLUMN LAYOUT */}
+          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200" aria-labelledby="features-heading">
+            <h2 id="features-heading" className="font-bold text-slate-800 uppercase text-sm mb-6">Base Features</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {features.map(f => (
+                <button key={f.id} onClick={() => toggleFeature(f.id)} aria-pressed={f.active} disabled={f.isLocked}
+                  className={`min-h-[110px] p-4 rounded-xl border-2 transition-all text-center flex flex-col items-center justify-center relative focus:ring-4 focus:ring-blue-200 ${f.active ? 'border-blue-700 bg-blue-50' : 'border-gray-100 bg-white opacity-60'}`}>
+                  {f.isLocked && <span className="absolute top-2 right-2 text-xs grayscale" aria-label="Mandatory Feature">🔒</span>}
+                  <span className="text-3xl mb-2" aria-hidden="true">{f.icon}</span>
+                  <span className="text-[11px] font-black uppercase leading-tight text-slate-800">{f.label}</span>
+                </button>
+              ))}
+            </div>
+            <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 text-blue-900 font-bold uppercase text-[10px]">
+               Note: Maternity cover starts from 10% of Sum Insured up to ₹2 Lakhs.
+            </div>
+          </section>
+
+          {/* 4. CHRONIC CARE SECTION */}
+          <section className="bg-white p-6 rounded-2xl border border-orange-200 shadow-sm" aria-labelledby="chronic-heading">
+             <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
+                <div className="flex items-center gap-4">
+                  <span className="text-3xl" aria-hidden="true">💊</span>
+                  <div>
+                    <h2 id="chronic-heading" className="font-bold text-orange-950 uppercase text-sm">Chronic Care (Day 31+)</h2>
+                    <p className="text-[11px] text-orange-900 uppercase font-bold">Conditions covered from 31st day</p>
                   </div>
                 </div>
-                <div>
-                  <span className="text-xs font-bold text-gray-500 uppercase">Post-Hospitalization</span>
-                  <div className="flex gap-2 mt-2">
-                    {[60, 90, 180].map(days => (
-                      <button key={days} onClick={() => setPostHospitalization(days)} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${postHospitalization === days ? 'bg-[#1A5EDB] text-white' : 'text-gray-500'}`}>{days} Days</button>
+                <button onClick={() => setChronicActive(!chronicActive)} aria-pressed={chronicActive}
+                  className={`min-h-[44px] px-6 py-2 rounded-full font-bold text-sm transition-all focus:ring-4 focus:ring-orange-200 ${chronicActive ? 'bg-orange-800 text-white' : 'bg-orange-100 text-orange-900 border border-orange-200 hover:bg-orange-200'}`}>
+                  {chronicActive ? 'Active' : 'Add Cover'}
+                </button>
+             </div>
+             {chronicActive && (
+                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 pt-2" role="group" aria-label="Select Chronic Conditions">
+                    {chronicDiseases.map(d => (
+                        <button key={d} onClick={() => setSelectedChronic(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])} aria-pressed={selectedChronic.includes(d)}
+                          className={`py-3 text-[10px] font-bold rounded-xl border-2 min-h-[44px] ${selectedChronic.includes(d) ? 'border-orange-800 bg-orange-800 text-white' : 'border-gray-100 text-slate-600 hover:border-gray-300'}`}>
+                          {d}
+                        </button>
                     ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+                 </div>
+             )}
+          </section>
 
-          {/* 3. FEATURES */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-full bg-blue-50 text-[#1A5EDB] flex items-center justify-center text-xl">✨</span> 
-              Features
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {features.map((feature) => {
-                const isDisabled = feature.isDisabledByBase;
-                return (
-                  <div 
-                    key={feature.id}
-                    onClick={() => !isDisabled && toggleFeature(feature.id)}
-                    className={`relative p-3 rounded-xl border transition-all duration-200 text-center ${
-                      isDisabled ? 'bg-gray-50 border-gray-100 opacity-60 cursor-not-allowed' :
-                      feature.active ? 'border-[#1A5EDB] bg-blue-50/50 cursor-pointer' : 'border-gray-200 hover:bg-gray-50 cursor-pointer'
-                    }`}
-                  >
-                    {isDisabled && <div className="absolute top-2 right-2 text-xs">🔒</div>}
-                    <div className="text-2xl mb-1">{feature.icon}</div>
-                    <h3 className={`text-xs font-bold leading-tight ${feature.active ? 'text-[#1A5EDB]' : 'text-slate-700'}`}>
-                      {feature.label}
-                    </h3>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 4. PREMIUM RIDERS */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center text-xl">🚀</span> 
-              Premium Riders & Boosters
-            </h2>
+          {/* 5. PREMIUM RIDERS */}
+          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200" aria-labelledby="riders-heading">
+            <h2 id="riders-heading" className="font-bold text-slate-800 uppercase text-sm mb-6">Premium Riders</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {riders.map((rider) => {
-                const isDisabled = (rider.minTenure && tenure < rider.minTenure) || rider.isDisabledByBase;
+              {riders.map(r => {
+                if (r.id === 'maternity_boost' && !isMaternityActive) return null;
+                const isDisabled = (r.id === 'unlimited_care' && isBaseUnlimited) || (r.id === 'smart_agg' && tenure === 1);
                 return (
-                  <div 
-                    key={rider.id}
-                    onClick={() => !isDisabled && toggleRider(rider.id)}
-                    className={`relative p-4 rounded-xl border-2 transition-all duration-200 flex flex-col gap-2 ${
-                      isDisabled ? 'opacity-60 bg-gray-50 border-gray-100 cursor-not-allowed' :
-                      rider.active ? 'border-teal-500 bg-teal-50 cursor-pointer' : 'border-gray-200 hover:border-teal-200 cursor-pointer'
-                    }`}
-                  >
-                    <div className="flex items-start gap-4">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 ${rider.active ? 'bg-teal-100 text-teal-600' : 'bg-gray-100 text-gray-500'}`}>
-                          {rider.icon}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className={`font-bold ${rider.active ? 'text-teal-700' : 'text-slate-700'}`}>{rider.label}</h3>
-                          <p className="text-xs text-gray-500 mt-1 leading-relaxed">{rider.desc}</p>
-                        </div>
+                  <button key={r.id} disabled={isDisabled} onClick={() => toggleRider(r.id)} aria-pressed={r.active}
+                    className={`flex items-start p-5 rounded-2xl border-2 text-left transition-all min-h-[44px] focus:ring-4 focus:ring-teal-100 ${isDisabled ? 'opacity-30 grayscale cursor-not-allowed' : r.active ? 'border-teal-800 bg-teal-50' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
+                    <span className="text-4xl mr-4" aria-hidden="true">{r.icon}</span>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-[13px] uppercase text-slate-950 leading-tight">{r.label}</h3>
+                      <p className="text-[11px] text-slate-700 mt-1 font-medium">{r.desc}</p>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
-          </div>
+          </section>
         </div>
 
-        {/* --- RIGHT COLUMN: SUMMARY --- */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sticky top-6">
-            <h3 className="text-xl font-bold text-slate-900 mb-6">Plan Summary</h3>
-            
-            <div className="space-y-4 mb-6">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Sum Insured</span>
-                <span className="font-bold text-[#1A5EDB] text-lg">{sumInsuredSteps[sliderIndex].label}</span>
+        {/* 6. EXPANDED SUMMARY SIDEBAR */}
+        <aside className="lg:col-span-4 h-fit sticky top-6" aria-labelledby="summary-heading">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl border border-gray-200 space-y-8">
+            <h2 id="summary-heading" className="font-black text-slate-900 uppercase text-2xl border-b pb-6 tracking-tighter">Plan Summary</h2>
+
+            <div className="space-y-8">
+              {/* TENURE SELECTION */}
+              <fieldset className="flex flex-col gap-4">
+                <legend className="text-xs font-bold text-gray-600 uppercase block mb-2">Policy Tenure</legend>
+                <div className="grid grid-cols-3 bg-gray-100 p-1.5 rounded-xl border border-gray-200">
+                  {[1, 2, 3].map((y) => (
+                    <button key={y} onClick={() => setTenure(y)} aria-pressed={tenure === y}
+                      className={`py-3 text-sm font-bold rounded-lg transition-all min-h-[44px] ${tenure === y ? 'bg-white text-blue-800 shadow-md' : 'text-gray-500 hover:text-gray-700'}`}>
+                      {y} Year{y > 1 ? 's' : ''}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <div className="space-y-4 pt-6 border-t border-gray-100">
+                <div className="flex justify-between items-center text-sm font-bold uppercase">
+                  <span className="text-gray-500">Sum Insured</span>
+                  <span className="text-blue-800">₹{currentSI.label}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm font-bold uppercase">
+                  <span className="text-gray-500">Pre/Post Hosp</span>
+                  <span className="text-blue-800">{preHosp}/{postHosp} Days</span>
+                </div>
               </div>
 
-              <div className="flex justify-between text-sm items-center">
-                <span className="text-gray-500 font-medium">Policy Tenure</span>
-                <div className="flex bg-gray-100 rounded-lg p-1 gap-1">
-                  {[1, 2, 3].map(t => (
-                    <button key={t} onClick={() => setTenure(t)} className={`w-8 h-8 flex items-center justify-center rounded-md font-bold text-xs transition-all ${tenure === t ? 'bg-white shadow-sm text-[#1A5EDB]' : 'text-gray-400'}`}>{t}Y</button>
+              {/* LIST: CHRONIC CARE IN SUMMARY */}
+              {chronicActive && (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-orange-700 uppercase">Chronic Conditions Covered</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedChronic.map(cond => (
+                      <span key={cond} className="text-[10px] font-bold bg-orange-50 text-orange-800 px-3 py-1 rounded-full border border-orange-100">
+                        {cond}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* LIST: BASE FEATURES */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-gray-500 uppercase">Active Base Features</h3>
+                <div className="max-h-60 overflow-y-auto pr-3 space-y-2">
+                  {features.filter(f => f.active).map(f => (
+                    <div key={f.id} className="flex items-center gap-3 text-[12px] text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span aria-hidden="true">{f.icon}</span>
+                      <span className="font-bold">{f.label}</span>
+                    </div>
                   ))}
                 </div>
               </div>
-            </div>
 
-            <div className="bg-blue-50 rounded-xl p-4 mb-6">
-              <div className="flex justify-between items-end">
-                <div>
-                   <span className="block text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">Total Premium</span>
-                   <span className="text-3xl font-bold text-[#1A5EDB]">₹{calculatePremium().toLocaleString('en-IN')}</span>
-                </div>
-                <div className="text-right">
-                    <span className="text-sm font-bold text-blue-400 mb-1 block">/ year</span>
-                    {tenure > 1 && <span className="text-[10px] text-green-600 font-bold bg-green-100 px-1.5 py-0.5 rounded">Saved {tenure === 2 ? '10%' : '15%'}</span>}
+              {/* LIST: RIDERS */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold text-gray-500 uppercase">Selected Riders</h3>
+                <div className="max-h-40 overflow-y-auto pr-3 space-y-2">
+                  {riders.filter(r => r.active).length > 0 ? (
+                    riders.filter(r => r.active).map(r => (
+                      <div key={r.id} className="flex items-center gap-3 text-[12px] text-teal-900 bg-teal-50 p-3 rounded-xl border border-teal-100">
+                        <span aria-hidden="true">{r.icon}</span>
+                        <span className="font-bold">{r.label}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-xs text-gray-400 italic">No riders selected</span>
+                  )}
                 </div>
               </div>
             </div>
 
-            <button 
-              onClick={handleSelection} 
-              className="w-full py-4 bg-[#1A5EDB] text-white font-bold rounded-xl shadow-lg hover:bg-[#1149AE] transition-all transform active:scale-[0.98]"
-            >
-              Select Plan &rarr;
+            <button onClick={() => onProceed?.({ currentSI, tenure, preHosp, postHosp, features, riders, selectedChronic })} 
+              className="w-full py-5 bg-blue-800 text-white font-black rounded-xl uppercase tracking-widest italic shadow-xl hover:bg-blue-900 transition-all active:scale-95 min-h-[56px] focus:ring-4 focus:ring-blue-300">
+              Confirm Selection &rarr;
             </button>
           </div>
-        </div>
-
+        </aside>
       </div>
-    </div>
+    </main>
   );
 };
 
