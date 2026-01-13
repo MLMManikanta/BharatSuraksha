@@ -24,9 +24,12 @@ const BasicPlan = ({ onSelectPlan }) => {
   const exclusions = [
     { title: "Global Coverage", icon: "🌍" },
     { title: "Air Ambulance", icon: "🚁" },
-    { title: "Private AC / Suite Rooms", icon: "✨" },
     { title: "Adventure Sports Injuries", icon: "🪂" },
-    { title: "OPD Consultations", icon: "👨‍⚕️" },
+    { title: "Infertility / IVF Treatments", icon: "🧬" },
+    { title: "Cosmetic & Plastic Surgery", icon: "💄" },
+    { title: "Self-Inflicted Injuries", icon: "🤕" },
+    { title: "War & Nuclear Perils", icon: "⚔️" },
+    { title: "Unproven / Experimental Treatment", icon: "🧪" },
     { title: "Non-Medical Expenses (Consumables)", icon: "🧤" },
   ];
 
