@@ -1,18 +1,30 @@
 import React from 'react';
 
 const CustomizeReviewHealthPage = ({ selectionData, onConfirm, onEdit }) => {
-  // Safety check for empty or loading state
+  
+  // --- 1. SAFETY CHECK: Missing Data ---
+  // If no data is passed, show the "No Data" error (Same style as PlanReviewPage)
   if (!selectionData || !selectionData.features) {
     return (
-      <div className="p-20 text-center bg-white rounded-[3rem] shadow-inner">
-        <div className="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-        <p className="text-slate-400 font-bold uppercase tracking-widest animate-pulse">
-          Synchronizing Selection Data...
+      <div className="p-20 text-center bg-white rounded-[3rem] shadow-xl border border-red-50">
+        <div className="text-5xl mb-4">⚠️</div>
+        <p className="text-red-400 font-bold uppercase tracking-widest italic text-lg">
+          No plan data found.
         </p>
+        <p className="text-xs text-slate-400 mt-2 font-bold uppercase">
+          Please return to the builder and confirm your selection.
+        </p>
+        <button 
+          onClick={onEdit}
+          className="mt-6 px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold uppercase rounded-full transition-all"
+        >
+          ← Go Back
+        </button>
       </div>
     );
   }
 
+  // --- 2. DESTRUCTURE DATA (With Defaults) ---
   const {
     currentSI,
     tenure,
@@ -23,13 +35,14 @@ const CustomizeReviewHealthPage = ({ selectionData, onConfirm, onEdit }) => {
     selectedChronic = [],
   } = selectionData;
 
+  // Filter for active items only
   const activeFeatures = features.filter((f) => f.active);
   const activeRiders = riders.filter((r) => r.active);
 
   return (
     <main className="p-8 space-y-10 animate-in fade-in duration-500 pb-20 bg-gradient-to-b from-white to-slate-50/50" role="main">
       
-      {/* ELITE HEADER - Following Vishwa Branding Style */}
+      {/* HEADER */}
       <header className="flex justify-between items-center border-b-2 pb-6 border-blue-100">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -44,9 +57,11 @@ const CustomizeReviewHealthPage = ({ selectionData, onConfirm, onEdit }) => {
             Custom Shield Review ({currentSI?.label || 'N/A'})
           </p>
         </div>
+        
+        {/* MODIFY BUTTON */}
         <button 
           onClick={onEdit} 
-          className="flex items-center gap-2 px-6 py-3 text-sm font-black text-blue-800 bg-blue-50 hover:bg-blue-100 rounded-2xl transition-all border border-blue-200"
+          className="flex items-center gap-2 px-6 py-3 text-sm font-black text-blue-800 bg-blue-50 hover:bg-blue-100 rounded-2xl transition-all border border-blue-200 focus:ring-4 focus:ring-blue-100"
         >
           ✎ Modify Plan
         </button>
@@ -54,6 +69,7 @@ const CustomizeReviewHealthPage = ({ selectionData, onConfirm, onEdit }) => {
 
       {/* CORE PROTECTION HIGHLIGHTS */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12">
+        {/* SUM INSURED CARD */}
         <article className="md:col-span-2 bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 border-4 border-blue-500/20">
           <div className="space-y-2 text-center md:text-left">
             <h3 className="text-xs font-black uppercase tracking-widest opacity-80 text-blue-400">Primary Coverage</h3>
@@ -65,6 +81,7 @@ const CustomizeReviewHealthPage = ({ selectionData, onConfirm, onEdit }) => {
           </div>
         </article>
 
+        {/* TENURE & DURATION */}
         <article className="space-y-2">
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Lifecycle & Duration</h3>
           <p className="font-extrabold text-slate-900 text-xl leading-tight">{tenure} Year Selection</p>
@@ -74,7 +91,7 @@ const CustomizeReviewHealthPage = ({ selectionData, onConfirm, onEdit }) => {
           </div>
         </article>
 
-        {/* CHRONIC CARE STATUS */}
+        {/* CHRONIC CONDITIONS */}
         <article className="space-y-2">
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Chronic Management</h3>
           {selectedChronic.length > 0 ? (
@@ -92,28 +109,7 @@ const CustomizeReviewHealthPage = ({ selectionData, onConfirm, onEdit }) => {
         </article>
       </section>
 
-      {/* PROTECTION TIMELINE - WorldWise Logic */}
-      <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-4">
-        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Protection Timeline</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <p className="text-base font-extrabold text-slate-900">30 Days Initial</p>
-            <p className="text-[11px] text-slate-500 leading-tight">Waiting period for all claims except accidents.</p>
-          </div>
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <p className="text-base font-extrabold text-slate-900">Chronic Management</p>
-            <p className="text-[11px] text-slate-500 leading-tight">
-              {selectedChronic.length > 0 ? "Covered after 30 days for selected conditions." : "3 Years waiting for pre-existing illnesses."}
-            </p>
-          </div>
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <p className="text-base font-extrabold text-slate-900">24 Months Specific</p>
-            <p className="text-[11px] text-slate-500 leading-tight">Waiting for slow-growing diseases like Hernia or Cataract.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* BENEFITS & RIDERS */}
+      {/* ACTIVE BENEFITS GRID */}
       <section className="space-y-6">
         <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Active Shield Benefits</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -128,19 +124,6 @@ const CustomizeReviewHealthPage = ({ selectionData, onConfirm, onEdit }) => {
           ))}
         </div>
       </section>
-
-      <footer className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8 border border-slate-700">
-        <div className="space-y-2">
-          <p className="text-2xl font-black italic">Ready to secure your future?</p>
-          <p className="text-sm opacity-70 font-medium">Verify your selection and proceed to KYC documentation.</p>
-        </div>
-        <button 
-          onClick={onConfirm}
-          className="px-12 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl uppercase tracking-widest italic shadow-xl transition-all active:scale-95"
-        >
-          Confirm & Pay →
-        </button>
-      </footer>
     </main>
   );
 };

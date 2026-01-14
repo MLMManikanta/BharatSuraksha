@@ -38,13 +38,20 @@ const PlanReviewPage = () => {
   /**
    * 2. handleEdit
    * Triggered when user clicks "Modify Plan" in the Review screen.
-   * Switches back to Builder mode.
+   * Navigates back to the plan selection page with Vajra tab active.
    */
   const handleEdit = () => {
-    setData((prev) => ({
-      ...prev,
-      isReviewingCustomPlan: false
-    }));
+    // Extract parent data (counts, user) to pass back
+    const { counts, user, ...customizationData } = data || {};
+    
+    navigate('/select-plan', { 
+      state: { 
+        counts, 
+        user,
+        activeTab: 'vajra',  // Keep Vajra tab active
+        customizationData    // Preserve all customization settings
+      } 
+    });
   };
 
   /**

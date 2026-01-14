@@ -18,19 +18,8 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
 
   const chronicDiseases = ["Diabetes", "High Cholesterol", "COPD", "Heart Disease", "Hypertension", "Asthma"];
 
-  // --- 2. STATE ---
-  const [sliderIndex, setSliderIndex] = useState(0);
-  const [tenure, setTenure] = useState(1);
-  const [preHosp, setPreHosp] = useState(60);
-  const [postHosp, setPostHosp] = useState(90);
-  const [chronicActive, setChronicActive] = useState(false);
-  const [selectedChronic, setSelectedChronic] = useState(['Diabetes']);
-
-  const currentSI = sumInsuredSteps[sliderIndex];
-  const isBaseUnlimited = currentSI.value === 999999999;
-
-  // Features List with Locked (Mandatory) Items
-  const [features, setFeatures] = useState([
+  // --- DEFAULT FEATURES LIST (Moved out for re-use) ---
+  const defaultFeatures = [
     { id: 'global', label: 'Global Coverage', icon: '🌍', active: true },
     { id: 'claim_100', label: '100% Claim Coverage', icon: '💯', active: true, isLocked: true },
     { id: 'maternity_global', label: 'Maternity Cover', icon: '🤰', active: true },
@@ -45,9 +34,9 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
     { id: 'organ', label: 'Organ Donor Expenses', icon: '🤝', active: false },
     { id: 'domiciliary', label: 'Domiciliary Expenses', icon: '🏠', active: true },
     { id: 'no_sublimit', label: 'No Sublimit on Medical Treatment', icon: '🔓', active: true, isLocked: true },
-  ]);
+  ];
 
-  const [riders, setRiders] = useState([
+  const defaultRiders = [
     { id: 'unlimited_care', label: 'Unlimited Care', desc: 'Once in a lifetime benefit cover.', icon: '♾️', active: false },
     { id: 'inflation_shield', label: 'Inflation Shield', desc: 'SI increases annually matching inflation.', icon: '📈', active: false },
     { id: 'tele_consult', label: 'Tele-Consultation', desc: 'Unlimited online doctor consults 24/7', icon: '📱', active: false },
@@ -56,18 +45,50 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
     { id: 'ped_wait', label: 'PED Wait Reduction', desc: 'Reduce Pre-existing disease wait to 1 Yr', icon: '📉', active: false },
     { id: 'specific_wait', label: 'Specific Disease Wait', desc: 'Modify waiting period for listed illnesses', icon: '📋', active: false },
     { id: 'maternity_boost', label: 'Maternity Booster', desc: 'Up to ₹3L Worldwide Limit', icon: '🤰', active: false, waitOption: 2 },
-  ]);
+  ];
 
+  // --- 2. STATE INITIALIZATION (Now checks initialData) ---
+  
+  // Helper to find the slider index if we have a saved SI value
+  const getInitialSliderIndex = () => {
+    if (initialData?.currentSI?.value) {
+      const idx = sumInsuredSteps.findIndex(s => s.value === initialData.currentSI.value);
+      return idx !== -1 ? idx : 0;
+    }
+    return 0;
+  };
+
+  const [sliderIndex, setSliderIndex] = useState(getInitialSliderIndex);
+  const [tenure, setTenure] = useState(initialData?.tenure || 1);
+  const [preHosp, setPreHosp] = useState(initialData?.preHosp || 60);
+  const [postHosp, setPostHosp] = useState(initialData?.postHosp || 90);
+  
+  // Chronic Logic: Check if we had saved selections
+  const [chronicActive, setChronicActive] = useState(
+    (initialData?.selectedChronic && initialData.selectedChronic.length > 0) || false
+  );
+  const [selectedChronic, setSelectedChronic] = useState(
+    (initialData?.selectedChronic && initialData.selectedChronic.length > 0) 
+    ? initialData.selectedChronic 
+    : ['Diabetes']
+  );
+
+  // Features & Riders: Use saved arrays if they exist, else default
+  const [features, setFeatures] = useState(initialData?.features || defaultFeatures);
+  const [riders, setRiders] = useState(initialData?.riders || defaultRiders);
+
+  const currentSI = sumInsuredSteps[sliderIndex];
+  const isBaseUnlimited = currentSI.value === 999999999;
   const isMaternityActive = features.find(f => f.id === 'maternity_global')?.active;
 
   // --- 3. LOGIC HANDLERS ---
   
-  /**
-   * handleProceed
-   * Bundles the current customization state and sends it to the parent Review page controller.
-   */
   const handleProceed = () => {
     const customConfig = {
+      // Preserve existing plan and user data from initialData
+      ...(initialData || {}),
+      
+      // Override with current customization values
       currentSI,
       tenure,
       preHosp,
@@ -82,6 +103,7 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
     }
   };
 
+  // Sync Smart Aggregate Rider with Tenure
   useEffect(() => {
     setRiders(prev => prev.map(r => r.id === 'smart_agg' ? { ...r, active: tenure > 1 } : r));
   }, [tenure]);
@@ -201,7 +223,7 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {riders.map(r => {
                 if (r.id === 'maternity_boost' && !isMaternityActive) return null;
-                const isDisabled = (r.id === 'unlimited_care' && isBaseUnlimited) || (r.id === 'smart_agg' && tenure === 1);
+                const isDisabled = (r.id === 'unlimited_care' && isBaseUnlimited) || (r.id === 'smart_agg' && (tenure === 1 || isBaseUnlimited)) || (r.id === 'inflation_shield' && isBaseUnlimited);
                 return (
                   <button key={r.id} disabled={isDisabled} onClick={() => toggleRider(r.id)} 
                     className={`flex items-start p-5 rounded-2xl border-2 text-left transition-all ${isDisabled ? 'opacity-30 grayscale cursor-not-allowed' : r.active ? 'border-teal-800 bg-teal-50' : 'border-gray-100 bg-white hover:border-gray-200'}`}>

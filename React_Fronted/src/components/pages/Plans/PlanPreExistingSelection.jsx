@@ -17,12 +17,16 @@ const PlanPreExistingSelection = () => {
   // If we came back from a review page, check if a specific tab was requested
   const prevData = location.state || {}; 
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'parivar');
-  const [customizationData, setCustomizationData] = useState(null); 
+  const [customizationData, setCustomizationData] = useState(location.state?.customizationData || null); 
 
   // Sync tab if navigation state updates externally
   useEffect(() => {
     if (location.state?.activeTab) {
       setActiveTab(location.state.activeTab);
+    }
+    // If coming back from edit, restore customization data
+    if (location.state?.customizationData) {
+      setCustomizationData(location.state.customizationData);
     }
   }, [location.state]);
 
@@ -71,7 +75,13 @@ const PlanPreExistingSelection = () => {
   };
 
   const handleProceedToReview = (finalSelectionData) => {
-    navigate('/plan-review', { state: { ...prevData, ...finalSelectionData } });
+    navigate('/plan-review', { 
+      state: { 
+        ...prevData, 
+        ...finalSelectionData,
+        isReviewingCustomPlan: true  // Flag to show review page, not builder
+      } 
+    });
   };
 
   const handleCloseCustomization = () => {
