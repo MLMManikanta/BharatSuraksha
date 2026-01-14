@@ -11,6 +11,9 @@ import PlanDetails from "./components/pages/Plans/PlanDetails";
 import PlanPreExistingSelection from "./components/pages/Plans/PlanPreExistingSelection";
 import CustomizeHealthPage from "./components/pages/Plans/SubPlans/CustomizeHealthPage.jsx"; 
 import PlanReviewPage from "./components/pages/Plans/PlanReviewPages/PlanReviewPage.jsx";
+import KYCPage from "./components/pages/KYCPage";
+import MedicalInformationPage from "./components/pages/MedicalInformationPage";
+import BankInformationPage from "./components/pages/BankInformationPage";
 
 function App() {
   return (
@@ -35,6 +38,15 @@ function App() {
 
         {/* Step 4: Final Review (Summary and Payment Breakdown) */}
         <Route path="/plan-review" element={ <Layout> <PlanReviewPage /> </Layout> } />
+
+        {/* Step 5: KYC (Know Your Customer) */}
+        <Route path="/kyc" element={ <Layout> <KYCPage /> </Layout> } />
+
+        {/* Step 6: Medical Information */}
+        <Route path="/medical" element={ <Layout> <MedicalInformationPage /> </Layout> } />
+
+        {/* Step 7: Bank Information */}
+        <Route path="/bankinfo" element={ <Layout> <BankInformationPage /> </Layout> } />
 
         {/* --- ADDITIONAL PAGES --- */}
         <Route path="/about" element={ <Layout> <Aboutus /> </Layout> } />

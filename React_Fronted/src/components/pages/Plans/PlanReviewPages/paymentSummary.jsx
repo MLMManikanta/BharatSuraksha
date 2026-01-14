@@ -712,7 +712,7 @@ const PaymentSummary = ({ data }) => {
       {/* Action Button */}
       <div className="space-y-3 pt-2">
         <button 
-          onClick={() => navigate('/proposal-form', { state: data })}
+          onClick={() => navigate('/kyc', { state: data })}
           className="w-full py-5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-[0.98] shadow-blue-500/30"
         >
           Proceed to KYC →
