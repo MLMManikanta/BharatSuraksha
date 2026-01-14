@@ -26,9 +26,6 @@ const BankInformationPage = () => {
     ifscCode: '',
     bankName: '',
     accountType: 'Savings',
-    preHospitalization: 'Bank Transfer',
-    postHospitalization: 'Bank Transfer',
-    reimbursement: 'Bank Transfer',
     termsAccepted: false
   });
 
@@ -79,7 +76,7 @@ const BankInformationPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <CheckoutStepper currentStep={6} />
+      <CheckoutStepper currentStep={7} />
 
       {/* Header */}
       <div className="bg-linear-to-r from-blue-600 to-blue-700 text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl mb-8">

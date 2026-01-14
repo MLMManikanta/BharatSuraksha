@@ -36,9 +36,7 @@ const MedicalInformationPage = () => {
   // ═══ STATE MANAGEMENT ═══
   const [medicalData, setMedicalData] = useState({
     // Height & Weight
-    heightFeet: '',
-    heightInches: '',
-    weight: '',
+    heightWeightMembers: [],
     
     // Personal Medical History
     illnessMembers: [],
@@ -82,8 +80,14 @@ const MedicalInformationPage = () => {
     const errors = {};
 
     // Height & Weight validation
-    if (!medicalData.heightFeet || !medicalData.heightInches || !medicalData.weight) {
-      errors.heightWeight = 'Height and weight are required';
+    if (medicalData.heightWeightMembers.length === 0) {
+      errors.heightWeight = 'Please select at least one member';
+    } else {
+      medicalData.heightWeightMembers.forEach(m => {
+        if (!m.heightFeet || !m.heightInches || !m.weight) {
+          errors[`hw_${m.memberId}`] = 'Height and weight required';
+        }
+      });
     }
 
     // Illness validation
@@ -122,7 +126,7 @@ const MedicalInformationPage = () => {
       return;
     }
 
-    navigate('/bankinfo', {
+    navigate('/payment-frequency', {
       state: {
         ...planData,
         medicalData: {
@@ -175,7 +179,7 @@ const MedicalInformationPage = () => {
             <span className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">1</span>
             Height & Weight Details
           </h2>
-          <p className="text-sm text-gray-600 mb-6 ml-11">Please enter your height and weight information</p>
+          <p className="text-sm text-gray-600 mb-6 ml-11">Please enter height and weight for each selected member</p>
 
           {formErrors.heightWeight && (
             <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded-lg">
@@ -183,52 +187,86 @@ const MedicalInformationPage = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Height - Feet */}
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Height (Feet) <span className="text-red-600">*</span></label>
-              <select
-                value={medicalData.heightFeet}
-                onChange={(e) => setMedicalData({...medicalData, heightFeet: e.target.value})}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors.heightFeet ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
-              >
-                <option value="">Select Feet</option>
-                {[3, 4, 5, 6, 7].map(ft => (
-                  <option key={ft} value={ft}>{ft} Feet</option>
-                ))}
-              </select>
-              {formErrors.heightFeet && <p className="text-red-600 text-xs mt-1">{formErrors.heightFeet}</p>}
-            </div>
-
-            {/* Height - Inches */}
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Height (Inches) <span className="text-red-600">*</span></label>
-              <select
-                value={medicalData.heightInches}
-                onChange={(e) => setMedicalData({...medicalData, heightInches: e.target.value})}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors.heightInches ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
-              >
-                <option value="">Select Inches</option>
-                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(inch => (
-                  <option key={inch} value={inch}>{inch} Inch</option>
-                ))}
-              </select>
-              {formErrors.heightInches && <p className="text-red-600 text-xs mt-1">{formErrors.heightInches}</p>}
-            </div>
-
-            {/* Weight - KG */}
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Weight (KG) <span className="text-red-600">*</span></label>
-              <input
-                type="number"
-                placeholder="e.g., 70"
-                value={medicalData.weight}
-                onChange={(e) => setMedicalData({...medicalData, weight: e.target.value})}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors.weight ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
+          <p className="text-sm text-gray-600 font-semibold mb-3">Select members:</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+            {membersList.map(member => (
+              <MemberCard
+                key={member.id}
+                member={member}
+                isSelected={medicalData.heightWeightMembers.some(m => m.memberId === member.id)}
+                onToggle={() => toggleMemberInSection('heightWeightMembers', member.id)}
               />
-              {formErrors.weight && <p className="text-red-600 text-xs mt-1">{formErrors.weight}</p>}
-            </div>
+            ))}
           </div>
+
+          {/* Height & Weight Details for Selected Members */}
+          {medicalData.heightWeightMembers.length > 0 && (
+            <div className="space-y-6 pt-6 border-t-2 border-gray-200">
+              {medicalData.heightWeightMembers.map(m => {
+                const memberInfo = membersList.find(mb => mb.id === m.memberId);
+                if (!memberInfo) return null;
+
+                return (
+                  <div key={m.memberId} className="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+                    <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-300">
+                      <div className="bg-green-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                        {memberInfo.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-800">{memberInfo.name}</p>
+                        <p className="text-xs text-gray-600">{memberInfo.relationship}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Height - Feet */}
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Height (Feet) <span className="text-red-600">*</span></label>
+                        <select
+                          value={m.heightFeet || ''}
+                          onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'heightFeet', e.target.value)}
+                          className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`hw_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
+                        >
+                          <option value="">Select Feet</option>
+                          {[3, 4, 5, 6, 7].map(ft => (
+                            <option key={ft} value={ft}>{ft} Feet</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Height - Inches */}
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Height (Inches) <span className="text-red-600">*</span></label>
+                        <select
+                          value={m.heightInches || ''}
+                          onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'heightInches', e.target.value)}
+                          className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`hw_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
+                        >
+                          <option value="">Select Inches</option>
+                          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(inch => (
+                            <option key={inch} value={inch}>{inch} Inch</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Weight - KG */}
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Weight (KG) <span className="text-red-600">*</span></label>
+                        <input
+                          type="number"
+                          placeholder="e.g., 70"
+                          value={m.weight || ''}
+                          onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'weight', e.target.value)}
+                          className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`hw_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
+                        />
+                      </div>
+                    </div>
+                    {formErrors[`hw_${m.memberId}`] && <p className="text-red-600 text-xs mt-2">{formErrors[`hw_${m.memberId}`]}</p>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ══════════════════════════════════════════════════════ */}
@@ -361,7 +399,7 @@ const MedicalInformationPage = () => {
         {/* ACTION BUTTONS */}
         <div className="max-w-2xl mx-auto mb-10 space-y-3">
           <button onClick={handleSubmit} className="w-full py-5 bg-linear-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-[0.98] shadow-green-500/30">
-            Proceed to Payment Details →
+            Proceed to fill banking info →
           </button>
           <button onClick={() => navigate(-1)} className="w-full py-3 bg-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-300 transition-all">
             Go Back
