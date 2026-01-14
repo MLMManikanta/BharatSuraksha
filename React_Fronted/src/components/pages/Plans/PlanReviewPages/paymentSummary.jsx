@@ -2,77 +2,102 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 /**
- * PAYMENT SUMMARY - DYNAMIC PREMIUM CALCULATION SYSTEM
+ * PAYMENT SUMMARY - COMPREHENSIVE PREMIUM CALCULATION ENGINE
  * 
- * This component provides real-time, transparent premium calculation for all 5 health insurance plans:
- * - Neev Suraksha (Basic): Foundation coverage at 75% of standard pricing
- * - Parivar Suraksha (Family): Standard pricing baseline (1.0x multiplier)
- * - Varishtha Suraksha (Senior): 35% premium for age-related risk (1.35x)
- * - Vishwa Suraksha (Universal): 50% premium for global coverage (1.5x)
- * - Vajra Suraksha (Custom): 20% premium for complete flexibility (1.2x)
+ * CALCULATION METHODOLOGY:
+ * ═══════════════════════════════════════════════════════════
  * 
- * PRICING CALCULATION FLOW:
+ * 1. BASE PREMIUM (Plan-Specific)
+ *    ├─ Standard Plans: Use basePremium from PlanPreExistingSelection
+ *    │  • Neev: Age-based rates + ₹3,000 uplift
+ *    │  • Parivar: Age-based rates + ₹4,000 uplift  
+ *    │  • Varishtha: Senior rates (60+ only) + reduced rates
+ *    │  • Vishwa: Age-based rates + ₹6,000 uplift
+ *    └─ Vajra (Custom): Age-based rates × 1.2 multiplier
  * 
- * 1. BASE PREMIUM (Age + Coverage)
- *    - Calculated from PREMIUM_RATES table (11 age groups × 7 coverage tiers)
- *    - Age groups: 18-25, 26-35, ..., 76-100
- *    - Coverage: ₹10L, ₹20L, ₹50L, ₹1Cr, ₹2Cr, ₹5Cr, Unlimited
- *    - Example: 30-year-old with ₹10L = ₹8,083
+ * 2. AGE-BASED LOADING
+ *    ├─ Reference Age: 18-25 years (0% loading)
+ *    ├─ Child (7.5-17 years): 5-10% loading
+ *    ├─ Adult (26-60 years): 10-50% loading  
+ *    ├─ Senior (61-75 years): 75-120% loading
+ *    └─ Elderly (76-100 years): 150-200% loading
+ *    Note: Age loading is calculated as percentage increase over base
  * 
- * 2. PLAN MULTIPLIER
- *    - Applies plan-specific adjustment to base premium
- *    - Neev: 0.75x (basic plan discount)
- *    - Parivar: 1.0x (standard reference)
- *    - Varishtha: 1.35x (senior citizen loading)
- *    - Vishwa: 1.5x (global coverage premium)
- *    - Vajra: 1.2x (customization flexibility charge)
+ * 3. COMPONENT-WISE FEATURE PRICING (₹ Fixed)
+ *    ├─ Global Coverage: +₹8,000
+ *    ├─ Maternity Cover: +₹5,000
+ *    ├─ Air Ambulance: +₹5,000
+ *    ├─ Restore Benefit: +₹4,000
+ *    ├─ AYUSH Benefits: +₹2,000
+ *    └─ Day Care Procedures: +₹3,000
  * 
- * 3. DISCOUNTS
- *    - Co-payment (20%): User shares 20% of medical costs → 20% premium reduction
- *    - Instant update when toggled in UI
+ * 4. CHRONIC CARE (Day 31+)
+ *    └─ Per condition: +₹1,500 each
  * 
- * 4. ENHANCEMENT LOADINGS
- *    - Room Rent Upgrade: +15% (private room benefits)
- *    - Air Ambulance: +₹5,000 fixed (emergency air transport)
- *    - Global Coverage: +25% (worldwide treatment)
- *    - Unlimited Restoration: +18% (sum insured restores unlimited times)
- *    - PED Wait Reduction: +20% (pre-existing disease wait reduced to 1 year)
+ * 5. PREMIUM RIDERS
+ *    ├─ Percentage-based: % of (Base + Age Loading)
+ *    │  • Unlimited Care: +15%
+ *    │  • Inflation Shield: +12%
+ *    │  • Smart Aggregate: +8%
+ *    │  • Super Bonus: +10%
+ *    │  • PED Wait Reduction: +18%
+ *    └─ Fixed-cost:
+ *       • Tele-Consultation: +₹1,500
+ *       • Maternity Booster: +₹3,500
  * 
- * 5. RIDER COSTS
- *    - Percentage-based riders (6-18% of base premium):
- *      • Unlimited Care: +15%
- *      • Inflation Shield: +12%
- *      • Smart Aggregate: +8%
- *      • Super Bonus: +10%
- *      • PED Wait Reduction: +18%
- *      • Specific Disease Wait: +6%
- *    - Fixed-cost riders:
- *      • Tele-Consultation: +₹1,500
- *      • Maternity Booster: +₹3,500
+ * 6. DISCOUNTS (Applied Post Age Loading)
+ *    ├─ Co-payment (20%): -20% on total before riders
+ *    ├─ Room Rent Restriction: -8%
+ *    └─ Extended Wait Period: -5%
  * 
- * 6. GST & TAXES
- *    - Health insurance is GST exempt (0%)
- *    - No additional charges
+ * 7. GST & TAXES
+ *    └─ Health Insurance: 0% (GST Exempt)
  * 
- * 7. FINAL PREMIUM
- *    - Total = Base × Multiplier - Discounts + Enhancements + Riders + GST
- *    - Updates instantly as user toggles options
+ * 8. FINAL PREMIUM
+ *    Total = Base + Age Loading + Features + Chronic + Riders - Discounts + GST
  * 
- * REAL-TIME FEATURES:
- * - Premium recalculates on every change (useMemo with dependencies)
- * - Explanations array shows why premium changed
- * - Visual breakdown: base → discounts → enhancements → riders → total
- * - Toggle switches for co-payment, room upgrade, air ambulance (standard plans)
- * - All amounts displayed with ₹ formatting and locale
- * 
- * TRANSPARENCY:
- * - Shows member-wise premium breakdown with ages
- * - Itemizes each rider cost
- * - Displays discount savings separately
- * - Lists all enhancement loadings
- * - Provides calculation summary flow
- * - Disclaimer: "Estimated, subject to underwriting"
+ * ═══════════════════════════════════════════════════════════
+ * MANDATORY DISCLAIMER:
+ * "All premiums shown are estimated and indicative. Final premium 
+ * may increase or decrease based on underwriting, age, coverage 
+ * selection, and policy terms."
+ * ═══════════════════════════════════════════════════════════
  */
+
+// Age-based loading percentages (increase over base premium)
+// Base reference: 18-25 years = 0% loading
+const AGE_LOADING_TABLE = {
+  '0.625-7': 8,      // 7.5 months - 7 years: +8%
+  '7-17': 10,       // 7-17 years: +10%
+  '18-25': 0,       // Base reference: 0%
+  '26-30': 12,      // 26-30 years: +12%
+  '31-35': 18,      // 31-35 years: +18%
+  '36-40': 25,      // 36-40 years: +25%
+  '41-45': 32,      // 41-45 years: +32%
+  '46-50': 40,      // 46-50 years: +40%
+  '51-55': 55,      // 51-55 years: +55%
+  '56-60': 70,      // 56-60 years: +70%
+  '61-65': 90,      // 61-65 years: +90%
+  '66-70': 115,     // 66-70 years: +115%
+  '71-75': 145,     // 71-75 years: +145%
+  '76-80': 175,     // 76-80 years: +175%
+  '81-100': 200     // 81-100 years: +200%
+};
+
+// Component-wise feature pricing (fixed ₹ amounts)
+const FEATURE_COSTS = {
+  'global': { label: 'Global Coverage', cost: 8000 },
+  'maternity_global': { label: 'Maternity Cover', cost: 5000 },
+  'air_amb': { label: 'Air Ambulance', cost: 5000 },
+  'restore': { label: 'Restore Benefit', cost: 4000 },
+  'ayush': { label: 'AYUSH Benefits', cost: 2000 },
+  'day_care': { label: 'Day Care Procedures', cost: 3000 },
+  'organ': { label: 'Organ Donor Expenses', cost: 2500 },
+  'domiciliary': { label: 'Domiciliary Expenses', cost: 1800 }
+};
+
+// Chronic care pricing (per condition)
+const CHRONIC_CARE_COST_PER_CONDITION = 1500;
 
 // Premium rate table based on age and coverage (from Annual premium.csv)
 const PREMIUM_RATES = {
@@ -98,11 +123,12 @@ const RIDER_COSTS = {
 };
 
 // Plan-specific multipliers to differentiate pricing based on coverage level
+// Note: Neev, Parivar, Vishwa receive flat uplifts in PlanPreExistingSelection
 const PLAN_MULTIPLIERS = {
-  'Neev Suraksha': 0.75,        // Basic plan - 25% lower than standard
-  'Parivar Suraksha': 1.0,      // Family plan - standard pricing
-  'Varishtha Suraksha': 1.35,   // Senior plan - 35% higher due to age risk
-  'Vishwa Suraksha': 1.5,       // Comprehensive global - 50% premium
+  'Neev Suraksha': 1.0,         // Basic plan - gets ₹3k uplift in handler
+  'Parivar Suraksha': 1.0,      // Family plan - gets ₹4k uplift in handler
+  'Varishtha Suraksha': 1.0,    // Senior plan - gets age-specific rates, no multiplier
+  'Vishwa Suraksha': 1.0,       // Comprehensive global - gets ₹6k uplift in handler
   'Vajra Suraksha': 1.2         // Custom plan - 20% premium for flexibility
 };
 
@@ -115,6 +141,26 @@ const ENHANCEMENT_LOADINGS = {
   'global_coverage': { label: 'Global Treatment Coverage', percentage: 25 }, // +25%
   'air_ambulance': { label: 'Air Ambulance Cover', fixed: 5000 }, // Fixed ₹5,000
   'unlimited_restoration': { label: 'Unlimited Sum Insured Restoration', percentage: 18 } // +18%
+};
+
+const getAgeLoadingPercentage = (age) => {
+  const ageNum = parseFloat(age);
+  if (ageNum >= 0.625 && ageNum < 7) return AGE_LOADING_TABLE['0.625-7'];
+  if (ageNum >= 7 && ageNum < 18) return AGE_LOADING_TABLE['7-17'];
+  if (ageNum >= 18 && ageNum <= 25) return AGE_LOADING_TABLE['18-25'];
+  if (ageNum >= 26 && ageNum <= 30) return AGE_LOADING_TABLE['26-30'];
+  if (ageNum >= 31 && ageNum <= 35) return AGE_LOADING_TABLE['31-35'];
+  if (ageNum >= 36 && ageNum <= 40) return AGE_LOADING_TABLE['36-40'];
+  if (ageNum >= 41 && ageNum <= 45) return AGE_LOADING_TABLE['41-45'];
+  if (ageNum >= 46 && ageNum <= 50) return AGE_LOADING_TABLE['46-50'];
+  if (ageNum >= 51 && ageNum <= 55) return AGE_LOADING_TABLE['51-55'];
+  if (ageNum >= 56 && ageNum <= 60) return AGE_LOADING_TABLE['56-60'];
+  if (ageNum >= 61 && ageNum <= 65) return AGE_LOADING_TABLE['61-65'];
+  if (ageNum >= 66 && ageNum <= 70) return AGE_LOADING_TABLE['66-70'];
+  if (ageNum >= 71 && ageNum <= 75) return AGE_LOADING_TABLE['71-75'];
+  if (ageNum >= 76 && ageNum <= 80) return AGE_LOADING_TABLE['76-80'];
+  if (ageNum >= 81 && ageNum <= 100) return AGE_LOADING_TABLE['81-100'];
+  return 0; // Default 0% for unknown ages
 };
 
 const getAgeGroup = (age) => {
@@ -149,11 +195,11 @@ const getCoverageKey = (sumInsured) => {
 const PaymentSummary = ({ data }) => {
   const navigate = useNavigate();
   
-  // State for optional enhancements (user can toggle these)
+  // State for optional discounts and enhancements
   const [optionalEnhancements, setOptionalEnhancements] = useState({
     coPayment: false,
-    roomRentUpgrade: false,
-    airAmbulance: false
+    roomRentRestriction: false,
+    extendedWaitPeriod: false
   });
 
   // Toggle enhancement option
@@ -199,13 +245,37 @@ const PaymentSummary = ({ data }) => {
     
     let rawBasePremium = 0;
     let basePremium = 0;
-    let planMultiplier = 1.0; // default for standard plans
+    let planMultiplier = 1.0;
+    let ageLoadingAmount = 0;
+    let ageLoadingPercentage = 0;
     const memberBreakdown = [];
 
-    // For standard plans, use basePremium passed from handlePlanSelection
+    // STEP 1: Calculate Base Premium
     if (!isCustomPlan && data.basePremium) {
+      // Standard plans use pre-calculated base from PlanPreExistingSelection
       basePremium = data.basePremium;
-      explanations.push(`${planName}: Premium calculated based on member ages and ₹${sumInsured?.label || 'coverage'}`);
+      explanations.push(`${planName}: Base premium calculated from member ages and ${sumInsured?.label || 'coverage'} sum insured`);
+      
+      // Calculate average age loading for display
+      let totalAgeLoading = 0;
+      let memberCount = 0;
+      Object.keys(memberCounts).forEach(memberId => {
+        const count = memberCounts[memberId];
+        if (count > 0) {
+          const ages = Array.isArray(memberAges[memberId]) ? memberAges[memberId] : [memberAges[memberId]];
+          ages.forEach(age => {
+            if (age) {
+              totalAgeLoading += getAgeLoadingPercentage(age);
+              memberCount++;
+            }
+          });
+        }
+      });
+      if (memberCount > 0) {
+        ageLoadingPercentage = Math.round(totalAgeLoading / memberCount);
+        ageLoadingAmount = Math.round((basePremium * ageLoadingPercentage) / (100 + ageLoadingPercentage));
+        explanations.push(`Age-based loading: Average ${ageLoadingPercentage}% increase for member age profile`);
+      }
     } else {
       // For VAJRA/Custom plans: Calculate RAW base premium from member ages (before plan multiplier)
       Object.keys(memberCounts).forEach(memberId => {
@@ -235,73 +305,100 @@ const PaymentSummary = ({ data }) => {
         }
       });
 
-      // Step 2: Apply PLAN-SPECIFIC MULTIPLIER
-      planMultiplier = PLAN_MULTIPLIERS[planName] || 1.0;
-      basePremium = Math.round(rawBasePremium * planMultiplier);
+      // Calculate average age loading percentage
+      let totalAgeLoading = 0;
+      let memberCount = memberBreakdown.length;
+      memberBreakdown.forEach(m => {
+        const loading = getAgeLoadingPercentage(m.age);
+        totalAgeLoading += loading;
+        m.ageLoading = loading;
+      });
       
-      if (planMultiplier !== 1.0) {
-        const diff = planMultiplier > 1.0 ? 'higher' : 'lower';
-        const percentage = Math.abs((planMultiplier - 1.0) * 100).toFixed(0);
-        explanations.push(`${planName}: ${percentage}% ${diff} than standard plans due to coverage scope`);
+      if (memberCount > 0) {
+        ageLoadingPercentage = Math.round(totalAgeLoading / memberCount);
       }
 
-      // Update member breakdown with multiplier applied
+      // Apply age loading to base premium
+      ageLoadingAmount = Math.round((rawBasePremium * ageLoadingPercentage) / 100);
+      
+      // Apply PLAN-SPECIFIC MULTIPLIER (Vajra only)
+      planMultiplier = PLAN_MULTIPLIERS[planName] || 1.0;
+      basePremium = Math.round((rawBasePremium + ageLoadingAmount) * planMultiplier);
+      
+      if (planMultiplier !== 1.0) {
+        const percentage = Math.abs((planMultiplier - 1.0) * 100).toFixed(0);
+        explanations.push(`${planName}: ${percentage}% premium for customization flexibility`);
+      }
+      
+      if (ageLoadingPercentage > 0) {
+        explanations.push(`Age-based loading: +${ageLoadingPercentage}% (₹${ageLoadingAmount.toLocaleString('en-IN')}) based on member ages`);
+      }
+
+      // Update member breakdown
       memberBreakdown.forEach(m => {
-        m.premium = Math.round(m.premium * planMultiplier);
+        m.premium = Math.round((m.premium + (m.premium * m.ageLoading / 100)) * planMultiplier);
       });
     }
 
-    // Step 3: Check for CO-PAYMENT discount (20% reduction) - ONLY FOR CUSTOM PLANS
-    let coPaymentDiscount = 0;
-    const hasCoPayment = isCustomPlan && (optionalEnhancements.coPayment || 
-                         data.coPayment === true || 
-                         activeFeatures.some(f => f.id === 'co_payment' || f.label?.toLowerCase().includes('co-pay')));
+    // STEP 2: Calculate Component-wise Feature Costs (VAJRA/Custom only)
+    let featureCost = 0;
+    const featureBreakdown = [];
     
-    if (hasCoPayment) {
-      coPaymentDiscount = Math.round(basePremium * 0.20);
-      basePremium -= coPaymentDiscount;
-      explanations.push(`20% Co-payment: Reduces premium by sharing medical costs`);
-    }
-
-    // Step 4: Calculate ENHANCEMENT LOADINGS - ONLY FOR CUSTOM PLANS
-    let enhancementCost = 0;
-    const enhancementBreakdown = [];
-    
-    // Check for room rent upgrade (from optional toggles or features)
-    if (isCustomPlan && (optionalEnhancements.roomRentUpgrade || activeFeatures.some(f => f.id === 'room_rent_upgrade' || f.label?.toLowerCase().includes('private room')))) {
-      const loading = ENHANCEMENT_LOADINGS.room_rent_upgrade;
-      const cost = Math.round(((rawBasePremium || basePremium) * (PLAN_MULTIPLIERS[planName] || 1.0) * loading.percentage) / 100);
-      enhancementCost += cost;
-      enhancementBreakdown.push({ name: loading.label, cost });
-      explanations.push(`${loading.label}: Enhanced room benefits increase premium`);
-    }
-    
-    // Check for air ambulance (from optional toggles or features)
-    if (isCustomPlan && (optionalEnhancements.airAmbulance || activeFeatures.some(f => f.id === 'air_amb' || f.label?.toLowerCase().includes('air ambulance')))) {
-      const loading = ENHANCEMENT_LOADINGS.air_ambulance;
-      const cost = loading.fixed;
-      enhancementCost += cost;
-      enhancementBreakdown.push({ name: loading.label, cost });
-      explanations.push(`${loading.label}: Emergency air transport coverage added`);
-    }
-    
-    // Check other features from VAJRA customization
     if (isCustomPlan) {
       activeFeatures.forEach(feature => {
-        // Global coverage
-        if (feature.id === 'global' || feature.label?.toLowerCase().includes('global')) {
-          const loading = ENHANCEMENT_LOADINGS.global_coverage;
-          const cost = Math.round(((rawBasePremium || basePremium) * (PLAN_MULTIPLIERS[planName] || 1.0) * loading.percentage) / 100);
-          enhancementCost += cost;
-          enhancementBreakdown.push({ name: loading.label, cost });
-          explanations.push(`${loading.label}: Worldwide treatment adds premium`);
+        if (FEATURE_COSTS[feature.id]) {
+          const featureConfig = FEATURE_COSTS[feature.id];
+          featureCost += featureConfig.cost;
+          featureBreakdown.push({
+            name: featureConfig.label,
+            cost: featureConfig.cost
+          });
+          explanations.push(`${featureConfig.label}: +₹${featureConfig.cost.toLocaleString('en-IN')} component cost`);
         }
       });
     }
 
-    // Step 5: Calculate RIDER COSTS
+    // STEP 3: Calculate Chronic Care Costs (Day 31+)
+    let chronicCareCost = 0;
+    const selectedChronic = data.selectedChronic || [];
+    if (selectedChronic.length > 0) {
+      chronicCareCost = selectedChronic.length * CHRONIC_CARE_COST_PER_CONDITION;
+      explanations.push(`Chronic Care: ${selectedChronic.length} conditions × ₹${CHRONIC_CARE_COST_PER_CONDITION.toLocaleString('en-IN')} = ₹${chronicCareCost.toLocaleString('en-IN')}`);
+    }
+
+    // STEP 4: Apply Discounts (after age loading, before riders)
+    let totalDiscounts = 0;
+    const discountBreakdown = [];
+    
+    // Co-payment discount (20%)
+    if (optionalEnhancements.coPayment || data.coPayment === true) {
+      const beforeDiscounts = basePremium + featureCost + chronicCareCost;
+      const coPayDiscount = Math.round(beforeDiscounts * 0.20);
+      totalDiscounts += coPayDiscount;
+      discountBreakdown.push({ name: 'Co-payment (20% cost sharing)', amount: coPayDiscount });
+      explanations.push(`Co-payment discount: -₹${coPayDiscount.toLocaleString('en-IN')} (you share 20% of medical costs)`);
+    }
+    
+    // Room rent restriction discount (8%)
+    if (optionalEnhancements.roomRentRestriction) {
+      const roomDiscount = Math.round((basePremium + featureCost + chronicCareCost) * 0.08);
+      totalDiscounts += roomDiscount;
+      discountBreakdown.push({ name: 'Room Rent Restriction', amount: roomDiscount });
+      explanations.push(`Room rent restriction: -₹${roomDiscount.toLocaleString('en-IN')} (8% discount)`);
+    }
+    
+    // Extended waiting period discount (5%)
+    if (optionalEnhancements.extendedWaitPeriod) {
+      const waitDiscount = Math.round((basePremium + featureCost + chronicCareCost) * 0.05);
+      totalDiscounts += waitDiscount;
+      discountBreakdown.push({ name: 'Extended Waiting Period', amount: waitDiscount });
+      explanations.push(`Extended waiting period: -₹${waitDiscount.toLocaleString('en-IN')} (5% discount)`);
+    }
+
+    // STEP 5: Calculate RIDER COSTS (percentage of base+age loading, applied after discounts)
     let riderCost = 0;
     const riderBreakdown = [];
+    const baseForRiders = basePremium; // Riders calculated on base including age loading
     
     activeRiders.forEach(rider => {
       if (RIDER_COSTS[rider.id]) {
@@ -309,11 +406,11 @@ const PaymentSummary = ({ data }) => {
         let cost = 0;
         
         if (riderConfig.type === 'percentage') {
-          cost = Math.round((basePremium * riderConfig.value) / 100);
-          explanations.push(`${rider.label}: +${riderConfig.value}% of base premium for added protection`);
+          cost = Math.round((baseForRiders * riderConfig.value) / 100);
+          explanations.push(`${rider.label}: +${riderConfig.value}% of base = ₹${cost.toLocaleString('en-IN')}`);
         } else if (riderConfig.type === 'fixed') {
           cost = riderConfig.value;
-          explanations.push(`${rider.label}: Fixed cost add-on benefit`);
+          explanations.push(`${rider.label}: Fixed ₹${cost.toLocaleString('en-IN')} add-on`);
         }
         
         riderCost += cost;
@@ -324,22 +421,28 @@ const PaymentSummary = ({ data }) => {
       }
     });
 
-    // Step 6: Calculate FINAL TOTALS
-    const subtotal = basePremium + enhancementCost + riderCost;
-    const gstRate = 0; // Health insurance is exempt from GST (0%)
-    const gstAmount = Math.round((subtotal * gstRate) / 100);
+    // STEP 6: Calculate FINAL TOTALS
+    const subtotal = basePremium + featureCost + chronicCareCost + riderCost - totalDiscounts;
+    const gstRate = 0; // Health insurance is GST exempt (0%)
+    const gstAmount = 0;
     const totalPremium = subtotal + gstAmount;
 
     return {
       rawBasePremium: Math.round(rawBasePremium),
-      planMultiplier,
       basePremium,
+      ageLoadingAmount,
+      ageLoadingPercentage,
+      planMultiplier,
       memberBreakdown,
-      coPaymentDiscount,
-      enhancementCost,
-      enhancementBreakdown,
+      featureCost,
+      featureBreakdown,
+      chronicCareCost,
+      selectedChronic,
+      totalDiscounts,
+      discountBreakdown,
       riderCost,
       riderBreakdown,
+      subtotal,
       gstRate,
       gstAmount,
       totalPremium,
@@ -347,9 +450,10 @@ const PaymentSummary = ({ data }) => {
     };
   }, [data, optionalEnhancements]);
 
-  const { planMultiplier, basePremium, memberBreakdown, coPaymentDiscount, 
-          enhancementCost, enhancementBreakdown, riderCost, riderBreakdown, 
-          gstRate, totalPremium, explanations } = premiumCalculation;
+  const { basePremium, ageLoadingAmount, ageLoadingPercentage, planMultiplier,
+          memberBreakdown, featureCost, featureBreakdown, chronicCareCost, 
+          selectedChronic, totalDiscounts, discountBreakdown, riderCost, 
+          riderBreakdown, subtotal, gstRate, gstAmount, totalPremium, explanations } = premiumCalculation;
 
   // Safeguard if data is not yet loaded
   if (!data) return null;
@@ -401,12 +505,12 @@ const PaymentSummary = ({ data }) => {
       )}
 
       {/* Base Premium Breakdown */}
-      {memberBreakdown.length > 0 && (
-        <div className="pb-4 border-b border-slate-700">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Base Premium</h3>
-            <span className="text-lg font-black text-white">₹{basePremium.toLocaleString('en-IN')}</span>
-          </div>
+      <div className="pb-4 border-b border-slate-700">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Base Premium</h3>
+          <span className="text-lg font-black text-white">₹{basePremium.toLocaleString('en-IN')}</span>
+        </div>
+        {memberBreakdown.length > 0 && (
           <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
             {memberBreakdown.map((item, index) => (
               <div key={index} className="flex justify-between text-xs items-center bg-slate-800/50 p-2.5 rounded-lg">
@@ -418,49 +522,88 @@ const PaymentSummary = ({ data }) => {
               </div>
             ))}
           </div>
-          {planMultiplier !== 1.0 && (
-            <p className="text-[10px] text-slate-500 mt-2 italic">
-              * Adjusted by {((planMultiplier - 1.0) * 100).toFixed(0)}% for {data.selectedPlan?.name || 'selected plan'}
+        )}
+        {planMultiplier !== 1.0 && (
+          <p className="text-[10px] text-slate-500 mt-2 italic">
+            * Includes {((planMultiplier - 1.0) * 100).toFixed(0)}% {data.selectedPlan?.name || 'plan'} loading
+          </p>
+        )}
+      </div>
+
+      {/* Age-Based Loading */}
+      {ageLoadingAmount > 0 && (
+        <div className="pb-4 border-b border-slate-700">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Age-Based Increase</h3>
+            <span className="text-lg font-black text-cyan-400">+₹{ageLoadingAmount.toLocaleString('en-IN')}</span>
+          </div>
+          <div className="bg-cyan-900/20 p-2.5 rounded-lg border border-cyan-800/30">
+            <div className="flex justify-between text-xs items-center">
+              <span className="text-cyan-200 font-medium">Average Loading</span>
+              <span className="font-bold text-cyan-300">+{ageLoadingPercentage}%</span>
+            </div>
+            <p className="text-[10px] text-cyan-400/70 mt-1">
+              Premium increase based on member ages (ref: 18-25 years = 0%)
             </p>
-          )}
+          </div>
+        </div>
+      )}
+
+      {/* Component-wise Features */}
+      {featureBreakdown.length > 0 && (
+        <div className="pb-4 border-b border-slate-700">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Coverage Features</h3>
+            <span className="text-lg font-black text-indigo-400">+₹{featureCost.toLocaleString('en-IN')}</span>
+          </div>
+          <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+            {featureBreakdown.map((feature, index) => (
+              <div key={index} className="flex justify-between text-xs items-center bg-indigo-900/20 p-2.5 rounded-lg border border-indigo-800/30">
+                <span className="text-indigo-200 font-medium">{feature.name}</span>
+                <span className="font-bold text-indigo-300">+₹{feature.cost.toLocaleString('en-IN')}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Chronic Care */}
+      {chronicCareCost > 0 && (
+        <div className="pb-4 border-b border-slate-700">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-xs font-bold text-orange-400 uppercase tracking-wider">Chronic Care (Day 31+)</h3>
+            <span className="text-lg font-black text-orange-400">+₹{chronicCareCost.toLocaleString('en-IN')}</span>
+          </div>
+          <div className="bg-orange-900/20 p-2.5 rounded-lg border border-orange-800/30">
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {selectedChronic.map((cond, idx) => (
+                <span key={idx} className="text-[9px] font-bold bg-orange-700/40 text-orange-200 px-2 py-0.5 rounded-full">
+                  {cond}
+                </span>
+              ))}
+            </div>
+            <p className="text-[10px] text-orange-400/70">
+              {selectedChronic.length} condition{selectedChronic.length > 1 ? 's' : ''} × ₹{CHRONIC_CARE_COST_PER_CONDITION.toLocaleString('en-IN')}
+            </p>
+          </div>
         </div>
       )}
 
       {/* Discounts Section */}
-      {coPaymentDiscount > 0 && (
+      {totalDiscounts > 0 && (
         <div className="pb-4 border-b border-slate-700">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-xs font-bold text-green-400 uppercase tracking-wider">Discounts Applied</h3>
-            <span className="text-lg font-black text-green-400">-₹{coPaymentDiscount.toLocaleString('en-IN')}</span>
-          </div>
-          <div className="flex justify-between text-xs items-center bg-green-900/20 p-2.5 rounded-lg border border-green-800/30">
-            <div>
-              <span className="text-green-200 font-medium block">20% Co-payment Option</span>
-              <span className="text-[10px] text-green-400">You share 20% of medical costs, reducing premium</span>
-            </div>
-            <span className="font-bold text-green-300">-20%</span>
-          </div>
-        </div>
-      )}
-
-      {/* Enhancement Loadings */}
-      {enhancementBreakdown.length > 0 && (
-        <div className="pb-4 border-b border-slate-700">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-xs font-bold text-purple-400 uppercase tracking-wider">Enhanced Benefits</h3>
-            <span className="text-lg font-black text-purple-400">+₹{enhancementCost.toLocaleString('en-IN')}</span>
+            <span className="text-lg font-black text-green-400">-₹{totalDiscounts.toLocaleString('en-IN')}</span>
           </div>
           <div className="space-y-2">
-            {enhancementBreakdown.map((enhancement, index) => (
-              <div key={index} className="flex justify-between text-xs items-center bg-purple-900/20 p-2.5 rounded-lg border border-purple-800/30">
-                <span className="text-purple-200 font-medium">{enhancement.name}</span>
-                <span className="font-bold text-purple-300">+₹{enhancement.cost.toLocaleString('en-IN')}</span>
+            {discountBreakdown.map((discount, index) => (
+              <div key={index} className="flex justify-between text-xs items-center bg-green-900/20 p-2.5 rounded-lg border border-green-800/30">
+                <span className="text-green-200 font-medium">{discount.name}</span>
+                <span className="font-bold text-green-300">-₹{discount.amount.toLocaleString('en-IN')}</span>
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-slate-500 mt-2 italic">
-            * Premium upgrades for superior coverage features
-          </p>
         </div>
       )}
 
@@ -468,7 +611,7 @@ const PaymentSummary = ({ data }) => {
       {riderBreakdown.length > 0 && (
         <div className="pb-4 border-b border-slate-700">
           <div className="flex justify-between items-center mb-3">
-            <h3 className="text-xs font-bold text-teal-400 uppercase tracking-wider">Add-on Riders</h3>
+            <h3 className="text-xs font-bold text-teal-400 uppercase tracking-wider">Premium Riders</h3>
             <span className="text-lg font-black text-teal-400">+₹{riderCost.toLocaleString('en-IN')}</span>
           </div>
           <div className="space-y-2">
@@ -479,79 +622,89 @@ const PaymentSummary = ({ data }) => {
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-slate-500 mt-2 italic">
-            * Optional riders update premium instantly upon selection
-          </p>
         </div>
       )}
 
-      {/* GST Section */}
-      <div className="flex justify-between items-center text-sm pb-4 border-b border-slate-700">
-        <div>
-          <span className="text-slate-400 font-medium block">GST & Taxes</span>
-          <span className="text-[10px] text-slate-500">Health insurance is GST exempt</span>
-        </div>
-        <span className="text-green-400 font-black text-xs bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/20">
-          {gstRate}% (NIL)
-        </span>
-      </div>
-
       {/* Pricing Summary Flow */}
       <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-xl p-4 space-y-2 border border-slate-700/50">
-        <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Premium Calculation</h3>
+        <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">📊 Premium Calculation</h3>
         
         <div className="flex justify-between text-xs">
-          <span className="text-slate-400">Base Premium ({data.selectedPlan?.name || 'Plan'})</span>
+          <span className="text-slate-400">Base Premium</span>
           <span className="text-white font-bold">₹{basePremium.toLocaleString('en-IN')}</span>
         </div>
         
-        {coPaymentDiscount > 0 && (
+        {ageLoadingAmount > 0 && (
           <div className="flex justify-between text-xs">
-            <span className="text-green-400">Co-payment Discount (-20%)</span>
-            <span className="text-green-400 font-bold">-₹{coPaymentDiscount.toLocaleString('en-IN')}</span>
+            <span className="text-cyan-400">Age Loading (+{ageLoadingPercentage}%)</span>
+            <span className="text-cyan-400 font-bold">+₹{ageLoadingAmount.toLocaleString('en-IN')}</span>
           </div>
         )}
         
-        {enhancementCost > 0 && (
+        {featureCost > 0 && (
           <div className="flex justify-between text-xs">
-            <span className="text-purple-400">Enhanced Benefits</span>
-            <span className="text-purple-400 font-bold">+₹{enhancementCost.toLocaleString('en-IN')}</span>
+            <span className="text-indigo-400">Coverage Features</span>
+            <span className="text-indigo-400 font-bold">+₹{featureCost.toLocaleString('en-IN')}</span>
+          </div>
+        )}
+        
+        {chronicCareCost > 0 && (
+          <div className="flex justify-between text-xs">
+            <span className="text-orange-400">Chronic Care</span>
+            <span className="text-orange-400 font-bold">+₹{chronicCareCost.toLocaleString('en-IN')}</span>
+          </div>
+        )}
+        
+        {totalDiscounts > 0 && (
+          <div className="flex justify-between text-xs">
+            <span className="text-green-400">Discounts</span>
+            <span className="text-green-400 font-bold">-₹{totalDiscounts.toLocaleString('en-IN')}</span>
           </div>
         )}
         
         {riderCost > 0 && (
           <div className="flex justify-between text-xs">
-            <span className="text-teal-400">Add-on Riders</span>
+            <span className="text-teal-400">Premium Riders</span>
             <span className="text-teal-400 font-bold">+₹{riderCost.toLocaleString('en-IN')}</span>
           </div>
         )}
         
         <div className="pt-2 mt-2 border-t border-slate-700">
           <div className="flex justify-between text-sm font-bold">
-            <span className="text-slate-300">Subtotal</span>
-            <span className="text-white">₹{(basePremium + enhancementCost + riderCost).toLocaleString('en-IN')}</span>
+            <span className="text-slate-300">Subtotal (Before GST)</span>
+            <span className="text-white">₹{subtotal.toLocaleString('en-IN')}</span>
           </div>
         </div>
         
         <div className="flex justify-between text-xs">
-          <span className="text-slate-400">GST (0%)</span>
-          <span className="text-slate-400">₹0</span>
+          <span className="text-slate-400">GST (0% - Exempt)</span>
+          <span className="text-slate-400">₹{gstAmount}</span>
         </div>
       </div>
 
       {/* Total Premium */}
       <div className="text-center pt-2 pb-4">
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Annual Premium</p>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Final Estimated Payable Amount</p>
         <h3 className="text-5xl font-black italic tracking-tighter bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent mb-2">
           ₹{totalPremium.toLocaleString('en-IN')}
         </h3>
         <p className="text-[11px] text-slate-500 italic">
-          Estimated for {memberBreakdown.length} member{memberBreakdown.length > 1 ? 's' : ''}
+          Annual Premium • {memberBreakdown.length || 'Selected'} member{(memberBreakdown.length > 1) ? 's' : ''}
         </p>
-        <div className="mt-3 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
-          <p className="text-[10px] text-amber-200 leading-relaxed">
-            ⚡ <strong>Real-Time Pricing:</strong> Your premium updates instantly when you add/remove riders or change benefits. 
-            Final amount confirmed after medical underwriting.
+        
+        {/* Mandatory Disclaimer */}
+        <div className="mt-4 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+          <p className="text-[11px] text-amber-200 leading-relaxed font-medium">
+            ⚠️ <strong>Important Disclaimer:</strong> All premiums shown are estimated and indicative. 
+            Final premium may increase or decrease based on underwriting, age verification, coverage 
+            selection, medical history evaluation, and policy terms & conditions.
+          </p>
+        </div>
+        
+        <div className="mt-3 bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+          <p className="text-[10px] text-blue-200 leading-relaxed">
+            💡 <strong>Dynamic Pricing:</strong> Premium updates instantly when you modify age, plan, 
+            coverage, riders, or discount options.
           </p>
         </div>
       </div>
@@ -565,7 +718,8 @@ const PaymentSummary = ({ data }) => {
           Proceed to KYC →
         </button>
         <p className="text-[10px] text-center text-slate-500 leading-relaxed">
-          By proceeding, you agree that the premium shown is an estimate and final amount will be confirmed after underwriting.
+          By proceeding, you acknowledge that all premiums are estimates. Final premium will be determined 
+          after complete underwriting, medical assessment, age verification, and policy issuance.
         </p>
       </div>
     </div>

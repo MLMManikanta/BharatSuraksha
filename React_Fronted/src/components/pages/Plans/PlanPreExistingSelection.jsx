@@ -42,6 +42,27 @@ const PlanPreExistingSelection = () => {
   const handlePlanSelection = (planDetails) => {
     const siLabel = planDetails.sumInsured || "5L";
     const siValue = parseInt(siLabel.replace('L', '00000').replace('Cr', '0000000'));
+
+    // Varishtha eligibility: restrict to members aged 60+
+    if (planDetails.name === 'Varishtha Suraksha') {
+      const memberAges = prevData.memberAges || {};
+      const memberCounts = prevData.counts || {};
+      const hasUnder60 = Object.keys(memberCounts).some(memberId => {
+        if (memberCounts[memberId] > 0) {
+          const ages = Array.isArray(memberAges[memberId]) ? memberAges[memberId] : [memberAges[memberId]];
+          return ages.some(age => {
+            const ageNum = parseInt(age);
+            return !Number.isNaN(ageNum) && ageNum < 60;
+          });
+        }
+        return false;
+      });
+
+      if (hasUnder60) {
+        window.alert('Varishtha Suraksha is available only for members aged 60 and above.');
+        return;
+      }
+    }
     
     // Standard Plan Premium Rates (per person per annum)
     // Structure: planName -> { sumInsured -> { ageGroup -> premium } }
@@ -53,15 +74,24 @@ const PlanPreExistingSelection = () => {
       },
       'Parivar Suraksha': {
         '5L': { '18-25': 3261, '26-35': 3444, '36-40': 4365, '41-45': 5120, '46-50': 6445, '51-55': 8775, '56-60': 10845, '61-65': 15270, '66-70': 19755, '71-75': 25275, '76-100': 31145 },
-        '10L': { '18-25': 4230, '26-35': 4485, '36-40': 5670, '41-45': 6650, '46-50': 8370, '51-55': 11385, '56-60': 14065, '61-65': 19805, '66-70': 25590, '71-75': 32755, '76-100': 40345 }
+        '10L': { '18-25': 4230, '26-35': 4485, '36-40': 5670, '41-45': 6650, '46-50': 8370, '51-55': 11385, '56-60': 14065, '61-65': 19805, '66-70': 25590, '71-75': 32755, '76-100': 40345 },
+        '15L': { '18-25': 5710, '26-35': 6065, '36-40': 7655, '41-45': 8978, '46-50': 11299, '51-55': 15370, '56-60': 18988, '61-65': 26737, '66-70': 34547, '71-75': 44219, '76-100': 54466 },
+        '25L': { '18-25': 8030, '26-35': 8522, '36-40': 10773, '41-45': 12667, '46-50': 15903, '51-55': 21632, '56-60': 26724, '61-65': 37630, '66-70': 48621, '71-75': 62235, '76-100': 76656 },
+        '50L': { '18-25': 11420, '26-35': 12110, '36-40': 15309, '41-45': 17955, '46-50': 22599, '51-55': 30740, '56-60': 37976, '61-65': 53474, '66-70': 69093, '71-75': 88539, '76-100': 108932 },
+        '1Cr': { '18-25': 15230, '26-35': 16146, '36-40': 20412, '41-45': 23940, '46-50': 30132, '51-55': 40986, '56-60': 50634, '61-65': 71298, '66-70': 92124, '71-75': 117918, '76-100': 145242 }
       },
       'Varishtha Suraksha': {
-        '5L': { '18-25': 3780, '26-35': 3985, '36-40': 5055, '41-45': 5925, '46-50': 7460, '51-55': 10150, '56-60': 12540, '61-65': 17670, '66-70': 22870, '71-75': 29245, '76-100': 36045 },
-        '10L': { '18-25': 4895, '26-35': 5190, '36-40': 6560, '41-45': 7695, '46-50': 9685, '51-55': 13165, '56-60': 16280, '61-65': 22930, '66-70': 29620, '71-75': 37900, '76-100': 46700 }
+        '5L': { '18-25': 3024, '26-35': 3188, '36-40': 4044, '41-45': 4740, '46-50': 5968, '51-55': 8120, '56-60': 10032, '61-65': 14136, '66-70': 18296, '71-75': 23396, '76-100': 28836 },
+        '10L': { '18-25': 3916, '26-35': 4152, '36-40': 5248, '41-45': 6156, '46-50': 7748, '51-55': 10532, '56-60': 13024, '61-65': 18344, '66-70': 23696, '71-75': 30320, '76-100': 37360 }
       },
       'Vishwa Suraksha': {
         '5L': { '18-25': 4570, '26-35': 4820, '36-40': 6110, '41-45': 7165, '46-50': 9020, '51-55': 12280, '56-60': 15165, '61-65': 21380, '66-70': 27645, '71-75': 35360, '76-100': 43590 },
-        '10L': { '18-25': 5920, '26-35': 6280, '36-40': 7930, '41-45': 9305, '46-50': 11715, '51-55': 15935, '56-60': 19705, '61-65': 27780, '66-70': 35840, '71-75': 45880, '76-100': 56520 }
+        '10L': { '18-25': 5920, '26-35': 6280, '36-40': 7930, '41-45': 9305, '46-50': 11715, '51-55': 15935, '56-60': 19705, '61-65': 27780, '66-70': 35840, '71-75': 45880, '76-100': 56520 },
+        '50L': { '18-25': 13680, '26-35': 14520, '36-40': 18369, '41-45': 21553, '46-50': 27119, '51-55': 36888, '56-60': 45606, '61-65': 64222, '66-70': 82911, '71-75': 106181, '76-100': 130698 },
+        '1Cr': { '18-25': 18276, '26-35': 19395, '36-40': 24546, '41-45': 28803, '46-50': 36258, '51-55': 49317, '56-60': 60966, '61-65': 85863, '66-70': 110788, '71-75': 141868, '76-100': 174732 },
+        '2Cr': { '18-25': 20550, '26-35': 21820, '36-40': 27627, '41-45': 32410, '46-50': 40833, '51-55': 55635, '56-60': 68811, '61-65': 96938, '66-70': 125095, '71-75': 160218, '76-100': 197379 },
+        '5Cr': { '18-25': 23508, '26-35': 25002, '36-40': 31634, '41-45': 37145, '46-50': 46813, '51-55': 63794, '56-60': 78950, '61-65': 111267, '66-70': 143633, '71-75': 183953, '76-100': 226628 },
+        'Unlimited': { '18-25': 27648, '26-35': 29381, '36-40': 37164, '41-45': 43652, '46-50': 55060, '51-55': 74961, '56-60': 92745, '61-65': 130690, '66-70': 168590, '71-75': 215965, '76-100': 266042 }
       }
     };
 
@@ -106,6 +136,19 @@ const PlanPreExistingSelection = () => {
       }
     }
 
+    let basePremium = calculatedPremium > 0 ? calculatedPremium : 8000;
+
+    // Plan-specific uplifts
+    if (planDetails.name === 'Parivar Suraksha') {
+      basePremium += 4000;
+    }
+    if (planDetails.name === 'Neev Suraksha') {
+      basePremium += 3000;
+    }
+    if (planDetails.name === 'Vishwa Suraksha') {
+      basePremium += 6000;
+    }
+
     const payload = {
         selectedPlan: planDetails,
         sumInsured: { label: `₹${siLabel}`, value: siValue },
@@ -114,7 +157,7 @@ const PlanPreExistingSelection = () => {
         tenure: 1,
         activeFeatures: [{ label: 'Standard Coverage', active: true }],
         activeRiders: [],
-        basePremium: calculatedPremium > 0 ? calculatedPremium : 8000
+        basePremium
     };
 
     navigate('/plan-review', { state: { ...prevData, ...payload } });
@@ -173,7 +216,25 @@ const PlanPreExistingSelection = () => {
             { id: 'varishtha', label: 'Varishtha', icon: '👴' },
             { id: 'vishwa', label: 'Vishwa', icon: '💎' },
             { id: 'vajra', label: '⚡ VAJRA', icon: '', isSpecial: true },
-          ].map((tab) => (
+          ].filter((tab) => {
+            // Hide Varishtha tab if any member is under 60
+            if (tab.id === 'varishtha') {
+              const memberAges = prevData.memberAges || {};
+              const memberCounts = prevData.counts || {};
+              const hasUnder60 = Object.keys(memberCounts).some(memberId => {
+                if (memberCounts[memberId] > 0) {
+                  const ages = Array.isArray(memberAges[memberId]) ? memberAges[memberId] : [memberAges[memberId]];
+                  return ages.some(age => {
+                    const ageNum = parseInt(age);
+                    return !Number.isNaN(ageNum) && ageNum < 60;
+                  });
+                }
+                return false;
+              });
+              return !hasUnder60;
+            }
+            return true;
+          }).map((tab) => (
             <button
               key={tab.id}
               onClick={() => tab.isSpecial ? handleActivateVajra() : (setCustomizationData(null), setActiveTab(tab.id))}
