@@ -126,7 +126,7 @@ const MedicalInformationPage = () => {
       return;
     }
 
-    navigate('/payment-frequency', {
+    navigate('/bankinfo', {
       state: {
         ...planData,
         medicalData: {
@@ -399,7 +399,7 @@ const MedicalInformationPage = () => {
         {/* ACTION BUTTONS */}
         <div className="max-w-2xl mx-auto mb-10 space-y-3">
           <button onClick={handleSubmit} className="w-full py-5 bg-linear-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-[0.98] shadow-green-500/30">
-            Proceed to fill banking info →
+            Proceed to Payment method →
           </button>
           <button onClick={() => navigate(-1)} className="w-full py-3 bg-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-300 transition-all">
             Go Back

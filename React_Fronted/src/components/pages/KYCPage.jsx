@@ -243,7 +243,7 @@ const KYCPage = () => {
       <CheckoutStepper currentStep={4} />
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl relative mb-8">
+      <div className="bg-linear-to-r from-blue-600 to-blue-700 text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl relative mb-8">
         <div className="max-w-5xl mx-auto text-center space-y-4">
           <h1 className="text-3xl md:text-4xl font-bold italic tracking-tight">
             Know Your Customer (KYC)
@@ -257,7 +257,7 @@ const KYCPage = () => {
       {/* Premium Recalculation Message */}
       {validateAgeChanges.hasMismatch && planData.totalPremium && (
         <div className="max-w-5xl mx-auto px-4 -mt-16 relative z-10 mb-6">
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 p-5 rounded-lg shadow-md">
+          <div className="bg-linear-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 p-5 rounded-lg shadow-md">
             <h3 className="font-bold text-green-900 flex items-center gap-2 mb-3">
               <span>✓</span> Premium Recalculated
             </h3>
@@ -757,7 +757,7 @@ const KYCPage = () => {
         <div className="max-w-2xl mx-auto mb-10 space-y-3">
           <button
             onClick={handleSubmit}
-            className="w-full py-5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-[0.98] shadow-blue-500/30"
+            className="w-full py-5 bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-[0.98] shadow-blue-500/30"
           >
             Continue to Medical Information →
           </button>

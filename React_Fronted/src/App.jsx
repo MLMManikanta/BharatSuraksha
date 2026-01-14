@@ -14,6 +14,9 @@ import PlanReviewPage from "./components/pages/Plans/PlanReviewPages/PlanReviewP
 import KYCPage from "./components/pages/KYCPage";
 import MedicalInformationPage from "./components/pages/MedicalInformationPage";
 import BankInformationPage from "./components/pages/BankInformationPage";
+import OrderSummaryPage from "./components/pages/OrderSummaryPage";
+import PaymentPage from "./components/pages/PaymentPage";
+import PaymentSuccessPage from "./components/pages/PaymentSuccessPage";
 
 function App() {
   return (
@@ -45,8 +48,15 @@ function App() {
         {/* Step 6: Medical Information */}
         <Route path="/medical" element={ <Layout> <MedicalInformationPage /> </Layout> } />
 
-        {/* Step 7: Bank Information */}
+        {/* Step 6: Pay & Bank Details (Merged) */}
         <Route path="/bankinfo" element={ <Layout> <BankInformationPage /> </Layout> } />
+
+        {/* Step 7: Order Summary */}
+        <Route path="/order-summary" element={ <Layout> <OrderSummaryPage /> </Layout> } />
+
+        {/* Step 8: Payment */}
+        <Route path="/payment" element={ <Layout> <PaymentPage /> </Layout> } />
+        <Route path="/payment-success" element={ <Layout> <PaymentSuccessPage /> </Layout> } />
 
         {/* --- ADDITIONAL PAGES --- */}
         <Route path="/about" element={ <Layout> <Aboutus /> </Layout> } />

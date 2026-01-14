@@ -20,6 +20,7 @@ const BankInformationPage = () => {
   const planData = location.state || {};
 
   // ═══ STATE MANAGEMENT ═══
+  const [selectedFrequency, setSelectedFrequency] = useState('');
   const [bankData, setBankData] = useState({
     accountHolderName: '',
     accountNumber: '',
@@ -43,6 +44,7 @@ const BankInformationPage = () => {
   const validateForm = () => {
     const errors = {};
 
+    if (!selectedFrequency) errors.frequency = 'Please select payment frequency';
     if (!bankData.accountHolderName.trim()) errors.accountHolderName = 'Required';
     if (!bankData.accountNumber.trim()) errors.accountNumber = 'Required';
     if (!/^\d{9,18}$/.test(bankData.accountNumber)) errors.accountNumber = 'Invalid account number';
@@ -62,10 +64,11 @@ const BankInformationPage = () => {
       return;
     }
 
-    // Proceed to payment page
-    navigate('/payment', {
+    // Proceed to order summary page
+    navigate('/order-summary', {
       state: {
         ...planData,
+        paymentFrequency: selectedFrequency,
         bankData: {
           ...bankData,
           submittedAt: new Date().toISOString()
@@ -76,14 +79,14 @@ const BankInformationPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <CheckoutStepper currentStep={7} />
+      <CheckoutStepper currentStep={6} />
 
       {/* Header */}
       <div className="bg-linear-to-r from-blue-600 to-blue-700 text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl mb-8">
         <div className="max-w-5xl mx-auto text-center space-y-4">
-          <h1 className="text-3xl md:text-4xl font-bold italic tracking-tight">Payment Details</h1>
+          <h1 className="text-3xl md:text-4xl font-bold italic tracking-tight">Payment & Banking Details</h1>
           <p className="text-blue-100 text-lg max-w-2xl mx-auto">
-            Provide your banking information for claim settlements and reimbursements.
+            Select your payment frequency and provide banking information for claim settlements.
           </p>
         </div>
       </div>
@@ -93,14 +96,93 @@ const BankInformationPage = () => {
         {/* INFO BANNER */}
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-8">
           <p className="text-sm text-blue-800 font-medium">
-            ℹ️ Your bank details are encrypted and secured. They are used solely for claim settlements.
+            ℹ️ Your bank details are encrypted and secured. Choose longer payment terms for better discounts!
           </p>
         </div>
 
-        {/* SECTION 1: BANK ACCOUNT DETAILS */}
+        {/* SECTION 1: PAYMENT FREQUENCY */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
             <span className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">1</span>
+            Payment Frequency
+          </h2>
+
+          {formErrors.frequency && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded-lg">
+              <p className="text-sm text-red-700">{formErrors.frequency}</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { id: 'monthly', label: 'Monthly', icon: '📅', discount: '0%', badge: 'Most Flexible' },
+              { id: 'quarterly', label: 'Quarterly', icon: '📊', discount: '2%', badge: 'Popular' },
+              { id: 'halfyearly', label: 'Half-Yearly', icon: '📈', discount: '5%', badge: 'Save More' },
+              { id: 'yearly', label: 'Yearly', icon: '💰', discount: '10%', badge: 'Best Value' }
+            ].map((option) => (
+              <label
+                key={option.id}
+                className={`relative cursor-pointer group ${
+                  selectedFrequency === option.id
+                    ? 'ring-4 ring-blue-500'
+                    : 'hover:ring-2 hover:ring-blue-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="frequency"
+                  value={option.id}
+                  checked={selectedFrequency === option.id}
+                  onChange={(e) => {
+                    setSelectedFrequency(e.target.value);
+                    setFormErrors(prev => ({ ...prev, frequency: '' }));
+                  }}
+                  className="sr-only"
+                />
+                
+                <div className={`p-5 rounded-xl border-2 transition-all duration-300 ${
+                  selectedFrequency === option.id
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 bg-white group-hover:border-blue-300'
+                }`}>
+                  
+                  {option.badge && (
+                    <div className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                      {option.badge}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-3xl">{option.icon}</span>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800">{option.label}</h3>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-gray-700">Discount:</span>
+                      <span className="text-lg font-bold text-blue-600">{option.discount} OFF</span>
+                    </div>
+                  </div>
+
+                  {selectedFrequency === option.id && (
+                    <div className="absolute top-3 right-3 bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 2: BANK ACCOUNT DETAILS */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+            <span className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">2</span>
             Bank Account Details
           </h2>
 
@@ -197,88 +279,6 @@ const BankInformationPage = () => {
               />
               {formErrors.bankName && <p className="text-red-600 text-xs mt-1">{formErrors.bankName}</p>}
             </div>
-          </div>
-        </div>
-
-        {/* SECTION 2: CLAIM PAYMENT MODE */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-            <span className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">2</span>
-            Claim Payment Mode
-          </h2>
-
-          <div className="space-y-6">
-            {/* Pre-hospitalization Claims */}
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-3">
-                Pre-hospitalization Claims
-              </label>
-              <div className="flex gap-4">
-                {['Bank Transfer', 'Cheque', 'Draft'].map(mode => (
-                  <label key={mode} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="preHospitalization"
-                      value={mode}
-                      checked={bankData.preHospitalization === mode}
-                      onChange={(e) => handleChange('preHospitalization', e.target.value)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-gray-700">{mode}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Post-hospitalization Claims */}
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-3">
-                Post-hospitalization Claims
-              </label>
-              <div className="flex gap-4">
-                {['Bank Transfer', 'Cheque', 'Draft'].map(mode => (
-                  <label key={mode} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="postHospitalization"
-                      value={mode}
-                      checked={bankData.postHospitalization === mode}
-                      onChange={(e) => handleChange('postHospitalization', e.target.value)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-gray-700">{mode}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Reimbursement Claims */}
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-3">
-                Reimbursement Claims
-              </label>
-              <div className="flex gap-4">
-                {['Bank Transfer', 'Cheque', 'Draft'].map(mode => (
-                  <label key={mode} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="reimbursement"
-                      value={mode}
-                      checked={bankData.reimbursement === mode}
-                      onChange={(e) => handleChange('reimbursement', e.target.value)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-gray-700">{mode}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-xs text-green-800">
-              ✓ We recommend Bank Transfer for faster claim settlements. Funds are typically transferred within 2-3 business days.
-            </p>
           </div>
         </div>
 

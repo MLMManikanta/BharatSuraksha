@@ -8,8 +8,9 @@ const CheckoutStepper = ({ currentStep }) => {
     { id: 3, label: 'Review', path: '/plan-review' },
     { id: 4, label: 'KYC', path: '/kyc' },
     { id: 5, label: 'Medical', path: '/medical' },
-    { id: 6, label: 'Bank Info', path: '/bankinfo' },
-    { id: 7, label: 'Payment', path: '/payment' },
+    { id: 6, label: 'Pay & Bank', path: '/bankinfo' },
+    { id: 7, label: 'Summary', path: '/order-summary' },
+    { id: 8, label: 'Payment', path: '/payment' },
   ];
 
   return (
