@@ -17,11 +17,22 @@ const PlanDetails = () => {
     mother_in_law: 0
   });
 
+  // --- 1B. MEMBER AGES STATE ---
+  const [memberAges, setMemberAges] = useState({
+    self: '',
+    spouse: '',
+    son: [''],
+    daughter: [''],
+    father: '',
+    mother: '',
+    father_in_law: '',
+    mother_in_law: ''
+  });
+
   // --- 2. PERSONAL DETAILS STATE ---
   const [userDetails, setUserDetails] = useState({
     fullName: '',
-    pincode: '',
-    age: ''
+    pincode: ''
   });
 
   // --- 3. ERROR STATE ---
@@ -45,7 +56,25 @@ const PlanDetails = () => {
     setMemberCounts(prev => {
       const currentCount = prev[id];
       if (isMulti) {
-        return { ...prev, [id]: currentCount > 0 ? currentCount : 1 };
+        // For multi-members: only toggle between 0 and 1 when clicking the card
+        // If count > 1, clicking card does nothing (use +/- buttons to change count)
+        if (currentCount === 0) {
+          // Select: set to 1 and initialize age array
+          setMemberAges(prevAges => ({
+            ...prevAges,
+            [id]: ['']
+          }));
+          return { ...prev, [id]: 1 };
+        } else if (currentCount === 1) {
+          // Unselect: set to 0 and clear age array
+          setMemberAges(prevAges => ({
+            ...prevAges,
+            [id]: ['']
+          }));
+          return { ...prev, [id]: 0 };
+        }
+        // If count > 1, do nothing on card click
+        return prev;
       }
       return { ...prev, [id]: currentCount === 1 ? 0 : 1 };
     });
@@ -65,18 +94,50 @@ const PlanDetails = () => {
       }
 
       const newCount = increment ? current + 1 : current - 1;
+      
+      // Update ages array for multi-members
+      setMemberAges(prevAges => {
+        const currentAges = prevAges[id] || [];
+        if (increment) {
+          return { ...prevAges, [id]: [...currentAges, ''] };
+        } else {
+          return { ...prevAges, [id]: currentAges.slice(0, -1) };
+        }
+      });
+      
       return { ...prev, [id]: Math.max(0, newCount) };
     });
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    // Allow only numbers for pincode and age
-    if ((name === 'pincode' || name === 'age') && isNaN(value)) return;
+    // Allow only numbers for pincode
+    if (name === 'pincode' && isNaN(value)) return;
     
     setUserDetails(prev => ({ ...prev, [name]: value }));
     // Clear specific field error on change
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const handleAgeChange = (memberId, value, index = null) => {
+    // Allow only numbers
+    if (value && isNaN(value)) return;
+    
+    setMemberAges(prev => {
+      if (index !== null) {
+        // For multi-members (son/daughter)
+        const newAges = [...prev[memberId]];
+        newAges[index] = value;
+        return { ...prev, [memberId]: newAges };
+      } else {
+        // For single members
+        return { ...prev, [memberId]: value };
+      }
+    });
+    
+    // Clear age error for this member
+    const errorKey = index !== null ? `${memberId}_${index}_age` : `${memberId}_age`;
+    if (errors[errorKey]) setErrors(prev => ({ ...prev, [errorKey]: '' }));
   };
 
   const validateForm = () => {
@@ -86,10 +147,30 @@ const PlanDetails = () => {
     const totalMembers = Object.values(memberCounts).reduce((a, b) => a + b, 0);
     if (totalMembers === 0) newErrors.members = "Please select at least one member.";
 
+    // Check Member Ages
+    Object.keys(memberCounts).forEach(memberId => {
+      const count = memberCounts[memberId];
+      if (count > 0) {
+        if (Array.isArray(memberAges[memberId])) {
+          // Multi-members (son/daughter)
+          memberAges[memberId].forEach((age, index) => {
+            if (!age || parseInt(age) < 0 || parseInt(age) > 100) {
+              newErrors[`${memberId}_${index}_age`] = "Required";
+            }
+          });
+        } else {
+          // Single members
+          const age = memberAges[memberId];
+          if (!age || parseInt(age) < 0 || parseInt(age) > 100) {
+            newErrors[`${memberId}_age`] = "Required";
+          }
+        }
+      }
+    });
+
     // Check Fields
     if (!userDetails.fullName.trim()) newErrors.fullName = "Full Name is required.";
     if (!userDetails.pincode || userDetails.pincode.length !== 6) newErrors.pincode = "Enter a valid 6-digit Pincode.";
-    if (!userDetails.age || parseInt(userDetails.age) < 18 || parseInt(userDetails.age) > 100) newErrors.age = "Valid Age (18-100) is required.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -99,7 +180,8 @@ const PlanDetails = () => {
     if (validateForm()) {
       navigate('/select-plan', { 
         state: { 
-          counts: memberCounts, 
+          counts: memberCounts,
+          memberAges: memberAges,
           user: userDetails 
         } 
       });
@@ -179,7 +261,68 @@ const PlanDetails = () => {
             );
           })}
         </div>
+        {/* AGE INPUT SECTION - Only show if members are selected */}
+        {Object.values(memberCounts).reduce((a, b) => a + b, 0) > 0 && (
+          <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 mb-8">
+            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-blue-100 text-[#1A5EDB] flex items-center justify-center text-sm">🎂</span>
+              Member Ages <span className="text-xs font-normal text-gray-400 ml-2">(Enter age for each member)</span>
+            </h3>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {memberOptions.map((member) => {
+                const count = memberCounts[member.id];
+                if (count === 0) return null;
+
+                return (
+                  <div key={member.id} className="space-y-3">
+                    <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                      <span>{member.icon}</span>
+                      <span>{member.label}</span>
+                      {count > 1 && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">×{count}</span>}
+                    </label>
+
+                    {member.isMulti ? (
+                      // Multiple age inputs for son/daughter
+                      <div className="grid grid-cols-2 gap-2">
+                        {Array.from({ length: count }).map((_, index) => (
+                          <div key={index} className="space-y-1">
+                            <input
+                              type="text"
+                              maxLength="3"
+                              value={memberAges[member.id]?.[index] || ''}
+                              onChange={(e) => handleAgeChange(member.id, e.target.value, index)}
+                              placeholder={`${member.label} ${index + 1}'s age`}
+                              className={`w-full p-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white transition-all ${errors[`${member.id}_${index}_age`] ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#1A5EDB]'}`}
+                            />
+                            {errors[`${member.id}_${index}_age`] && (
+                              <p className="text-xs text-red-500 font-bold">{errors[`${member.id}_${index}_age`]}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      // Single age input
+                      <div className="space-y-1">
+                        <input
+                          type="text"
+                          maxLength="3"
+                          value={memberAges[member.id] || ''}
+                          onChange={(e) => handleAgeChange(member.id, e.target.value)}
+                          placeholder={`${member.label}'s age (in years)`}
+                          className={`w-full p-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white transition-all ${errors[`${member.id}_age`] ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#1A5EDB]'}`}
+                        />
+                        {errors[`${member.id}_age`] && (
+                          <p className="text-xs text-red-500 font-bold">{errors[`${member.id}_age`]}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         {/* 3. PERSONAL DETAILS FORM */}
         <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 mb-24">
             <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
@@ -187,7 +330,7 @@ const PlanDetails = () => {
                 Proposer Details <span className="text-xs font-normal text-gray-400 ml-2">(All fields required)</span>
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* Name Input */}
                 <div className="space-y-2">
@@ -220,23 +363,6 @@ const PlanDetails = () => {
                         className={`w-full p-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white transition-all ${errors.pincode ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#1A5EDB]'}`}
                     />
                     {errors.pincode && <p className="text-xs text-red-500 font-bold">{errors.pincode}</p>}
-                </div>
-
-                {/* Age Input */}
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        Your Age <span className="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        name="age"
-                        maxLength="3"
-                        value={userDetails.age}
-                        onChange={handleInputChange}
-                        placeholder="Years"
-                        className={`w-full p-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white transition-all ${errors.age ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#1A5EDB]'}`}
-                    />
-                    {errors.age && <p className="text-xs text-red-500 font-bold">{errors.age}</p>}
                 </div>
 
             </div>
