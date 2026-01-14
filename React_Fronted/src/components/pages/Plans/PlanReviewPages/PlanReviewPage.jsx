@@ -72,6 +72,7 @@ const PlanReviewPage = () => {
     if (planName.includes('parivar')) return <FamilyPlanReview data={data} />;
     if (planName.includes('varishtha')) return <SeniorPlanReview data={data} />;
     if (planName.includes('vishwa')) return <UniversalPlanReview data={data} />;
+    if (planName.includes('VAJRA')) return <CustomizeReviewHealthPage data={data} />;
 
     return (
       <div className="p-10 text-center uppercase font-bold text-red-500">
