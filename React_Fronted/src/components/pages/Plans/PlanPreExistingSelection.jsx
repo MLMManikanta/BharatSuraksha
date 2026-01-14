@@ -97,7 +97,7 @@ const PlanPreExistingSelection = () => {
       <div className="bg-[#1A5EDB] text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl relative mb-8">
         <div className="max-w-5xl mx-auto text-center space-y-4">
           <h1 className="text-3xl md:text-4xl font-bold italic tracking-tight">
-            {customizationData ? `Forging Vajra Suraksha` : 'Select Your Suraksha'}
+            {customizationData ? `Customize Vajra Suraksha` : 'Select Your Suraksha'}
           </h1>
           <p className="text-blue-100 text-lg max-w-2xl mx-auto">
             {customizationData 
