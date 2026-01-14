@@ -1,17 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 function ContactUs() {
+  
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 600);
+      return () => clearTimeout(timer);
+    }, []);
   
   const handleSubmit = (e) => {
     e.preventDefault();
     alert("Thank you! Your message has been sent.");
   };
+  
+  if (isLoading) {
+    return <LoadingSpinner message="Loading Contact Page..." />;
+  }
 
   return (
     <main className="bg-gray-50 min-h-screen">
       
       {/* 1. HERO SECTION */}
-      <section className="relative bg-gradient-to-b from-blue-50 to-blue-100 py-24 px-6 overflow-hidden">
+      <section className="relative bg-linear-to-b from-blue-50 to-blue-100 py-24 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
           
           {/* LEFT TEXT */}

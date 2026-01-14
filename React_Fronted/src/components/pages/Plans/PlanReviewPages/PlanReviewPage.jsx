@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import LoadingSpinner from '../../../common/LoadingSpinner';
 import PaymentSummary from './paymentSummary';
 import CheckoutStepper from "../../../layout/CheckoutStepper";
 
@@ -19,6 +20,18 @@ const PlanReviewPage = () => {
   
   // Initialize state. If location.state is missing, default to null.
   const [data, setData] = useState(location.state || null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Check if user came directly from Home page (view-only mode)
+  const isFromHome = location.state?.fromHome === true;
+
+  // Handle loading animation on mount only
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   /**
    * 1. handleProceed
@@ -39,8 +52,11 @@ const PlanReviewPage = () => {
    * 2. handleEdit
    * Triggered when user clicks "Modify Plan" in the Review screen.
    * Navigates back to the plan selection page with Vajra tab active.
+   * Disabled when viewing from Home (view-only mode).
    */
   const handleEdit = () => {
+    if (isFromHome) return; // Prevent edit when viewing from Home
+    
     // Extract parent data (counts, user) to pass back
     const { counts, user, ...customizationData } = data || {};
     
@@ -58,8 +74,10 @@ const PlanReviewPage = () => {
    * 3. handleConfirm
    * Triggered when user clicks "Confirm & Pay".
    * Navigates to the next step.
+   * Disabled when viewing from Home (view-only mode).
    */
   const handleConfirm = () => {
+    if (isFromHome) return; // Prevent confirmation when viewing from Home
     navigate('/proposal-form', { state: data });
   };
 
@@ -110,6 +128,11 @@ const PlanReviewPage = () => {
       </div>
     );
   };
+
+  // Loading Spinner Component
+  if (isLoading) {
+    return <LoadingSpinner message="Loading Plan Details..." />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">

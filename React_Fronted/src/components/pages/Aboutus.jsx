@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 // --- DATA: TERMS & DEFINITIONS ---
 const TERMS_DATA = {
@@ -20,12 +21,24 @@ const TERMS_DATA = {
 
 function Aboutus() {
   const [activeTab, setActiveTab] = useState('intro');
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 600);
+      return () => clearTimeout(timer);
+    }, []);
+
+    if (isLoading) {
+      return <LoadingSpinner message="Loading About Us..." />;
+    }
 
   return (
     <div className="bg-gray-50 text-gray-900 font-sans">
       
       {/* 1. HERO SECTION */}
-      <section className="bg-gradient-to-b from-[#DDF0FF] to-[#B3DAFF] py-24 px-6">
+      <section className="bg-linear-to-b from-[#DDF0FF] to-[#B3DAFF] py-24 px-6">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 items-center gap-12">
           {/* Left Content */}
           <div className="relative z-10">
@@ -172,7 +185,7 @@ function Aboutus() {
       </section>
 
       {/* 6. HEALTH INSURANCE TERMS (TABS) */}
-      <section className="py-24 px-6 bg-gradient-to-b from-blue-50 to-white">
+      <section className="py-24 px-6 bg-linear-to-b from-blue-50 to-white">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-[#1A5EDB] text-center mb-2">Health Insurance Terms 📘</h2>
           <p className="text-center text-gray-600 mb-10">Understanding your policy made simple.</p>
