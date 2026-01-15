@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
 const CustomizeHealthPage = ({ initialData, onProceed }) => {
-  // --- 1. DATA CONFIGURATION ---
   const sumInsuredSteps = [
     { label: "10L", value: 1000000 },
     { label: "15L", value: 1500000 },
@@ -18,7 +17,6 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
 
   const chronicDiseases = ["Diabetes", "High Cholesterol", "COPD", "Heart Disease", "Hypertension", "Asthma"];
 
-  // --- DEFAULT FEATURES LIST (Moved out for re-use) ---
   const defaultFeatures = [
     { id: 'global', label: 'Global Coverage', icon: '🌍', active: true },
     { id: 'claim_100', label: '100% Claim Coverage', icon: '💯', active: true, isLocked: true },
@@ -47,9 +45,6 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
     { id: 'maternity_boost', label: 'Maternity Booster', desc: 'Up to ₹3L Worldwide Limit', icon: '🤰', active: false, waitOption: 2 },
   ];
 
-  // --- 2. STATE INITIALIZATION (Now checks initialData) ---
-  
-  // Helper to find the slider index if we have a saved SI value
   const getInitialSliderIndex = () => {
     if (initialData?.currentSI?.value) {
       const idx = sumInsuredSteps.findIndex(s => s.value === initialData.currentSI.value);
@@ -63,7 +58,6 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
   const [preHosp, setPreHosp] = useState(initialData?.preHosp || 60);
   const [postHosp, setPostHosp] = useState(initialData?.postHosp || 90);
   
-  // Chronic Logic: Check if we had saved selections
   const [chronicActive, setChronicActive] = useState(
     (initialData?.selectedChronic && initialData.selectedChronic.length > 0) || false
   );
@@ -73,7 +67,6 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
     : ['Diabetes']
   );
 
-  // Features & Riders: Use saved arrays if they exist, else default
   const [features, setFeatures] = useState(initialData?.features || defaultFeatures);
   const [riders, setRiders] = useState(initialData?.riders || defaultRiders);
 
@@ -81,14 +74,9 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
   const isBaseUnlimited = currentSI.value === 999999999;
   const isMaternityActive = features.find(f => f.id === 'maternity_global')?.active;
 
-  // --- 3. LOGIC HANDLERS ---
-  
   const handleProceed = () => {
     const customConfig = {
-      // Preserve existing plan and user data from initialData
       ...(initialData || {}),
-      
-      // Override with current customization values
       currentSI,
       tenure,
       preHosp,
@@ -103,7 +91,6 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
     }
   };
 
-  // Sync Smart Aggregate Rider with Tenure
   useEffect(() => {
     setRiders(prev => prev.map(r => r.id === 'smart_agg' ? { ...r, active: tenure > 1 } : r));
   }, [tenure]);
@@ -122,26 +109,30 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
   };
 
   return (
-    <main className="max-w-7xl mx-auto p-4 space-y-8 bg-gray-50 min-h-screen font-sans">
+    <main className="w-full max-w-7xl mx-auto p-4 space-y-8 bg-gray-50 min-h-screen font-sans overflow-x-hidden" role="main" aria-labelledby="customize-title">
       <header className="bg-slate-900 p-6 rounded-2xl text-white shadow-xl border-b-4 border-blue-600">
-        <h1 className="text-2xl font-black uppercase italic tracking-tighter">Vajra Suraksha Builder</h1>
+        <h1 id="customize-title" className="text-2xl font-black uppercase italic tracking-tighter">Vajra Suraksha Builder</h1>
         <p className="text-blue-100 text-sm font-bold uppercase mt-1">Configure Your Ultimate Health Shield</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-8">
           
-          {/* 1. SUM INSURED SLIDER */}
-          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200" aria-labelledby="sum-insured-heading">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="font-bold text-slate-800 uppercase text-sm">Sum Insured</h2>
+              <h2 id="sum-insured-heading" className="font-bold text-slate-800 uppercase text-sm">Sum Insured</h2>
               <span className="text-3xl font-black text-blue-800">₹{currentSI.label}</span>
             </div>
             <input 
               type="range" min="0" max={sumInsuredSteps.length - 1} step="1" 
               value={sliderIndex} 
               onChange={(e) => setSliderIndex(Number(e.target.value))} 
-              className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-800" 
+              className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-800"
+              aria-label="Select sum insured amount"
+              aria-valuemin={0}
+              aria-valuemax={sumInsuredSteps.length - 1}
+              aria-valuenow={sliderIndex}
+              aria-valuetext={`${currentSI.label} selected`}
             />
             <div className="flex justify-between mt-2">
                {sumInsuredSteps.map((s, i) => (
@@ -150,15 +141,14 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
             </div>
           </section>
 
-          {/* 2. PRE/POST DURATION */}
-          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-            <h2 className="font-bold text-slate-800 uppercase text-sm mb-6">Hospitalisation Duration</h2>
+          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200" aria-labelledby="hosp-duration-heading">
+            <h2 id="hosp-duration-heading" className="font-bold text-slate-800 uppercase text-sm mb-6">Hospitalisation Duration</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <fieldset>
                 <legend className="text-[11px] font-bold text-gray-600 uppercase mb-3">Pre-Hospitalisation</legend>
-                <div className="flex gap-2">
+                <div className="flex gap-2" role="group" aria-label="Pre-hospitalisation duration options">
                   {[30, 60, 90].map(d => (
-                    <button key={d} onClick={() => setPreHosp(d)} className={`flex-1 py-3 text-sm font-bold rounded-xl border-2 transition-all ${preHosp === d ? 'border-blue-700 bg-blue-50 text-blue-900' : 'border-gray-100 text-gray-500'}`}>
+                    <button key={d} onClick={() => setPreHosp(d)} aria-pressed={preHosp === d} className={`flex-1 py-3 text-sm font-bold rounded-xl border-2 transition-all focus-visible:outline focus-visible:outline-4 focus-visible:outline-blue-600 focus-visible:outline-offset-2 ${preHosp === d ? 'border-blue-700 bg-blue-50 text-blue-900' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}>
                       {d} Days
                     </button>
                   ))}
@@ -166,9 +156,9 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
               </fieldset>
               <fieldset>
                 <legend className="text-[11px] font-bold text-gray-600 uppercase mb-3">Post-Hospitalisation</legend>
-                <div className="flex gap-2">
+                <div className="flex gap-2" role="group" aria-label="Post-hospitalisation duration options">
                   {[60, 90, 180].map(d => (
-                    <button key={d} onClick={() => setPostHosp(d)} className={`flex-1 py-3 text-sm font-bold rounded-xl border-2 transition-all ${postHosp === d ? 'border-blue-700 bg-blue-50 text-blue-900' : 'border-gray-100 text-gray-500'}`}>
+                    <button key={d} onClick={() => setPostHosp(d)} aria-pressed={postHosp === d} className={`flex-1 py-3 text-sm font-bold rounded-xl border-2 transition-all focus-visible:outline focus-visible:outline-4 focus-visible:outline-blue-600 focus-visible:outline-offset-2 ${postHosp === d ? 'border-blue-700 bg-blue-50 text-blue-900' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}>
                       {d} Days
                     </button>
                   ))}
@@ -177,13 +167,14 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
             </div>
           </section>
 
-          {/* 3. BASE FEATURES - 3 COLUMN LAYOUT */}
-          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-            <h2 className="font-bold text-slate-800 uppercase text-sm mb-6">Base Features</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200" aria-labelledby="base-features-heading">
+            <h2 id="base-features-heading" className="font-bold text-slate-800 uppercase text-sm mb-6">Base Features</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" role="group" aria-label="Base feature toggles">
               {features.map(f => (
                 <button key={f.id} onClick={() => toggleFeature(f.id)} disabled={f.isLocked}
-                  className={`min-h-[110px] p-4 rounded-xl border-2 transition-all text-center flex flex-col items-center justify-center relative ${f.active ? 'border-blue-700 bg-blue-50' : 'border-gray-100 bg-white opacity-60'}`}>
+                  aria-pressed={f.active}
+                  aria-label={`${f.label}${f.isLocked ? ' (locked)' : ''}`}
+                  className={`min-h-[110px] p-4 rounded-xl border-2 transition-all text-center flex flex-col items-center justify-center relative focus-visible:outline focus-visible:outline-4 focus-visible:outline-blue-600 focus-visible:outline-offset-2 ${f.active ? 'border-blue-700 bg-blue-50' : 'border-gray-100 bg-white opacity-60 hover:opacity-80'} ${f.isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
                   {f.isLocked && <span className="absolute top-2 right-2 text-xs grayscale">🔒</span>}
                   <span className="text-2xl mb-2">{f.icon}</span>
                   <span className="text-[11px] font-black uppercase leading-tight text-slate-800">{f.label}</span>
@@ -192,17 +183,16 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
             </div>
           </section>
 
-          {/* 4. CHRONIC CARE */}
-          <section className="bg-white p-6 rounded-2xl border border-orange-200 shadow-sm">
+          <section className="bg-white p-6 rounded-2xl border border-orange-200 shadow-sm" aria-labelledby="chronic-care-heading">
              <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
                 <div className="flex items-center gap-4">
-                  <span className="text-3xl">💊</span>
+                  <span className="text-3xl" aria-hidden="true">💊</span>
                   <div>
-                    <h2 className="font-bold text-orange-950 uppercase text-sm">Chronic Care (Day 31+)</h2>
+                    <h2 id="chronic-care-heading" className="font-bold text-orange-950 uppercase text-sm">Chronic Care (Day 31+)</h2>
                     <p className="text-[11px] text-orange-900 uppercase font-bold">Conditions covered from 31st day</p>
                   </div>
                 </div>
-                <button onClick={() => setChronicActive(!chronicActive)} className={`px-6 py-2 rounded-full font-bold text-sm transition-all ${chronicActive ? 'bg-orange-800 text-white' : 'bg-orange-100 text-orange-900 border border-orange-200 hover:bg-orange-200'}`}>
+                <button onClick={() => setChronicActive(!chronicActive)} aria-pressed={chronicActive} aria-label="Toggle chronic care coverage" className={`px-6 py-2 rounded-full font-bold text-sm transition-all focus-visible:outline focus-visible:outline-4 focus-visible:outline-orange-600 focus-visible:outline-offset-2 ${chronicActive ? 'bg-orange-800 text-white' : 'bg-orange-100 text-orange-900 border border-orange-200 hover:bg-orange-200'}`}>
                   {chronicActive ? 'Active' : 'Add Cover'}
                 </button>
              </div>
@@ -217,16 +207,17 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
              )}
           </section>
 
-          {/* 5. PREMIUM RIDERS */}
-          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-            <h2 className="font-bold text-slate-800 uppercase text-sm mb-6">Premium Riders</h2>
+          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200" aria-labelledby="riders-heading">
+            <h2 id="riders-heading" className="font-bold text-slate-800 uppercase text-sm mb-6">Premium Riders</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {riders.map(r => {
                 if (r.id === 'maternity_boost' && !isMaternityActive) return null;
                 const isDisabled = (r.id === 'unlimited_care' && isBaseUnlimited) || (r.id === 'smart_agg' && (tenure === 1 || isBaseUnlimited)) || (r.id === 'inflation_shield' && isBaseUnlimited);
                 return (
                   <button key={r.id} disabled={isDisabled} onClick={() => toggleRider(r.id)} 
-                    className={`flex items-start p-5 rounded-2xl border-2 text-left transition-all ${isDisabled ? 'opacity-30 grayscale cursor-not-allowed' : r.active ? 'border-teal-800 bg-teal-50' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
+                    aria-pressed={r.active}
+                    aria-label={`${r.label}: ${r.desc}${isDisabled ? ' (disabled)' : ''}`}
+                    className={`flex items-start p-5 rounded-2xl border-2 text-left transition-all focus-visible:outline focus-visible:outline-4 focus-visible:outline-teal-600 focus-visible:outline-offset-2 ${isDisabled ? 'opacity-30 grayscale cursor-not-allowed' : r.active ? 'border-teal-800 bg-teal-50 cursor-pointer' : 'border-gray-100 bg-white hover:border-gray-200 cursor-pointer'}`}>
                     <span className="text-4xl mr-4">{r.icon}</span>
                     <div className="flex-1">
                       <h3 className="font-bold text-[13px] uppercase text-slate-950 leading-tight">{r.label}</h3>
@@ -239,7 +230,6 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
           </section>
         </div>
 
-        {/* 6. EXPANDED SUMMARY SIDEBAR */}
         <aside className="lg:col-span-4 h-fit sticky top-6">
           <div className="bg-white p-8 rounded-2xl shadow-2xl border border-gray-200 space-y-8">
             <h2 className="font-black text-slate-900 uppercase text-2xl border-b pb-6 tracking-tighter">Plan Summary</h2>
@@ -267,7 +257,6 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
                 </div>
               </div>
 
-              {/* CHRONIC CARE IN SUMMARY */}
               {chronicActive && (
                 <div className="space-y-3">
                   <h3 className="text-xs font-bold text-orange-700 uppercase">Chronic Conditions</h3>
@@ -310,10 +299,11 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
               </div>
             </div>
 
-            {/* CONFIRM SELECTION BUTTON */}
             <button 
               onClick={handleProceed} 
-              className="w-full py-5 bg-blue-800 text-white font-black rounded-xl uppercase tracking-widest italic shadow-xl hover:bg-blue-900 transition-all active:scale-95 min-h-[56px] focus:ring-4 focus:ring-blue-300">
+              className="w-full py-5 bg-blue-800 text-white font-black rounded-xl uppercase tracking-widest italic shadow-xl hover:bg-blue-900 transition-all active:scale-95 min-h-[56px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-blue-400 focus-visible:outline-offset-4"
+              aria-label="Confirm your customized plan selection"
+            >
               Confirm Selection &rarr;
             </button>
           </div>

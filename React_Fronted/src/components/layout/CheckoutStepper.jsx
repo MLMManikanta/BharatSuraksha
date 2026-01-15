@@ -121,11 +121,11 @@ const CheckoutStepper = ({ currentStep }) => {
           </div>
         </div>
 
-        {/* Scrollable Container for Mobile */}
         <div 
           ref={containerRef}
-          className="flex items-center justify-between md:justify-center overflow-x-auto no-scrollbar gap-4 min-w-full pb-2"
+          className="flex items-center justify-start md:justify-center overflow-x-auto no-scrollbar gap-2 md:gap-4 w-full pb-2"
           role="list"
+          aria-label="Checkout progress steps"
         >
           {steps.map((step, index) => {
             const isCompleted = step.id < currentStep;
@@ -145,19 +145,19 @@ const CheckoutStepper = ({ currentStep }) => {
                   
                   {/* Circle Indicator */}
                   <div 
-                    className={`step-indicator w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center text-sm font-bold border-3 ${
+                    className={`step-indicator w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                       prefersReducedMotion ? "" : "step-indicator"
                     } ${
                       isCompleted 
-                        ? 'bg-[#1A5EDB] border-[#1A5EDB] text-white shadow-lg' 
+                        ? 'bg-[#1A5EDB] border-[#1A5EDB] border-3 text-white shadow-lg' 
                         : isActive 
-                          ? 'bg-white border-[#1A5EDB] text-[#1A5EDB] border-3 shadow-md' 
+                          ? 'bg-white border-[#1A5EDB] text-[#1A5EDB] border-[3px] shadow-md' 
                           : 'bg-white border-2 border-gray-300 text-gray-400'
                     }`}
                     aria-label={step.ariaLabel}
                     aria-current={isActive ? 'step' : undefined}
-                    tabIndex={isActive ? 0 : -1}
-                    role="button"
+                    aria-describedby={isActive ? `step-${step.id}-label` : undefined}
+                    role="img"
                   >
                     {isCompleted ? (
                       <svg 
@@ -174,8 +174,8 @@ const CheckoutStepper = ({ currentStep }) => {
                     )}
                   </div>
 
-                  {/* Label */}
                   <span 
+                    id={`step-${step.id}-label`}
                     className={`step-label text-sm md:text-base font-bold whitespace-nowrap ${
                       isActive || isCompleted 
                         ? 'text-[#1A5EDB]' 
