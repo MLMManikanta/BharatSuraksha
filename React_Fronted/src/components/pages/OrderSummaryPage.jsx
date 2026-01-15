@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion'; // For animations
+import { motion } from 'framer-motion';
 import { 
   CreditCard, 
   Building2, 
@@ -8,29 +8,78 @@ import {
   CheckCircle2, 
   ArrowRight, 
   ArrowLeft,
-  CalendarClock
-} from 'lucide-react'; // For icons
+  CalendarClock,
+  Wallet,
+  Percent
+} from 'lucide-react';
 import CheckoutStepper from '../layout/CheckoutStepper';
 
 const OrderSummaryPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Safe access to data with fallbacks
+  // Safe access to data
   const planData = location.state || {};
-  const paymentFrequency = planData.paymentFrequency || 'Standard Plan';
+  
+  // 1. EXTRACT DATA & NORMALIZE
+  const rawPremium = planData.finalPremium || planData.price || 0; // Get total form previous step
+  const paymentFrequency = planData.paymentFrequency || 'Yearly';
   const bankName = planData.bankData?.bankName || 'Not provided';
   const accountHolder = planData.bankData?.accountHolderName || 'Not provided';
-  // Mock price for visual completeness (replace with real data if available)
-  const estimatedTotal = planData.price || "₹ 0.00"; 
+
+  // 2. CALCULATION ENGINE
+  const pricingDetails = useMemo(() => {
+    const freqKey = paymentFrequency.toLowerCase().replace(/[^a-z]/g, ''); // normalize 'Half-Yearly' -> 'halfyearly'
+    
+    let discountPercent = 0;
+    let divisor = 1;
+    let label = 'Annual';
+
+    switch (freqKey) {
+      case 'monthly':
+        discountPercent = 0; // 0%
+        divisor = 12;
+        label = '/ Month';
+        break;
+      case 'quarterly':
+        discountPercent = 0.02; // 2%
+        divisor = 4;
+        label = '/ Quarter';
+        break;
+      case 'halfyearly':
+        discountPercent = 0.05; // 5%
+        divisor = 2;
+        label = '/ 6 Months';
+        break;
+      case 'yearly':
+        discountPercent = 0.10; // 10%
+        divisor = 1;
+        label = '/ Year';
+        break;
+      default:
+        discountPercent = 0;
+        divisor = 1;
+    }
+
+    // Math Logic
+    const discountAmount = Math.round(rawPremium * discountPercent);
+    const discountedTotal = rawPremium - discountAmount;
+    const installmentAmount = Math.round(discountedTotal / divisor);
+
+    return {
+      originalAmount: rawPremium,
+      discountPercent: (discountPercent * 100).toFixed(0),
+      discountAmount,
+      totalPayable: discountedTotal,
+      installmentAmount,
+      label
+    };
+  }, [rawPremium, paymentFrequency]);
 
   // Animation Variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15 }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
   };
 
   const itemVariants = {
@@ -44,7 +93,6 @@ const OrderSummaryPage = () => {
 
       {/* Hero Header */}
       <div className="relative bg-gradient-to-br from-indigo-700 via-indigo-600 to-indigo-800 text-white pt-12 pb-24 px-4 rounded-b-[4rem] shadow-2xl overflow-hidden">
-        {/* Decorative Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
           <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full mix-blend-overlay blur-3xl"></div>
           <div className="absolute bottom-10 right-10 w-80 h-80 bg-purple-400 rounded-full mix-blend-overlay blur-3xl"></div>
@@ -68,12 +116,12 @@ const OrderSummaryPage = () => {
             Review Order
           </motion.h1>
           <p className="text-indigo-100 text-lg max-w-xl mx-auto font-light">
-            Please verify your payment and account details below before finalizing your subscription.
+            Verify your payment plan and banking details before final authorization.
           </p>
         </div>
       </div>
 
-      {/* Main Content Card Container */}
+      {/* Main Content */}
       <motion.div 
         variants={containerVariants}
         initial="hidden"
@@ -93,53 +141,93 @@ const OrderSummaryPage = () => {
             </h2>
 
             <div className="grid md:grid-cols-2 gap-8">
-              {/* Payment Frequency Section */}
+              
+              {/* Payment Frequency Column */}
               <div className="space-y-4">
-                <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 hover:border-indigo-200 transition-colors">
-                  <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Frequency</span>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="text-xl font-bold text-gray-900">{paymentFrequency}</span>
+                <div className="bg-indigo-50 p-5 rounded-2xl border border-indigo-100">
+                  <span className="text-sm font-semibold text-indigo-500 uppercase tracking-wider">Payment Schedule</span>
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="text-xl font-bold text-indigo-900">{paymentFrequency}</span>
                     <CreditCard className="text-indigo-500" />
                   </div>
-                  <div className="mt-2 text-xs text-gray-400">Recurring billing cycle</div>
+                  
+                  {pricingDetails.discountAmount > 0 && (
+                    <div className="mt-3 bg-white p-2 rounded-lg flex items-center gap-2 border border-indigo-100 shadow-sm">
+                      <Percent size={14} className="text-green-600" />
+                      <span className="text-xs font-bold text-green-700">
+                        {pricingDetails.discountPercent}% Discount Applied
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Bank Details Section */}
+              {/* Bank Details Column */}
               <div className="space-y-4">
-                <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 hover:border-indigo-200 transition-colors space-y-3">
-                  <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Bank Information</span>
+                <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 hover:border-indigo-200 transition-colors space-y-4">
+                  <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Debit From</span>
                   
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white rounded-full shadow-xs">
+                    <div className="p-2 bg-white rounded-full shadow-xs shrink-0">
                       <User size={18} className="text-gray-600" />
                     </div>
-                    <div>
+                    <div className="overflow-hidden">
                       <p className="text-xs text-gray-400">Account Holder</p>
-                      <p className="font-semibold text-gray-800">{accountHolder}</p>
+                      <p className="font-semibold text-gray-800 truncate">{accountHolder}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3 border-t border-gray-200 pt-3">
-                    <div className="p-2 bg-white rounded-full shadow-xs">
+                    <div className="p-2 bg-white rounded-full shadow-xs shrink-0">
                       <Building2 size={18} className="text-gray-600" />
                     </div>
-                    <div>
+                    <div className="overflow-hidden">
                       <p className="text-xs text-gray-400">Bank Name</p>
-                      <p className="font-semibold text-gray-800">{bankName}</p>
+                      <p className="font-semibold text-gray-800 truncate">{bankName}</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
             
-            {/* Total Section (Optional Visual) */}
-            <div className="mt-8 pt-6 border-t border-dashed border-gray-200 flex justify-between items-end">
-              <div>
-                <p className="text-gray-500 text-sm">Total due today</p>
-                <p className="text-xs text-gray-400 italic">Includes applicable taxes</p>
+            {/* Calculation Breakdown Section */}
+            <div className="mt-8 pt-6 border-t border-dashed border-gray-200">
+              <div className="flex flex-col gap-2 mb-4">
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>Total Premium</span>
+                  <span>₹ {pricingDetails.originalAmount.toLocaleString('en-IN')}</span>
+                </div>
+                
+                {pricingDetails.discountAmount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600 font-medium">
+                    <span>Frequency Discount ({paymentFrequency})</span>
+                    <span>- ₹ {pricingDetails.discountAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>Taxes (Included)</span>
+                  <span>₹ 0</span>
+                </div>
               </div>
-              <div className="text-3xl font-black text-indigo-700">{estimatedTotal}</div>
+
+              <div className="flex justify-between items-end bg-slate-900 text-white p-6 rounded-2xl shadow-lg">
+                <div>
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Amount Due Today</p>
+                  <p className="text-[10px] text-slate-500 italic mt-1">First Installment</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-black text-white flex items-center gap-1">
+                    ₹ {pricingDetails.installmentAmount.toLocaleString('en-IN')}
+                    <span className="text-lg font-medium text-slate-400">{pricingDetails.label}</span>
+                  </div>
+                  {pricingDetails.discountAmount > 0 && (
+                    <p className="text-xs text-green-400 font-bold mt-1">
+                      You saved ₹ {pricingDetails.discountAmount.toLocaleString('en-IN')}!
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -155,7 +243,7 @@ const OrderSummaryPage = () => {
           </button>
 
           <button
-            onClick={() => navigate('/payment', { state: planData })}
+            onClick={() => navigate('/payment', { state: { ...planData, finalPayableAmount: pricingDetails.installmentAmount } })}
             className="group relative flex items-center justify-center gap-2 py-4 px-6 bg-indigo-600 text-white rounded-xl font-bold overflow-hidden shadow-lg shadow-indigo-500/30 transition-all hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-[0.98]"
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
@@ -166,8 +254,8 @@ const OrderSummaryPage = () => {
 
         {/* Security Note */}
         <motion.p variants={itemVariants} className="text-center text-xs text-gray-400 mt-6 flex items-center justify-center gap-2">
-          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
-          Payments are secure and encrypted.
+          <Wallet className="w-3 h-3" />
+          Payments are secure and encrypted via Razorpay/Stripe.
         </motion.p>
       </motion.div>
       
