@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
 
-
 const PaymentFrequencyPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,7 +17,7 @@ const PaymentFrequencyPage = () => {
       icon: '📅',
       description: 'Pay every month',
       discount: '0%',
-      badge: 'Most Flexible'
+      badge: 'Flexible'
     },
     {
       id: 'quarterly',
@@ -49,6 +48,7 @@ const PaymentFrequencyPage = () => {
   const handleSubmit = () => {
     if (!selectedFrequency) {
       setError('Please select a payment frequency');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -62,139 +62,192 @@ const PaymentFrequencyPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
       <CheckoutStepper currentStep={6} />
 
-      <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl mb-8">
-        <div className="max-w-5xl mx-auto text-center space-y-4">
-          <h1 className="text-3xl md:text-4xl font-bold italic tracking-tight">Choose Payment Frequency</h1>
-          <p className="text-purple-100 text-lg max-w-2xl mx-auto">
-            Select how often you'd like to pay your premium. Save more with longer payment terms!
+      <div className="relative bg-gradient-to-br from-purple-700 via-indigo-600 to-indigo-800 text-white pt-12 pb-24 px-4 rounded-b-[4rem] shadow-2xl overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
+          <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full mix-blend-overlay blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-pink-400 rounded-full mix-blend-overlay blur-3xl"></div>
+        </div>
+
+        <div className="relative max-w-4xl mx-auto text-center space-y-4 animate-fade-in-up">
+          <div className="inline-flex items-center justify-center text-4xl p-4 bg-white/20 backdrop-blur-md rounded-full mb-4 ring-1 ring-white/30 shadow-lg">
+            💳
+          </div>
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Payment Frequency</h1>
+          <p className="text-purple-100 text-lg max-w-2xl mx-auto font-light">
+            Choose a schedule that fits your budget. Save more with annual plans.
           </p>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4">
+      <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-10 space-y-8 animate-slide-up">
         
-        <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-lg mb-8">
-          <p className="text-sm text-purple-800 font-medium">
-            💡 Longer payment terms offer better discounts on your premium amount.
+        <div className="bg-purple-50 border border-purple-100 p-4 rounded-2xl shadow-sm flex gap-3 items-start">
+          <span className="text-xl mt-0.5">💡</span>
+          <p className="text-sm text-purple-800 font-medium leading-relaxed pt-1">
+            Opting for Yearly or Half-Yearly payments reduces the risk of policy lapse and offers significant premium discounts.
           </p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-300 rounded-lg">
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 animate-shake">
+            <span className="text-red-500 text-lg">⚠️</span>
+            <p className="text-sm text-red-700 font-medium">{error}</p>
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Select Payment Frequency</h2>
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="p-1 bg-gradient-to-r from-purple-400 to-pink-500"></div>
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+              <span className="bg-purple-100 rounded-xl w-10 h-10 flex items-center justify-center text-xl shadow-sm">
+                🗓️
+              </span>
+              Select Frequency
+            </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {frequencyOptions.map((option) => (
-              <label
-                key={option.id}
-                className={`relative cursor-pointer group ${
-                  selectedFrequency === option.id
-                    ? 'ring-4 ring-purple-500'
-                    : 'hover:ring-2 hover:ring-purple-300'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="frequency"
-                  value={option.id}
-                  checked={selectedFrequency === option.id}
-                  onChange={(e) => {
-                    setSelectedFrequency(e.target.value);
-                    setError('');
-                  }}
-                  className="sr-only"
-                />
-                
-                <div className={`p-6 rounded-xl border-2 transition-all duration-300 ${
-                  selectedFrequency === option.id
-                    ? 'border-purple-500 bg-purple-50'
-                    : 'border-gray-200 bg-white group-hover:border-purple-300'
-                }`}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {frequencyOptions.map((option) => (
+                <label
+                  key={option.id}
+                  className={`relative cursor-pointer group rounded-2xl border-2 transition-all duration-300 p-6 flex flex-col gap-4 ${
+                    selectedFrequency === option.id
+                      ? 'border-purple-500 bg-purple-50/50 shadow-md transform scale-[1.02]'
+                      : 'border-gray-100 bg-white hover:border-purple-200 hover:shadow-sm'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="frequency"
+                    value={option.id}
+                    checked={selectedFrequency === option.id}
+                    onChange={(e) => {
+                      setSelectedFrequency(e.target.value);
+                      setError('');
+                    }}
+                    className="hidden"
+                  />
                   
                   {option.badge && (
-                    <div className="absolute -top-3 -right-3 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                    <div className={`absolute -top-3 right-4 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm ${
+                        selectedFrequency === option.id 
+                        ? 'bg-purple-600 text-white' 
+                        : 'bg-gray-100 text-gray-500'
+                    }`}>
                       {option.badge}
                     </div>
                   )}
 
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-4xl">{option.icon}</span>
+                  <div className="flex items-center gap-4">
+                    <div className={`text-3xl p-3 rounded-xl transition-colors ${
+                        selectedFrequency === option.id ? 'bg-white shadow-sm' : 'bg-gray-50'
+                    }`}>
+                        {option.icon}
+                    </div>
                     <div>
-                      <h3 className="text-xl font-bold text-gray-800">{option.label}</h3>
-                      <p className="text-sm text-gray-600">{option.description}</p>
+                      <h3 className={`text-lg font-bold ${selectedFrequency === option.id ? 'text-purple-900' : 'text-gray-800'}`}>
+                          {option.label}
+                      </h3>
+                      <p className="text-xs text-gray-500">{option.description}</p>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-gray-700">Discount:</span>
-                      <span className="text-lg font-bold text-purple-600">{option.discount} OFF</span>
-                    </div>
+                  <div className="mt-auto pt-4 border-t border-gray-200/60 flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Savings</span>
+                    <span className={`text-sm font-black ${selectedFrequency === option.id ? 'text-purple-600' : 'text-gray-600'}`}>
+                        {option.discount} OFF
+                    </span>
                   </div>
 
                   {selectedFrequency === option.id && (
-                    <div className="absolute top-4 right-4 bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
-                      </svg>
+                    <div className="absolute top-4 right-4 text-purple-600 text-xl animate-fade-in-up">
+                      ✅
                     </div>
                   )}
-                </div>
-              </label>
-            ))}
+                </label>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl shadow-lg p-8 mb-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Why Choose Longer Payment Terms?</h3>
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
+          <h3 className="text-sm font-black text-indigo-900 uppercase tracking-widest mb-4">Benefits of Annual Pay</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">💵</span>
+            <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm border border-indigo-50">
+              <span className="text-xl">💵</span>
               <div>
-                <p className="font-bold text-gray-800">Save Money</p>
-                <p className="text-sm text-gray-600">Get up to 10% discount on yearly payments</p>
+                <p className="font-bold text-gray-800 text-sm">Max Savings</p>
+                <p className="text-[10px] text-gray-500">Flat 10% discount</p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">⏰</span>
+            <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm border border-indigo-50">
+              <span className="text-xl">🛡️</span>
               <div>
-                <p className="font-bold text-gray-800">Less Hassle</p>
-                <p className="text-sm text-gray-600">Fewer payment reminders and transactions</p>
+                <p className="font-bold text-gray-800 text-sm">Continuous Cover</p>
+                <p className="text-[10px] text-gray-500">No monthly hassle</p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">🔒</span>
+            <div className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm border border-indigo-50">
+              <span className="text-xl">🔒</span>
               <div>
-                <p className="font-bold text-gray-800">No Price Increases</p>
-                <p className="text-sm text-gray-600">Lock in your premium for the entire term</p>
+                <p className="font-bold text-gray-800 text-sm">Price Lock</p>
+                <p className="text-[10px] text-gray-500">1 Year rate guarantee</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="max-w-2xl mx-auto mb-10 space-y-3">
-          <button 
-            onClick={handleSubmit} 
-            className="w-full py-5 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-[0.98] shadow-purple-500/30"
-          >
-            Continue to Banking Details →
-          </button>
+        <div className="grid md:grid-cols-2 gap-4 pb-8">
           <button 
             onClick={() => navigate(-1)} 
-            className="w-full py-3 bg-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-300 transition-all"
+            className="group flex items-center justify-center gap-2 py-4 px-6 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 hover:text-purple-600 hover:border-purple-200 transition-all shadow-sm hover:shadow-md order-2 md:order-1"
           >
-            Go Back
+            ⬅️ Go Back
+          </button>
+          <button 
+            onClick={handleSubmit} 
+            className="group relative flex items-center justify-center gap-2 py-4 px-6 bg-purple-600 text-white rounded-xl font-bold overflow-hidden shadow-lg shadow-purple-500/30 transition-all hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98] order-1 md:order-2"
+          >
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
+            <span>Continue to Banking</span>
+            ➡️
           </button>
         </div>
       </div>
+
+      <style>{`
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 1.5s infinite;
+        }
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out forwards;
+        }
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.6s ease-out 0.2s forwards;
+          opacity: 0;
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+          20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+        .animate-shake {
+          animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+      `}</style>
     </div>
   );
 };
