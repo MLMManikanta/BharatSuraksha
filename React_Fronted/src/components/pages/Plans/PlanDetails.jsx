@@ -62,10 +62,8 @@ const PlanDetails = () => {
           setMemberAges(prevAges => ({ ...prevAges, [id]: [''] }));
           return { ...prev, [id]: 1 };
         }
-        // For multi, clicking the card again doesn't remove if > 0 (use +/- buttons)
         return prev;
       }
-      // For single members, toggle 0 or 1
       return { ...prev, [id]: currentCount === 1 ? 0 : 1 };
     });
     if (errors.members) setErrors(prev => ({ ...prev, members: '' }));
@@ -105,7 +103,6 @@ const PlanDetails = () => {
   };
 
   const handleAgeChange = (memberId, value, index = null) => {
-    // Only allow numbers
     if (value && !/^\d*$/.test(value)) return;
 
     setMemberAges(prev => {
@@ -140,17 +137,16 @@ const PlanDetails = () => {
           if (!age) {
             newErrors[errorKey] = "Required";
           } else if (ageNum < 0 || ageNum > 100) {
-            newErrors[errorKey] = "Invalid age";
+            newErrors[errorKey] = "Invalid";
           } else if (option.minAge && ageNum < option.minAge) {
-            // THIS PREVENTS THE "Original: 5" MISMATCH FOR ADULTS
-            newErrors[errorKey] = `Min age is ${option.minAge}`;
+            newErrors[errorKey] = `Min ${option.minAge}`;
           }
         });
       }
     });
 
     if (!userDetails.fullName.trim()) newErrors.fullName = "Full Name is required.";
-    if (!userDetails.pincode || userDetails.pincode.length !== 6) newErrors.pincode = "Enter a valid 6-digit Pincode.";
+    if (!userDetails.pincode || userDetails.pincode.length !== 6) newErrors.pincode = "Enter 6-digit Pincode.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -171,274 +167,279 @@ const PlanDetails = () => {
   };
 
   return (
-    <main
-      className="relative min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50 pb-32 text-gray-900 overflow-x-hidden"
-      role="main"
-      aria-labelledby="page-title"
-    >
-      <style>{`
-        .focus-ring { outline: 2px solid #1A5EDB; outline-offset: 3px; }
-        .animate-fade { animation: fadeIn 0.6s ease forwards; opacity: 0; }
-        .animate-rise { animation: rise 0.7s ease forwards; opacity: 0; }
-        .card-glow { box-shadow: 0 20px 50px -25px rgba(26, 94, 219, 0.3); }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
-        @media (prefers-reduced-motion: reduce) {
-          .animate-fade, .animate-rise { animation: none !important; opacity: 1 !important; transform: none !important; }
-          * { scroll-behavior: auto; }
-        }
-        .custom-scroll::-webkit-scrollbar { width: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #1A5EDB; border-radius: 999px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #e5e7eb; }
-      `}</style>
-
-      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div className={`absolute -top-24 left-0 h-64 w-64 rounded-full bg-blue-100 blur-3xl opacity-50 ${prefersReducedMotion ? '' : 'animate-fade'}`}></div>
-        <div className={`absolute top-24 right-0 h-72 w-72 rounded-full bg-indigo-100 blur-3xl opacity-50 ${prefersReducedMotion ? '' : 'animate-fade'}`}></div>
-      </div>
-      
-      {/* 1. STEPPER */}
+    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
       <CheckoutStepper currentStep={1} />
 
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-6 relative z-10 custom-scroll">
+      <div className="relative bg-gradient-to-br from-indigo-700 via-blue-600 to-blue-800 text-white pt-12 pb-24 px-4 rounded-b-[4rem] shadow-2xl overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
+          <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full mix-blend-overlay blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-purple-400 rounded-full mix-blend-overlay blur-3xl"></div>
+        </div>
+
+        <div className="relative max-w-4xl mx-auto text-center space-y-4 animate-fade-in-up">
+          <div className="inline-flex items-center justify-center text-4xl p-4 bg-white/20 backdrop-blur-md rounded-full mb-4 ring-1 ring-white/30 shadow-lg">
+            🛡️
+          </div>
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Who would you like to insure?</h1>
+          <p className="text-blue-100 text-lg max-w-2xl mx-auto font-light">
+            Select family members and add their ages to get the best plan.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-10 space-y-8 animate-slide-up">
         
-        {/* HEADER */}
-        <section className={`bg-white/90 backdrop-blur rounded-3xl border border-blue-50 shadow-xl card-glow p-8 md:p-10 mb-6 mt-20 ${prefersReducedMotion ? '' : 'animate-rise'}`}>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <h1 id="page-title" className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight ">Who would you like to insure?</h1>
-              <p className="text-gray-600 mt-3 max-w-2xl">Select the family members you want to cover. Add their ages so we can tailor the plan options for you.</p>
-            </div>
-            <div className="flex items-center gap-3 bg-blue-50 text-[#1A5EDB] px-4 py-3 rounded-2xl font-semibold">
-              <span aria-hidden="true">🛡️</span>
-              <div className="text-sm leading-tight">
-                <div className="text-xs text-blue-700 uppercase font-bold tracking-wide">Progress</div>
-                <div>{Object.values(memberCounts).reduce((a, b) => a + b, 0)} member(s) selected</div>
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="p-1 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+          <div className="p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+              <span className="bg-blue-100 rounded-xl w-10 h-10 flex items-center justify-center text-xl shadow-sm">
+                👥
+              </span>
+              Select Members
+            </h2>
+            
+            {errors.members && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 animate-shake">
+                <span className="text-red-500 text-lg">⚠️</span>
+                <p className="text-sm text-red-700 font-medium">{errors.members}</p>
               </div>
-            </div>
-          </div>
-          {errors.members && (
-             <p className="mt-4 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" aria-live="polite">{errors.members}</p>
-          )}
-        </section>
+            )}
 
-        {/* 2. MEMBER SELECTION GRID */}
-        <section aria-labelledby="member-selection-heading" className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 id="member-selection-heading" className="text-xl font-bold text-slate-900">Select members to cover</h2>
-              <p className="text-sm text-gray-600">Tap or press Enter/Space to add or remove.</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {memberOptions.map((member) => {
-              const count = memberCounts[member.id];
-              const isSelected = count > 0;
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {memberOptions.map((member) => {
+                const count = memberCounts[member.id];
+                const isSelected = count > 0;
 
-              return (
-                <div
-                  key={member.id}
-                  role="button"
-                  tabIndex={0}
-                  aria-pressed={isSelected}
-                  aria-label={`${member.label}${isSelected ? ' selected' : ''}`}
-                  onClick={() => toggleMember(member.id, member.isMulti)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      toggleMember(member.id, member.isMulti);
-                    }
-                  }}
-                  className={`rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center gap-3 transition-all duration-300 border-2 shadow-sm relative overflow-hidden cursor-pointer
-                    ${isSelected
-                      ? 'border-[#1A5EDB] bg-blue-50/80 shadow-blue-100'
-                      : 'border-white bg-white hover:border-gray-200 hover:shadow-md'
-                    }
-                    ${prefersReducedMotion ? '' : 'animate-fade'}
-                    focus-visible:outline focus-visible:outline-4 focus-visible:outline-[#1A5EDB] focus-visible:outline-offset-2
-                  `}
-                >
-                  <div className={`text-4xl transition-transform duration-300 ${isSelected ? 'scale-110' : 'grayscale opacity-70'}`} aria-hidden="true">
-                    {member.icon}
-                  </div>
-                  
-                  <div className="flex flex-col items-center text-center">
-                    <span className={`font-bold text-sm ${isSelected ? 'text-[#1A5EDB]' : 'text-gray-700'}`}>
+                return (
+                  <div
+                    key={member.id}
+                    onClick={() => toggleMember(member.id, member.isMulti)}
+                    className={`relative rounded-2xl p-4 flex flex-col items-center justify-center gap-3 transition-all duration-200 border-2 cursor-pointer group ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-50/50 shadow-md'
+                        : 'border-gray-100 bg-white hover:border-blue-200 hover:shadow-sm'
+                    }`}
+                  >
+                    <div className={`text-4xl transition-transform duration-200 ${isSelected ? 'scale-110' : 'opacity-70 group-hover:opacity-100'}`}>
+                      {member.icon}
+                    </div>
+                    
+                    <span className={`font-bold text-sm ${isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
                       {member.label}
                     </span>
                     
                     {member.isMulti && isSelected ? (
-                        <div className="flex items-center gap-3 mt-2 bg-white rounded-full px-2 py-1 shadow-sm border border-blue-100" onClick={(e) => e.stopPropagation()} role="group" aria-label={`${member.label} count controls`}>
+                        <div className="flex items-center gap-2 mt-1 bg-white rounded-full px-1.5 py-1 shadow-sm border border-blue-100" onClick={(e) => e.stopPropagation()}>
                           <button 
                             type="button"
                             onClick={(e) => updateCount(e, member.id, false)}
-                            className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-100 text-[#1A5EDB] font-bold hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#1A5EDB] focus-visible:outline-offset-2"
-                            aria-label={`Decrease ${member.label} count`}
-                            aria-controls={`${member.id}-count`}
                             disabled={count <= 1}
-                          >−</button>
-                          <span id={`${member.id}-count`} className="text-xs font-bold text-slate-800 w-6 text-center" aria-live="polite" aria-atomic="true">{count}</span>
+                            className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 font-bold hover:bg-blue-100 disabled:opacity-30 disabled:hover:bg-blue-50 transition-colors"
+                          >
+                            −
+                          </button>
+                          <span className="text-xs font-bold text-gray-800 w-4 text-center">{count}</span>
                           <button 
                             type="button"
                             onClick={(e) => updateCount(e, member.id, true)}
-                            className="w-7 h-7 flex items-center justify-center rounded-full bg-[#1A5EDB] text-white font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
-                            aria-label={`Increase ${member.label} count`}
-                            aria-controls={`${member.id}-count`}
                             disabled={count >= 4}
-                          >+</button>
+                            className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                          >
+                            +
+                          </button>
                         </div>
                     ) : isSelected && (
-                      <div className="mt-2 w-6 h-6 bg-[#1A5EDB] rounded-full flex items-center justify-center" aria-hidden="true">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                      </div>
-                    )}
-                  </div>
-                  <span className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-[#1A5EDB] via-indigo-400 to-[#1A5EDB] opacity-0 transition-opacity duration-300" aria-hidden="true"></span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-        
-        {/* AGE INPUT SECTION - Only show if members are selected */}
-        {Object.values(memberCounts).reduce((a, b) => a + b, 0) > 0 && (
-          <section className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 mb-8" aria-labelledby="age-section-heading">
-            <h3 id="age-section-heading" className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-full bg-blue-100 text-[#1A5EDB] flex items-center justify-center text-sm">🎂</span>
-              Member Ages <span className="text-xs font-normal text-gray-500 ml-2">Enter age for each member</span>
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {memberOptions.map((member) => {
-                const count = memberCounts[member.id];
-                if (count === 0) return null;
-
-                return (
-                  <div key={member.id} className="space-y-3">
-                    <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                      <span aria-hidden="true">{member.icon}</span>
-                      <span>{member.label}</span>
-                      {count > 1 && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">×{count}</span>}
-                    </label>
-
-                    {member.isMulti ? (
-                      <div className="grid grid-cols-2 gap-2">
-                        {Array.from({ length: count }).map((_, index) => (
-                          <div key={index} className="space-y-1">
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              maxLength="3"
-                              value={memberAges[member.id]?.[index] || ''}
-                              onChange={(e) => handleAgeChange(member.id, e.target.value, index)}
-                              placeholder={`${member.label} ${index + 1}'s age`}
-                              aria-label={`${member.label} ${index + 1} age`}
-                              aria-invalid={Boolean(errors[`${member.id}_${index}_age`])}
-                              className={`w-full p-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white transition-all ${errors[`${member.id}_${index}_age`] ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#1A5EDB]'}`}
-                            />
-                            {errors[`${member.id}_${index}_age`] && (
-                              <p className="text-xs text-red-500 font-bold">{errors[`${member.id}_${index}_age`]}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          maxLength="3"
-                          value={memberAges[member.id] || ''}
-                          onChange={(e) => handleAgeChange(member.id, e.target.value)}
-                          placeholder={`${member.label}'s age (in years)`}
-                          aria-label={`${member.label} age`}
-                          aria-invalid={Boolean(errors[`${member.id}_age`])}
-                          className={`w-full p-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white transition-all ${errors[`${member.id}_age`] ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#1A5EDB]'}`}
-                        />
-                        {errors[`${member.id}_age`] && (
-                          <p className="text-xs text-red-500 font-bold">{errors[`${member.id}_age`]}</p>
-                        )}
+                      <div className="mt-1 text-blue-500 text-lg">
+                        ✅
                       </div>
                     )}
                   </div>
                 );
               })}
             </div>
-          </section>
-        )}
-        {/* 3. PERSONAL DETAILS FORM */}
-        <section className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 mb-24" aria-labelledby="proposer-details-heading">
-            <h3 id="proposer-details-heading" className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                <span className="w-8 h-8 rounded-full bg-blue-100 text-[#1A5EDB] flex items-center justify-center text-sm">📝</span>
-                Proposer Details <span className="text-xs font-normal text-gray-500 ml-2">All fields required</span>
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider" htmlFor="fullName">
-                        Full Name <span className="text-red-500" aria-hidden="true">*</span>
-                    </label>
-                    <input 
-                        id="fullName"
-                        type="text" 
-                        name="fullName"
-                        value={userDetails.fullName}
-                        onChange={handleInputChange}
-                        placeholder="Enter your full name"
-                        aria-required="true"
-                        aria-invalid={Boolean(errors.fullName)}
-                        className={`w-full p-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white transition-all ${errors.fullName ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#1A5EDB]'}`}
-                    />
-                    {errors.fullName && <p className="text-xs text-red-600 font-bold">{errors.fullName}</p>}
-                </div>
+          </div>
+        </div>
 
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-600 uppercase tracking-wider" htmlFor="pincode">
-                        Pincode <span className="text-red-500" aria-hidden="true">*</span>
-                    </label>
-                    <input 
-                        id="pincode"
-                        type="text" 
-                        name="pincode"
-                        maxLength="6"
-                        inputMode="numeric"
-                        value={userDetails.pincode}
-                        onChange={handleInputChange}
-                        placeholder="e.g. 560001"
-                        aria-required="true"
-                        aria-invalid={Boolean(errors.pincode)}
-                        className={`w-full p-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white transition-all ${errors.pincode ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#1A5EDB]'}`}
-                    />
-                    {errors.pincode && <p className="text-xs text-red-600 font-bold">{errors.pincode}</p>}
-                </div>
+        {Object.values(memberCounts).reduce((a, b) => a + b, 0) > 0 && (
+          <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 animate-fade-in-up">
+            <div className="p-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                <span className="bg-blue-100 rounded-xl w-10 h-10 flex items-center justify-center text-xl shadow-sm">
+                  🎂
+                </span>
+                Member Ages
+              </h2>
 
-            </div>
-        </section>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {memberOptions.map((member) => {
+                  const count = memberCounts[member.id];
+                  if (count === 0) return null;
 
-        {/* 4. BOTTOM ACTION BAR */}
-        <div className={`rounded-2xl border border-blue-100 bg-white shadow-lg flex flex-col md:flex-row items-center gap-4 px-4 md:px-6 py-4 ${prefersReducedMotion ? '' : 'animate-rise'}`}>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="w-10 h-10 rounded-full bg-blue-50 text-[#1A5EDB] flex items-center justify-center font-bold" aria-hidden="true">🛒</div>
-            <div className="text-sm leading-tight text-slate-700">
-              <div className="font-bold text-slate-900">{Object.values(memberCounts).reduce((a, b) => a + b, 0)} member(s) selected</div>
-              <div className="text-gray-500">Review and continue to plan options</div>
+                  return (
+                    <div key={member.id} className="bg-gray-50/50 p-4 rounded-2xl border border-gray-200">
+                      <label className="text-sm font-bold text-gray-700 flex items-center gap-2 mb-3">
+                        <span className="text-xl">{member.icon}</span>
+                        <span>{member.label}</span>
+                        {count > 1 && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">×{count}</span>}
+                      </label>
+
+                      {member.isMulti ? (
+                        <div className="grid grid-cols-2 gap-3">
+                          {Array.from({ length: count }).map((_, index) => (
+                            <div key={index}>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength="3"
+                                value={memberAges[member.id]?.[index] || ''}
+                                onChange={(e) => handleAgeChange(member.id, e.target.value, index)}
+                                placeholder={`Age ${index + 1}`}
+                                className={`w-full px-3 py-2 bg-white border rounded-xl font-medium text-center focus:outline-none focus:ring-2 transition-all ${errors[`${member.id}_${index}_age`] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-100'}`}
+                              />
+                              {errors[`${member.id}_${index}_age`] && (
+                                <p className="text-red-500 text-[10px] mt-1 font-bold text-center">{errors[`${member.id}_${index}_age`]}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength="3"
+                            value={memberAges[member.id] || ''}
+                            onChange={(e) => handleAgeChange(member.id, e.target.value)}
+                            placeholder="Age (Years)"
+                            className={`w-full px-4 py-2 bg-white border rounded-xl font-medium focus:outline-none focus:ring-2 transition-all ${errors[`${member.id}_age`] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-100'}`}
+                          />
+                          {errors[`${member.id}_age`] && (
+                            <p className="text-red-500 text-xs mt-1 font-bold ml-1">{errors[`${member.id}_age`]}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
-          <button
-            onClick={handleContinue}
-            className="w-full md:w-auto px-10 py-3 bg-gradient-to-r from-[#1A5EDB] to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 focus-visible:focus-ring flex items-center justify-center gap-2"
-            aria-label="View available plans"
-          >
-            View Plans
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-          </button>
+        )}
+
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+              <span className="bg-blue-100 rounded-xl w-10 h-10 flex items-center justify-center text-xl shadow-sm">
+                📝
+              </span>
+              Proposer Details
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider" htmlFor="fullName">
+                      Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                      id="fullName"
+                      type="text" 
+                      name="fullName"
+                      value={userDetails.fullName}
+                      onChange={handleInputChange}
+                      placeholder="Enter full name"
+                      className={`w-full px-4 py-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white focus:ring-2 transition-all ${errors.fullName ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-100'}`}
+                  />
+                  {errors.fullName && <p className="text-xs text-red-500 font-bold">{errors.fullName}</p>}
+              </div>
+
+              <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider" htmlFor="pincode">
+                      Pincode <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                      id="pincode"
+                      type="text" 
+                      name="pincode"
+                      maxLength="6"
+                      inputMode="numeric"
+                      value={userDetails.pincode}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 560001"
+                      className={`w-full px-4 py-3 bg-gray-50 border rounded-xl font-medium text-slate-800 focus:outline-none focus:bg-white focus:ring-2 transition-all ${errors.pincode ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-100'}`}
+                  />
+                  {errors.pincode && <p className="text-xs text-red-500 font-bold">{errors.pincode}</p>}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="pb-8">
+            <div className={`rounded-2xl border border-blue-100 bg-white shadow-lg p-4 flex flex-col md:flex-row items-center justify-between gap-4 ${prefersReducedMotion ? '' : 'animate-rise'}`}>
+              <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="w-12 h-12 rounded-full bg-blue-50 text-2xl flex items-center justify-center">
+                  🛒
+                </div>
+                <div>
+                  <div className="font-bold text-gray-900 text-lg">{Object.values(memberCounts).reduce((a, b) => a + b, 0)} member(s) selected</div>
+                  <div className="text-sm text-gray-500">Ready to view plans</div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleContinue}
+                className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group relative overflow-hidden"
+              >
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
+                <span>View Plans</span>
+                <span className="text-xl group-hover:translate-x-1 transition-transform">→</span>
+              </button>
+            </div>
         </div>
 
       </div>
-    </main>
+
+      <style>{`
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 1.5s infinite;
+        }
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out forwards;
+        }
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.6s ease-out 0.2s forwards;
+          opacity: 0;
+        }
+        @keyframes rise {
+           from { opacity: 0; transform: translateY(20px); }
+           to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-rise {
+           animation: rise 0.7s ease forwards;
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+          20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+        .animate-shake {
+          animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+      `}</style>
+    </div>
   );
 };
 
