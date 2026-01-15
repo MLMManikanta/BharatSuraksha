@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 /**
@@ -195,23 +195,14 @@ const getCoverageKey = (sumInsured) => {
 const PaymentSummary = ({ data }) => {
   const navigate = useNavigate();
   
-  // State for optional discounts and enhancements
-  const [optionalEnhancements, setOptionalEnhancements] = useState({
-    coPayment: false,
-    roomRentRestriction: false,
-    extendedWaitPeriod: false
-  });
-
-  // Toggle enhancement option
-  const toggleEnhancement = (key) => {
-    setOptionalEnhancements(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
-  
   // Calculate total premium based on member ages and riders
   const premiumCalculation = useMemo(() => {
+    const optionalEnhancements = data?.optionalEnhancements || {
+      coPayment: false,
+      roomRentRestriction: false,
+      extendedWaitPeriod: false
+    };
+
     // Return empty object if data is missing
     if (!data) {
       return {
@@ -426,6 +417,8 @@ const PaymentSummary = ({ data }) => {
     const gstRate = 0; // Health insurance is GST exempt (0%)
     const gstAmount = 0;
     const totalPremium = subtotal + gstAmount;
+    const tenureYears = Number(data.tenure || 1);
+    const payableAmount = Math.max(0, Math.round(totalPremium * tenureYears));
 
     return {
       rawBasePremium: Math.round(rawBasePremium),
@@ -446,14 +439,13 @@ const PaymentSummary = ({ data }) => {
       gstRate,
       gstAmount,
       totalPremium,
+      tenureYears,
+      payableAmount,
       explanations
     };
-  }, [data, optionalEnhancements]);
+  }, [data]);
 
-  const { basePremium, ageLoadingAmount, ageLoadingPercentage, planMultiplier,
-          memberBreakdown, featureCost, featureBreakdown, chronicCareCost, 
-          selectedChronic, totalDiscounts, discountBreakdown, riderCost, 
-          riderBreakdown, subtotal, gstRate, gstAmount, totalPremium, explanations } = premiumCalculation;
+  const { tenureYears, payableAmount, totalPremium } = premiumCalculation;
 
   // Safeguard if data is not yet loaded
   if (!data) return null;
@@ -487,226 +479,15 @@ const PaymentSummary = ({ data }) => {
         )}
       </div>
 
-      {/* Why Premium Changed - Real-time Explanations */}
-      {explanations.length > 0 && (
-        <div className="pb-4 border-b border-slate-700">
-          <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <span>💡</span> Why Your Premium Changed
-          </h3>
-          <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
-            {explanations.map((explanation, index) => (
-              <div key={index} className="flex items-start gap-2 text-[11px] text-slate-300 bg-slate-800/40 p-2 rounded-lg">
-                <span className="text-amber-400 font-bold">•</span>
-                <span className="leading-relaxed">{explanation}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Base Premium Breakdown */}
-      <div className="pb-4 border-b border-slate-700">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Base Premium</h3>
-          <span className="text-lg font-black text-white">₹{basePremium.toLocaleString('en-IN')}</span>
-        </div>
-        {memberBreakdown.length > 0 && (
-          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-            {memberBreakdown.map((item, index) => (
-              <div key={index} className="flex justify-between text-xs items-center bg-slate-800/50 p-2.5 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-200 font-medium">{item.member}</span>
-                  <span className="text-[10px] text-slate-500 bg-slate-700/50 px-1.5 py-0.5 rounded">{item.age} yrs</span>
-                </div>
-                <span className="font-bold text-blue-300">₹{item.premium.toLocaleString('en-IN')}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        {planMultiplier !== 1.0 && (
-          <p className="text-[10px] text-slate-500 mt-2 italic">
-            * Includes {((planMultiplier - 1.0) * 100).toFixed(0)}% {data.selectedPlan?.name || 'plan'} loading
-          </p>
-        )}
-      </div>
-
-      {/* Age-Based Loading */}
-      {ageLoadingAmount > 0 && (
-        <div className="pb-4 border-b border-slate-700">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Age-Based Increase</h3>
-            <span className="text-lg font-black text-cyan-400">+₹{ageLoadingAmount.toLocaleString('en-IN')}</span>
-          </div>
-          <div className="bg-cyan-900/20 p-2.5 rounded-lg border border-cyan-800/30">
-            <div className="flex justify-between text-xs items-center">
-              <span className="text-cyan-200 font-medium">Average Loading</span>
-              <span className="font-bold text-cyan-300">+{ageLoadingPercentage}%</span>
-            </div>
-            <p className="text-[10px] text-cyan-400/70 mt-1">
-              Premium increase based on member ages (ref: 18-25 years = 0%)
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Component-wise Features */}
-      {featureBreakdown.length > 0 && (
-        <div className="pb-4 border-b border-slate-700">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Coverage Features</h3>
-            <span className="text-lg font-black text-indigo-400">+₹{featureCost.toLocaleString('en-IN')}</span>
-          </div>
-          <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-            {featureBreakdown.map((feature, index) => (
-              <div key={index} className="flex justify-between text-xs items-center bg-indigo-900/20 p-2.5 rounded-lg border border-indigo-800/30">
-                <span className="text-indigo-200 font-medium">{feature.name}</span>
-                <span className="font-bold text-indigo-300">+₹{feature.cost.toLocaleString('en-IN')}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Chronic Care */}
-      {chronicCareCost > 0 && (
-        <div className="pb-4 border-b border-slate-700">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-xs font-bold text-orange-400 uppercase tracking-wider">Chronic Care (Day 31+)</h3>
-            <span className="text-lg font-black text-orange-400">+₹{chronicCareCost.toLocaleString('en-IN')}</span>
-          </div>
-          <div className="bg-orange-900/20 p-2.5 rounded-lg border border-orange-800/30">
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {selectedChronic.map((cond, idx) => (
-                <span key={idx} className="text-[9px] font-bold bg-orange-700/40 text-orange-200 px-2 py-0.5 rounded-full">
-                  {cond}
-                </span>
-              ))}
-            </div>
-            <p className="text-[10px] text-orange-400/70">
-              {selectedChronic.length} condition{selectedChronic.length > 1 ? 's' : ''} × ₹{CHRONIC_CARE_COST_PER_CONDITION.toLocaleString('en-IN')}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Discounts Section */}
-      {totalDiscounts > 0 && (
-        <div className="pb-4 border-b border-slate-700">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-xs font-bold text-green-400 uppercase tracking-wider">Discounts Applied</h3>
-            <span className="text-lg font-black text-green-400">-₹{totalDiscounts.toLocaleString('en-IN')}</span>
-          </div>
-          <div className="space-y-2">
-            {discountBreakdown.map((discount, index) => (
-              <div key={index} className="flex justify-between text-xs items-center bg-green-900/20 p-2.5 rounded-lg border border-green-800/30">
-                <span className="text-green-200 font-medium">{discount.name}</span>
-                <span className="font-bold text-green-300">-₹{discount.amount.toLocaleString('en-IN')}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Rider Costs */}
-      {riderBreakdown.length > 0 && (
-        <div className="pb-4 border-b border-slate-700">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-xs font-bold text-teal-400 uppercase tracking-wider">Premium Riders</h3>
-            <span className="text-lg font-black text-teal-400">+₹{riderCost.toLocaleString('en-IN')}</span>
-          </div>
-          <div className="space-y-2">
-            {riderBreakdown.map((rider, index) => (
-              <div key={index} className="flex justify-between text-xs items-center bg-teal-900/20 p-2.5 rounded-lg border border-teal-800/30">
-                <span className="text-teal-200 font-medium">{rider.name}</span>
-                <span className="font-bold text-teal-300">+₹{rider.cost.toLocaleString('en-IN')}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Pricing Summary Flow */}
-      <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-xl p-4 space-y-2 border border-slate-700/50">
-        <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">📊 Premium Calculation</h3>
-        
-        <div className="flex justify-between text-xs">
-          <span className="text-slate-400">Base Premium</span>
-          <span className="text-white font-bold">₹{basePremium.toLocaleString('en-IN')}</span>
-        </div>
-        
-        {ageLoadingAmount > 0 && (
-          <div className="flex justify-between text-xs">
-            <span className="text-cyan-400">Age Loading (+{ageLoadingPercentage}%)</span>
-            <span className="text-cyan-400 font-bold">+₹{ageLoadingAmount.toLocaleString('en-IN')}</span>
-          </div>
-        )}
-        
-        {featureCost > 0 && (
-          <div className="flex justify-between text-xs">
-            <span className="text-indigo-400">Coverage Features</span>
-            <span className="text-indigo-400 font-bold">+₹{featureCost.toLocaleString('en-IN')}</span>
-          </div>
-        )}
-        
-        {chronicCareCost > 0 && (
-          <div className="flex justify-between text-xs">
-            <span className="text-orange-400">Chronic Care</span>
-            <span className="text-orange-400 font-bold">+₹{chronicCareCost.toLocaleString('en-IN')}</span>
-          </div>
-        )}
-        
-        {totalDiscounts > 0 && (
-          <div className="flex justify-between text-xs">
-            <span className="text-green-400">Discounts</span>
-            <span className="text-green-400 font-bold">-₹{totalDiscounts.toLocaleString('en-IN')}</span>
-          </div>
-        )}
-        
-        {riderCost > 0 && (
-          <div className="flex justify-between text-xs">
-            <span className="text-teal-400">Premium Riders</span>
-            <span className="text-teal-400 font-bold">+₹{riderCost.toLocaleString('en-IN')}</span>
-          </div>
-        )}
-        
-        <div className="pt-2 mt-2 border-t border-slate-700">
-          <div className="flex justify-between text-sm font-bold">
-            <span className="text-slate-300">Subtotal (Before GST)</span>
-            <span className="text-white">₹{subtotal.toLocaleString('en-IN')}</span>
-          </div>
-        </div>
-        
-        <div className="flex justify-between text-xs">
-          <span className="text-slate-400">GST (0% - Exempt)</span>
-          <span className="text-slate-400">₹{gstAmount}</span>
-        </div>
-      </div>
-
-      {/* Total Premium */}
-      <div className="text-center pt-2 pb-4">
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Final Estimated Payable Amount</p>
+      {/* Consolidated Payable Amount */}
+      <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl p-6 border border-slate-700/50 text-center">
+        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Payable</p>
         <h3 className="text-5xl font-black italic tracking-tighter bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent mb-2">
-          ₹{totalPremium.toLocaleString('en-IN')}
+          ₹{payableAmount.toLocaleString('en-IN')}
         </h3>
-        <p className="text-[11px] text-slate-500 italic">
-          Annual Premium • {memberBreakdown.length || 'Selected'} member{(memberBreakdown.length > 1) ? 's' : ''}
+        <p className="text-xs text-slate-400">
+          {tenureYears} Year{tenureYears > 1 ? 's' : ''} • ₹{totalPremium.toLocaleString('en-IN')} per year
         </p>
-        
-        {/* Mandatory Disclaimer */}
-        <div className="mt-4 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-          <p className="text-[11px] text-amber-200 leading-relaxed font-medium">
-            ⚠️ <strong>Important Disclaimer:</strong> All premiums shown are estimated and indicative. 
-            Final premium may increase or decrease based on underwriting, age verification, coverage 
-            selection, medical history evaluation, and policy terms & conditions.
-          </p>
-        </div>
-        
-        <div className="mt-3 bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-          <p className="text-[10px] text-blue-200 leading-relaxed">
-            💡 <strong>Dynamic Pricing:</strong> Premium updates instantly when you modify age, plan, 
-            coverage, riders, or discount options.
-          </p>
-        </div>
       </div>
 
       {/* Action Button */}

@@ -1,10 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 const CheckoutStepper = ({ currentStep }) => {
+  const location = useLocation();
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const containerRef = useRef(null);
   const activeStepRef = useRef(null);
+
+  const isPlanDetailsPage = location.pathname === '/plans';
+  const topOffsetClass = isPlanDetailsPage ? 'top-[5.5rem]' : 'top-[6rem]';
 
   const steps = [
     { id: 1, label: 'Members', path: '/plans', ariaLabel: 'Step 1: Select Members' },
@@ -41,7 +45,7 @@ const CheckoutStepper = ({ currentStep }) => {
 
   return (
     <nav 
-      className="w-full bg-white border-b-2 border-gray-100 sticky top-[5.5rem] z-40 shadow-md mb-6"
+      className={`w-full bg-white border-b border-gray-200 fixed left-0 ${topOffsetClass} z-40 shadow-sm`}
       aria-label="Checkout progress"
       role="navigation"
     >
@@ -108,19 +112,7 @@ const CheckoutStepper = ({ currentStep }) => {
         }
       `}</style>
 
-      <div className="max-w-7xl mx-auto px-4 py-5">
-        {/* Progress Bar - Visual Indicator */}
-        <div className="mb-4 hidden md:block" role="presentation" aria-hidden="true">
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div 
-              className={`h-full bg-gradient-to-r from-[#1A5EDB] to-[#4A8EFF] rounded-full ${
-                prefersReducedMotion ? "" : "transition-all duration-700 ease-out"
-              }`}
-              style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
-            />
-          </div>
-        </div>
-
+      <div className="max-w-7xl mx-auto px-4 py-3">
         <div 
           ref={containerRef}
           className="flex items-center justify-start md:justify-center overflow-x-auto no-scrollbar gap-2 md:gap-4 w-full pb-2"

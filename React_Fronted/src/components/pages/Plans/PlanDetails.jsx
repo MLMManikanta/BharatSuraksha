@@ -203,13 +203,13 @@ const PlanDetails = () => {
       {/* 1. STEPPER */}
       <CheckoutStepper currentStep={1} />
 
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-10 relative z-10 custom-scroll">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-6 relative z-10 custom-scroll">
         
         {/* HEADER */}
-        <section className={`bg-white/90 backdrop-blur rounded-3xl border border-blue-50 shadow-xl card-glow p-8 md:p-10 mb-10 ${prefersReducedMotion ? '' : 'animate-rise'}`}>
+        <section className={`bg-white/90 backdrop-blur rounded-3xl border border-blue-50 shadow-xl card-glow p-8 md:p-10 mb-6 mt-20 ${prefersReducedMotion ? '' : 'animate-rise'}`}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-              <h1 id="page-title" className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Who would you like to insure?</h1>
+              <h1 id="page-title" className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight ">Who would you like to insure?</h1>
               <p className="text-gray-600 mt-3 max-w-2xl">Select the family members you want to cover. Add their ages so we can tailor the plan options for you.</p>
             </div>
             <div className="flex items-center gap-3 bg-blue-50 text-[#1A5EDB] px-4 py-3 rounded-2xl font-semibold">
@@ -226,7 +226,7 @@ const PlanDetails = () => {
         </section>
 
         {/* 2. MEMBER SELECTION GRID */}
-        <section aria-labelledby="member-selection-heading" className="mb-12">
+        <section aria-labelledby="member-selection-heading" className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 id="member-selection-heading" className="text-xl font-bold text-slate-900">Select members to cover</h2>
