@@ -7,18 +7,18 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
   const features = [
     { title: "Any Room Category", icon: "🛏️" },
     { title: "Maternity Coverage (Up to ₹2L)", icon: "🤰" },
-    { title: "Newborn Baby Cover Expenses", icon: "👶" },
+    { title: "Newborn Baby Cover", icon: "👶" },
     { title: "100% Restoration of Cover", icon: "🔄" },
     { title: "Free Annual Health Checkup", icon: "🩺" },
-    { title: "Sum Insured: ₹10L to 1Cr", icon: "💰" },
+    { title: "Sum Insured: ₹10L - 1Cr", icon: "💰" },
     { title: "100% Claim Coverage", icon: "💯" },
     { title: "Day Care Procedures", icon: "💊" },
     { title: "Pre & Post Hospitalization", icon: "📄" },
-    { title: "No Claim Bonus (50% per year)", icon: "📈" },
-    { title: "Ayush Treatment (Ayurveda/Homeo)", icon: "🌿" },
+    { title: "No Claim Bonus (50%)", icon: "📈" },
+    { title: "Ayush Treatment", icon: "🌿" },
     { title: "Ambulance Charges", icon: "🚑" },
     { title: "Discount on Renewal", icon: "🏷️" },
-    { title: "Non-Deductible Items Covered", icon: "🧾" },
+    { title: "Non-Deductible Items", icon: "🧾" },
   ];
 
   const exclusions = [
@@ -27,7 +27,7 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
     { title: "Self-Inflicted Injuries", icon: "🤕" },
     { title: "Hazardous Adventure Sports", icon: "🪂" },
     { title: "War & Nuclear Perils", icon: "⚔️" },
-    { title: "Unproven / Experimental Treatment", icon: "🧪" },
+    { title: "Unproven Treatments", icon: "🧪" },
   ];
 
   const handleSelect = () => {
@@ -37,107 +37,143 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 overflow-x-hidden w-full">
+    <div className="w-full font-sans animate-fade-in-up">
       
-      <div className="bg-purple-50 border border-purple-100 rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl p-1 shadow-xl mb-8 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-500 opacity-10 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
         
-        <div className="absolute top-0 right-0 bg-purple-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl shadow-sm">
-            BEST SELLER
-        </div>
-
-        <div className="flex items-start gap-5">
-          <div className="text-5xl">👨‍👩‍👧</div>
-          <div>
-            <h2 className="text-2xl font-bold text-purple-700">Parivar Suraksha</h2>
-            <p className="text-gray-600 mt-1 max-w-xl text-sm">
-              Complete protection for your loved ones. Now includes coverage for any room category, newborn expenses, and non-deductibles.
-            </p>
+        <div className="bg-white/95 backdrop-blur-sm rounded-[1.3rem] p-6 md:p-8 relative z-10">
+          
+          <div className="absolute top-0 right-0">
+            <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl shadow-md tracking-wider uppercase">
+              🏆 Best Seller
+            </div>
           </div>
-        </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 items-center w-full md:w-auto mt-6 md:mt-0">
-            <select
-                value={selectedSumInsured}
-                onChange={(e) => setSelectedSumInsured(e.target.value)}
-                className="p-2 border border-purple-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white font-medium"
-            >
-                <option value="10L">₹10 Lakhs</option>
-                <option value="15L">₹15 Lakhs</option>
-                <option value="25L">₹25 Lakhs</option>
-                <option value="50L">₹50 Lakhs</option>
-                <option value="1Cr">₹1 Crore</option>
-            </select>
-            <button
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center text-4xl shadow-sm border border-purple-100">
+                👨‍👩‍👧
+              </div>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-black text-gray-800 tracking-tight">Parivar Suraksha</h2>
+                <p className="text-purple-700 font-medium mt-1">Complete protection for your loved ones.</p>
+                <p className="text-gray-500 text-sm mt-1 max-w-md">Includes maternity, newborn cover, and any room category.</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto bg-gray-50 p-2 rounded-2xl border border-gray-100 mt-4 md:mt-0">
+               <div className="relative">
+                 <select
+                    value={selectedSumInsured}
+                    onChange={(e) => setSelectedSumInsured(e.target.value)}
+                    className="w-full sm:w-auto pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer shadow-sm hover:border-purple-300 transition-colors"
+                 >
+                    <option value="10L">₹10 Lakhs</option>
+                    <option value="15L">₹15 Lakhs</option>
+                    <option value="25L">₹25 Lakhs</option>
+                    <option value="50L">₹50 Lakhs</option>
+                    <option value="1Cr">₹1 Crore</option>
+                 </select>
+                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                 </div>
+               </div>
+               
+               <button
                 onClick={handleSelect}
-                className="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-purple-700 transition-colors duration-300 w-full sm:w-auto shadow-md shadow-purple-200 focus-visible:outline focus-visible:outline-4 focus-visible:outline-purple-500 focus-visible:outline-offset-2"
-                aria-label={`Select Parivar Suraksha plan with ${selectedSumInsured} coverage`}
-            >
-                Select Plan
-            </button>
+                className="relative overflow-hidden bg-purple-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all group w-full sm:w-auto"
+               >
+                 <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
+                 <span>Select Plan</span>
+               </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="flex justify-center">
-        <div className="bg-gray-100 p-1.5 rounded-xl inline-flex relative" role="group" aria-label="Coverage filter">
-          <div 
-            className={`absolute top-1.5 bottom-1.5 rounded-lg bg-white shadow-sm transition-all duration-300 ease-in-out ${
-              view === 'covered' ? 'left-1.5 w-[48%]' : 'left-[50%] w-[48%]'
+      <div className="flex justify-center mb-10">
+        <div className="bg-white p-1.5 rounded-2xl shadow-md border border-gray-100 inline-flex relative w-full sm:w-auto">
+          <div
+            className={`absolute top-1.5 bottom-1.5 rounded-xl bg-purple-50 border border-purple-100 shadow-sm transition-all duration-300 ease-out ${
+              view === 'covered' ? 'left-1.5 right-[50%]' : 'left-[50%] right-1.5'
             }`}
           ></div>
-          
+
           <button
             onClick={() => setView('covered')}
-            aria-pressed={view === 'covered'}
-            className={`relative z-10 px-8 py-2.5 rounded-lg text-sm font-bold transition-colors duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-purple-600 focus-visible:outline-offset-2 ${
-              view === 'covered' ? 'text-purple-700' : 'text-gray-500 hover:text-gray-700'
+            className={`relative z-10 flex-1 sm:flex-none px-8 py-3 rounded-xl text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${
+              view === 'covered' ? 'text-purple-700' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
-            ✅ What is Covered
+            <span>✅</span> Covered
           </button>
           <button
             onClick={() => setView('not-covered')}
-            aria-pressed={view === 'not-covered'}
-            className={`relative z-10 px-8 py-2.5 rounded-lg text-sm font-bold transition-colors duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 focus-visible:outline-offset-2 ${
-              view === 'not-covered' ? 'text-red-500' : 'text-gray-500 hover:text-gray-700'
+            className={`relative z-10 flex-1 sm:flex-none px-8 py-3 rounded-xl text-sm font-bold transition-colors duration-300 flex items-center justify-center gap-2 ${
+              view === 'not-covered' ? 'text-red-600' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
-            ❌ Not Covered
+            <span>❌</span> Exclusions
           </button>
         </div>
       </div>
 
-      <div className="min-h-[300px]">
+      <div className="min-h-[400px] pb-12">
         {view === 'covered' ? (
-          <div className="flex flex-wrap justify-center gap-4 animate-in fade-in zoom-in-95 duration-300">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-slide-up">
             {features.map((item, idx) => (
-              <div 
-                key={idx} 
-                className="flex-shrink-0 w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.67rem)] lg:w-[calc(25%-0.75rem)] flex flex-col items-center text-center p-4 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-purple-200 transition-all duration-300 group"
+              <div
+                key={idx}
+                className="group bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:border-purple-200 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center h-full"
               >
-                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform cursor-default">
+                <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
                   {item.icon}
                 </div>
-                <p className="text-sm font-bold text-gray-700 leading-tight">{item.title}</p>
+                <p className="text-sm font-bold text-gray-700 leading-snug group-hover:text-purple-700 transition-colors">{item.title}</p>
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex flex-wrap justify-center gap-4 animate-in fade-in zoom-in-95 duration-300">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-slide-up">
             {exclusions.map((item, idx) => (
-              <div 
-                key={idx} 
-                className="w-[45%] md:w-[30%] lg:w-[22%] flex flex-col items-center text-center p-4 bg-red-50/50 border border-red-100 rounded-2xl"
+              <div
+                key={idx}
+                className="group bg-red-50/30 p-5 rounded-2xl border border-red-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center h-full opacity-80 hover:opacity-100"
               >
-                <div className="text-4xl mb-3 grayscale group-hover:grayscale-0 transition-all cursor-not-allowed">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl mb-4 grayscale group-hover:grayscale-0 transition-all border border-red-50">
                   {item.icon}
                 </div>
-                <p className="text-sm font-semibold text-gray-700 leading-tight">{item.title}</p>
+                <p className="text-sm font-bold text-gray-700 leading-snug">{item.title}</p>
               </div>
             ))}
           </div>
         )}
       </div>
 
+      <style>{`
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 1.5s infinite;
+        }
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out forwards;
+        }
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.5s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };
