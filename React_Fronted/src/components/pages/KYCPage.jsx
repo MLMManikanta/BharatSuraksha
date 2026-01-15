@@ -34,6 +34,7 @@ const KYCPage = () => {
 
   const [formErrors, setFormErrors] = useState({});
 
+  // Initialize Members based on Plan Selection
   useEffect(() => {
     if (planData.counts) {
       const newMembers = [];
@@ -80,25 +81,15 @@ const KYCPage = () => {
 
     if (years < 1) {
       let totalMonths = (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth());
-      if (dayDiff < 0) {
-        totalMonths--;
-      }
+      if (dayDiff < 0) totalMonths--;
       const finalMonths = totalMonths < 0 ? 0 : totalMonths;
-      
-      return { 
-        display: finalMonths, 
-        unit: 'months', 
-        yearsRaw: 0 
-      };
+      return { display: finalMonths, unit: 'months', yearsRaw: 0 };
     }
 
-    return { 
-      display: years, 
-      unit: 'years', 
-      yearsRaw: years 
-    };
+    return { display: years, unit: 'years', yearsRaw: years };
   };
 
+  // Logic to detect if DOB entered differs from Age selected in step 1
   const validateAgeChanges = useMemo(() => {
     const messages = [];
     let hasMismatch = false;
@@ -110,8 +101,9 @@ const KYCPage = () => {
         if (currentAgeInYears !== null && member.originalAge !== null) {
              if (currentAgeInYears != member.originalAge) {
                 hasMismatch = true;
+                const memberName = member.name || (member.memberId === 'self' ? 'Proposer' : 'Member');
                 messages.push(
-                    `${member.name || 'Member'}: Age mismatch detected. Original: ${member.originalAge} years, Calculated: ${currentAgeInYears} years. Premium has been recalculated.`
+                    `${memberName}: Age mismatch. Selected: ${member.originalAge} yrs, Actual: ${currentAgeInYears} yrs. Premium updated.`
                 );
              }
         }
@@ -130,10 +122,7 @@ const KYCPage = () => {
         panCard: value ? '' : prev.panCard
       }));
     } else {
-      setProposerData(prev => ({
-        ...prev,
-        [field]: value
-      }));
+      setProposerData(prev => ({ ...prev, [field]: value }));
     }
   };
 
@@ -150,10 +139,7 @@ const KYCPage = () => {
           ageInYears: ageDetails ? ageDetails.yearsRaw : null
         };
       } else {
-        updated[index] = {
-          ...updated[index],
-          [field]: value
-        };
+        updated[index] = { ...updated[index], [field]: value };
       }
       return updated;
     });
@@ -175,23 +161,23 @@ const KYCPage = () => {
     if (!proposerData.gender) errors.gender = 'Gender is required';
     if (!proposerData.maritalStatus) errors.maritalStatus = 'Marital status is required';
     if (!proposerData.occupation) errors.occupation = 'Occupation is required';
-    if (!proposerData.noPAN && !proposerData.panCard) errors.panCard = 'PAN card or no-PAN confirmation required';
+    if (!proposerData.noPAN && !proposerData.panCard) errors.panCard = 'PAN or declaration required';
 
     membersData.forEach((member, idx) => {
-      if (!member.name.trim()) errors[`member_${idx}_name`] = 'Member name is required';
-      if (!member.dateOfBirth) errors[`member_${idx}_dob`] = 'Date of birth is required';
-      if (member.memberId !== 'self' && !member.relationship) errors[`member_${idx}_rel`] = 'Relationship is required';
+      if (!member.name.trim()) errors[`member_${idx}_name`] = 'Name required';
+      if (!member.dateOfBirth) errors[`member_${idx}_dob`] = 'DOB required';
+      if (member.memberId !== 'self' && !member.relationship) errors[`member_${idx}_rel`] = 'Relationship required';
     });
 
-    if (!addressData.house.trim()) errors.house = 'House/Flat number is required';
-    if (!addressData.street.trim()) errors.street = 'Street/Area is required';
-    if (!addressData.city.trim()) errors.city = 'City is required';
-    if (!addressData.state) errors.state = 'State is required';
-    if (!addressData.pincode.trim()) errors.pincode = 'Pincode is required';
+    if (!addressData.house.trim()) errors.house = 'House No. required';
+    if (!addressData.street.trim()) errors.street = 'Street required';
+    if (!addressData.city.trim()) errors.city = 'City required';
+    if (!addressData.state) errors.state = 'State required';
+    if (!addressData.pincode.trim()) errors.pincode = 'Pincode required';
 
-    if (!contactData.email.trim()) errors.email = 'Email address is required';
-    if (!contactData.mobileNumber.trim()) errors.mobile = 'Mobile number is required';
-    if (!contactData.emergencyContact.trim()) errors.emergency = 'Emergency contact is required';
+    if (!contactData.email.trim()) errors.email = 'Email required';
+    if (!contactData.mobileNumber.trim() || contactData.mobileNumber.length < 10) errors.mobile = 'Valid mobile required';
+    if (!contactData.emergencyContact.trim()) errors.emergency = 'Emergency contact required';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -224,197 +210,129 @@ const KYCPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 mt-8">
+    <div className="min-h-screen bg-slate-50 pb-20 font-sans">
       <CheckoutStepper currentStep={4} />
 
-      <div className="bg-linear-to-r from-blue-600 to-blue-700 text-white pt-10 pb-4 px-4 rounded-b-[3rem] shadow-xl relative mb-4">
-        <div className="max-w-5xl mx-auto text-center space-y-4">
-          <h1 className="text-3xl md:text-4xl font-bold italic tracking-tight">
-            Know Your Customer (KYC)
-          </h1>
-          <p className="text-blue-100 text-lg max-w-2xl mx-auto">
-            Complete your profile with accurate information to finalize your health insurance policy.
+      {/* Header */}
+      <div className="relative bg-gradient-to-br from-blue-700 via-indigo-600 to-blue-800 text-white pt-12 pb-24 px-4 rounded-b-[4rem] shadow-2xl overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
+          <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full mix-blend-overlay blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-purple-400 rounded-full mix-blend-overlay blur-3xl"></div>
+        </div>
+
+        <div className="relative max-w-4xl mx-auto text-center space-y-4 animate-fade-in-up">
+          <div className="inline-flex items-center justify-center text-4xl p-4 bg-white/20 backdrop-blur-md rounded-full mb-4 ring-1 ring-white/30 shadow-lg">
+            🆔
+          </div>
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Know Your Customer</h1>
+          <p className="text-blue-100 text-lg max-w-2xl mx-auto font-light">
+            Complete your profile to finalize your policy issuance.
           </p>
         </div>
       </div>
 
-      {validateAgeChanges.hasMismatch && planData.totalPremium && (
-        <div className="max-w-5xl mx-auto px-4 -mt-16 relative z-10 mb-6">
-          <div className="bg-linear-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 p-5 rounded-lg shadow-md">
-            <h3 className="font-bold text-green-900 flex items-center gap-2 mb-3">
-              <span>✓</span> Premium Recalculated
-            </h3>
-            <div className="space-y-2 mb-3">
-              {validateAgeChanges.messages.map((msg, idx) => (
-                <p key={idx} className="text-sm text-green-800">
-                  • {msg}
-                </p>
-              ))}
-            </div>
-            <div className="bg-white/60 p-4 rounded-lg border border-green-200">
-              <p className="text-xs text-green-700 font-semibold mb-2">Updated Premium Amount</p>
-              <p className="text-2xl font-black text-green-700 italic">
-                ₹{planData.totalPremium?.toLocaleString('en-IN') || 'N/A'}
-              </p>
+      <div className="max-w-5xl mx-auto px-4 -mt-16 relative z-10 space-y-8 animate-slide-up">
+
+        {/* Age Mismatch Alert */}
+        {validateAgeChanges.hasMismatch && (
+          <div className="bg-white rounded-2xl shadow-xl border-l-4 border-amber-500 overflow-hidden animate-shake">
+            <div className="p-5">
+              <div className="flex items-start gap-4">
+                <div className="bg-amber-100 p-2 rounded-full text-xl">⚠️</div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-amber-800 text-sm uppercase tracking-wide mb-2">Age Adjustment Detected</h3>
+                  <div className="space-y-1">
+                    {validateAgeChanges.messages.map((msg, idx) => (
+                      <p key={idx} className="text-xs text-slate-600 font-medium bg-amber-50 p-2 rounded border border-amber-100">
+                        {msg}
+                      </p>
+                    ))}
+                  </div>
+                  {planData.totalPremium && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="text-xs text-slate-500 font-bold uppercase">New Premium:</span>
+                      <span className="text-lg font-black text-blue-600">₹{planData.totalPremium.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="max-w-5xl mx-auto px-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-            <span className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">1</span>
+        {/* 1. Proposer Details */}
+        <div className="bg-white rounded-3xl shadow-lg border border-slate-100 p-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+            <span className="bg-blue-100 text-blue-700 rounded-xl w-10 h-10 flex items-center justify-center text-lg">👤</span>
             Proposer Details
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Full Name <span className="text-red-600">*</span></label>
-              <input
-                type="text"
-                value={proposerData.fullName}
-                onChange={(e) => handleProposerChange('fullName', e.target.value)}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors.proposerName ? 'border-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
-              />
-              {formErrors.proposerName && <p className="text-red-600 text-xs mt-1">{formErrors.proposerName}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Date of Birth <span className="text-red-600">*</span></label>
-              <input
-                type="date"
-                value={proposerData.dateOfBirth}
-                onChange={(e) => handleProposerChange('dateOfBirth', e.target.value)}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors.proposerDOB ? 'border-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
-              />
-              {formErrors.proposerDOB && <p className="text-red-600 text-xs mt-1">{formErrors.proposerDOB}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Gender <span className="text-red-600">*</span></label>
-              <select
-                value={proposerData.gender}
-                onChange={(e) => handleProposerChange('gender', e.target.value)}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors.gender ? 'border-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
-              >
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-              {formErrors.gender && <p className="text-red-600 text-xs mt-1">{formErrors.gender}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Marital Status <span className="text-red-600">*</span></label>
-              <select
-                value={proposerData.maritalStatus}
-                onChange={(e) => handleProposerChange('maritalStatus', e.target.value)}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors.maritalStatus ? 'border-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
-              >
-                <option value="">Select Status</option>
-                <option value="Single">Single</option>
-                <option value="Married">Married</option>
-                <option value="Divorced">Divorced</option>
-                <option value="Widowed">Widowed</option>
-              </select>
-              {formErrors.maritalStatus && <p className="text-red-600 text-xs mt-1">{formErrors.maritalStatus}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Occupation <span className="text-red-600">*</span></label>
-              <input
-                type="text"
-                value={proposerData.occupation}
-                onChange={(e) => handleProposerChange('occupation', e.target.value)}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors.occupation ? 'border-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
-              />
-              {formErrors.occupation && <p className="text-red-600 text-xs mt-1">{formErrors.occupation}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">PAN Card Number</label>
+            <InputField label="Full Name" value={proposerData.fullName} onChange={(val) => handleProposerChange('fullName', val)} error={formErrors.proposerName} placeholder="As per PAN Card" />
+            
+            <InputField label="Date of Birth" type="date" value={proposerData.dateOfBirth} onChange={(val) => handleProposerChange('dateOfBirth', val)} error={formErrors.proposerDOB} />
+            
+            <SelectField label="Gender" value={proposerData.gender} onChange={(val) => handleProposerChange('gender', val)} error={formErrors.gender} options={['Male', 'Female', 'Other']} />
+            
+            <SelectField label="Marital Status" value={proposerData.maritalStatus} onChange={(val) => handleProposerChange('maritalStatus', val)} error={formErrors.maritalStatus} options={['Single', 'Married', 'Divorced', 'Widowed']} />
+            
+            <InputField label="Occupation" value={proposerData.occupation} onChange={(val) => handleProposerChange('occupation', val)} error={formErrors.occupation} placeholder="e.g. Salaried, Business" />
+            
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">PAN Card Number</label>
               <input
                 type="text"
                 value={proposerData.panCard}
                 onChange={(e) => handleProposerChange('panCard', e.target.value.toUpperCase())}
                 disabled={proposerData.noPAN}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${proposerData.noPAN ? 'bg-gray-100' : formErrors.panCard ? 'border-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
+                placeholder="ABCDE1234F"
+                maxLength="10"
+                className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-bold uppercase text-slate-800 placeholder-slate-300 ${proposerData.noPAN ? 'bg-slate-100 text-slate-400 border-transparent' : formErrors.panCard ? 'border-red-300 bg-red-50 focus:border-red-500' : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50'}`}
               />
-              {formErrors.panCard && <p className="text-red-600 text-xs mt-1">{formErrors.panCard}</p>}
-            </div>
-
-            <div className="flex items-end">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={proposerData.noPAN}
-                  onChange={(e) => handleProposerChange('noPAN', e.target.checked)}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm text-gray-700 font-medium">I don't have a PAN card</span>
-              </label>
+              <div className="mt-2 flex items-center gap-2">
+                <input type="checkbox" checked={proposerData.noPAN} onChange={(e) => handleProposerChange('noPAN', e.target.checked)} className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300" />
+                <span className="text-xs text-slate-500 font-medium">I don't have a PAN card</span>
+              </div>
+              {formErrors.panCard && <p className="text-red-500 text-[10px] font-bold mt-1">{formErrors.panCard}</p>}
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-            <span className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">2</span>
-            Insured Members Details
+        {/* 2. Insured Members */}
+        <div className="bg-white rounded-3xl shadow-lg border border-slate-100 p-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+            <span className="bg-blue-100 text-blue-700 rounded-xl w-10 h-10 flex items-center justify-center text-lg">👨‍👩‍👧</span>
+            Insured Members
           </h2>
 
           <div className="space-y-6">
             {membersData.map((member, idx) => (
-              <div key={idx} className="border-2 border-gray-200 rounded-lg p-6 bg-gray-50">
-                <h3 className="font-bold text-gray-800 mb-4">
+              <div key={idx} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 relative group hover:border-blue-300 transition-all">
+                <div className="absolute top-4 right-4 text-3xl opacity-10 group-hover:opacity-20 transition-opacity">
+                  {member.relationship === 'Self' ? '' : ''}
+                </div>
+                <h3 className="font-black text-slate-700 uppercase text-xs tracking-widest mb-4 border-b border-slate-200 pb-2">
                   {member.memberId === 'self' ? 'Proposer (Self)' : `Member ${idx + 1}`}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">First Name <span className="text-red-600">*</span></label>
-                    <input
-                      type="text"
-                      value={member.name}
-                      onChange={(e) => handleMemberChange(idx, 'name', e.target.value)}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`member_${idx}_name`] ? 'border-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
-                    />
-                    {formErrors[`member_${idx}_name`] && <p className="text-red-600 text-xs mt-1">{formErrors[`member_${idx}_name`]}</p>}
-                  </div>
-
+                  <InputField label="First Name" value={member.name} onChange={(val) => handleMemberChange(idx, 'name', val)} error={formErrors[`member_${idx}_name`]} />
+                  
                   {member.memberId !== 'self' && (
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">Last Name</label>
-                      <input
-                        type="text"
-                        value={member.lastName}
-                        onChange={(e) => handleMemberChange(idx, 'lastName', e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
+                    <InputField label="Last Name" value={member.lastName} onChange={(val) => handleMemberChange(idx, 'lastName', val)} />
                   )}
 
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Date of Birth <span className="text-red-600">*</span></label>
-                    <input
-                      type="date"
-                      value={member.dateOfBirth}
-                      onChange={(e) => handleMemberChange(idx, 'dateOfBirth', e.target.value)}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`member_${idx}_dob`] ? 'border-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
-                    />
-                    {formErrors[`member_${idx}_dob`] && <p className="text-red-600 text-xs mt-1">{formErrors[`member_${idx}_dob`]}</p>}
-                  </div>
+                  <InputField label="Date of Birth" type="date" value={member.dateOfBirth} onChange={(val) => handleMemberChange(idx, 'dateOfBirth', val)} error={formErrors[`member_${idx}_dob`]} />
 
+                  {/* Auto Calculated Age Display */}
                   {member.calculatedAge !== null && (
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">Calculated Age</label>
-                      <div className="px-4 py-2.5 bg-gray-200 rounded-lg text-gray-800 font-semibold">
-                        {member.calculatedAge} {member.ageUnit || 'years'}
+                    <div className="bg-white p-3 rounded-xl border border-slate-200">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Age Check</label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-slate-800">{member.calculatedAge} {member.ageUnit}</span>
                         {member.calculatedAge != member.originalAge && member.originalAge !== null && (
-                          <span className="text-amber-600 text-xs ml-2">
-                            (Original: {member.originalAge} years)
+                          <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold">
+                            Changed (Was {member.originalAge})
                           </span>
                         )}
                       </div>
@@ -422,24 +340,7 @@ const KYCPage = () => {
                   )}
 
                   {member.memberId !== 'self' && (
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">Relationship <span className="text-red-600">*</span></label>
-                      <select
-                        value={member.relationship}
-                        onChange={(e) => handleMemberChange(idx, 'relationship', e.target.value)}
-                        className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`member_${idx}_rel`] ? 'border-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
-                      >
-                        <option value="">Select Relationship</option>
-                        <option value="Spouse">Spouse</option>
-                        <option value="Son">Son</option>
-                        <option value="Daughter">Daughter</option>
-                        <option value="Father">Father</option>
-                        <option value="Mother">Mother</option>
-                        <option value="Brother">Brother</option>
-                        <option value="Sister">Sister</option>
-                      </select>
-                      {formErrors[`member_${idx}_rel`] && <p className="text-red-600 text-xs mt-1">{formErrors[`member_${idx}_rel`]}</p>}
-                    </div>
+                    <SelectField label="Relationship" value={member.relationship} onChange={(val) => handleMemberChange(idx, 'relationship', val)} error={formErrors[`member_${idx}_rel`]} options={['Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Brother', 'Sister']} />
                   )}
                 </div>
               </div>
@@ -447,98 +348,110 @@ const KYCPage = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-            <span className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">3</span>
-            Communication Address
+        {/* 3. Address */}
+        <div className="bg-white rounded-3xl shadow-lg border border-slate-100 p-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+            <span className="bg-blue-100 text-blue-700 rounded-xl w-10 h-10 flex items-center justify-center text-lg">🏠</span>
+            Address Details
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
-              <label className="block text-sm font-bold text-gray-700 mb-2">House / Flat / Apartment <span className="text-red-600">*</span></label>
-              <input type="text" value={addressData.house} onChange={e => handleAddressChange('house', e.target.value)} className={`w-full px-4 py-2.5 border rounded-lg ${formErrors.house ? 'border-red-500' : 'border-gray-300'}`} />
-              {formErrors.house && <p className="text-red-600 text-xs mt-1">{formErrors.house}</p>}
+              <InputField label="House / Flat / Apt" value={addressData.house} onChange={(val) => handleAddressChange('house', val)} error={formErrors.house} />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-bold text-gray-700 mb-2">Street / Area / Locality <span className="text-red-600">*</span></label>
-              <input type="text" value={addressData.street} onChange={e => handleAddressChange('street', e.target.value)} className={`w-full px-4 py-2.5 border rounded-lg ${formErrors.street ? 'border-red-500' : 'border-gray-300'}`} />
-              {formErrors.street && <p className="text-red-600 text-xs mt-1">{formErrors.street}</p>}
+              <InputField label="Street / Area" value={addressData.street} onChange={(val) => handleAddressChange('street', val)} error={formErrors.street} />
             </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">City <span className="text-red-600">*</span></label>
-              <input type="text" value={addressData.city} onChange={e => handleAddressChange('city', e.target.value)} className={`w-full px-4 py-2.5 border rounded-lg ${formErrors.city ? 'border-red-500' : 'border-gray-300'}`} />
-              {formErrors.city && <p className="text-red-600 text-xs mt-1">{formErrors.city}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">State <span className="text-red-600">*</span></label>
-              <select value={addressData.state} onChange={e => handleAddressChange('state', e.target.value)} className={`w-full px-4 py-2.5 border rounded-lg ${formErrors.state ? 'border-red-500' : 'border-gray-300'}`}>
-                <option value="">Select State</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Karnataka">Karnataka</option>
-                <option value="Tamil Nadu">Tamil Nadu</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Uttar Pradesh">Uttar Pradesh</option>
-                <option value="Rajasthan">Rajasthan</option>
-                <option value="Gujarat">Gujarat</option>
-                <option value="West Bengal">West Bengal</option>
-                <option value="Telangana">Telangana</option>
-                <option value="Andhra Pradesh">Andhra Pradesh</option>
-              </select>
-              {formErrors.state && <p className="text-red-600 text-xs mt-1">{formErrors.state}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Pincode <span className="text-red-600">*</span></label>
-              <input type="text" value={addressData.pincode} onChange={e => handleAddressChange('pincode', e.target.value)} className={`w-full px-4 py-2.5 border rounded-lg ${formErrors.pincode ? 'border-red-500' : 'border-gray-300'}`} />
-              {formErrors.pincode && <p className="text-red-600 text-xs mt-1">{formErrors.pincode}</p>}
-            </div>
+            <InputField label="City" value={addressData.city} onChange={(val) => handleAddressChange('city', val)} error={formErrors.city} />
+            <SelectField label="State" value={addressData.state} onChange={(val) => handleAddressChange('state', val)} error={formErrors.state} options={['Maharashtra', 'Karnataka', 'Tamil Nadu', 'Delhi', 'Uttar Pradesh', 'Rajasthan', 'Gujarat', 'West Bengal', 'Telangana', 'Andhra Pradesh']} />
+            <InputField label="Pincode" value={addressData.pincode} onChange={(val) => handleAddressChange('pincode', val)} error={formErrors.pincode} maxLength={6} />
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-             <span className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">4</span>
-             Contact Details
+        {/* 4. Contact */}
+        <div className="bg-white rounded-3xl shadow-lg border border-slate-100 p-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+            <span className="bg-blue-100 text-blue-700 rounded-xl w-10 h-10 flex items-center justify-center text-lg">📞</span>
+            Contact Details
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
-              <label className="block text-sm font-bold text-gray-700 mb-2">Email Address <span className="text-red-600">*</span></label>
-              <input type="email" value={contactData.email} onChange={e => handleContactChange('email', e.target.value)} className={`w-full px-4 py-2.5 border rounded-lg ${formErrors.email ? 'border-red-500' : 'border-gray-300'}`} />
-              {formErrors.email && <p className="text-red-600 text-xs mt-1">{formErrors.email}</p>}
+              <InputField label="Email Address" type="email" value={contactData.email} onChange={(val) => handleContactChange('email', val)} error={formErrors.email} />
             </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Mobile Number <span className="text-red-600">*</span></label>
-              <input type="tel" maxLength="10" value={contactData.mobileNumber} onChange={e => handleContactChange('mobileNumber', e.target.value.replace(/\D/g, '').slice(0, 10))} className={`w-full px-4 py-2.5 border rounded-lg ${formErrors.mobile ? 'border-red-500' : 'border-gray-300'}`} />
-              {formErrors.mobile && <p className="text-red-600 text-xs mt-1">{formErrors.mobile}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Emergency Contact <span className="text-red-600">*</span></label>
-              <input type="tel" maxLength="10" value={contactData.emergencyContact} onChange={e => handleContactChange('emergencyContact', e.target.value.replace(/\D/g, '').slice(0, 10))} className={`w-full px-4 py-2.5 border rounded-lg ${formErrors.emergency ? 'border-red-500' : 'border-gray-300'}`} />
-              {formErrors.emergency && <p className="text-red-600 text-xs mt-1">{formErrors.emergency}</p>}
-            </div>
+            <InputField label="Mobile Number" type="tel" value={contactData.mobileNumber} onChange={(val) => handleContactChange('mobileNumber', val.replace(/\D/g, '').slice(0, 10))} error={formErrors.mobile} maxLength={10} />
+            <InputField label="Emergency Contact" type="tel" value={contactData.emergencyContact} onChange={(val) => handleContactChange('emergencyContact', val.replace(/\D/g, '').slice(0, 10))} error={formErrors.emergency} maxLength={10} />
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-          <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-            <span>⚖️</span> Compliance & Data Accuracy
-          </h3>
-          <p className="text-sm text-gray-700 leading-relaxed">
-            All details provided must match official records (Aadhar, PAN, Driving License, etc.). 
-            Providing false information may lead to claim rejection. Premiums shown are indicative 
-            and may change after final verification and underwriting.
-          </p>
-        </div>
-
-        <div className="max-w-2xl mx-auto mb-10 space-y-3">
-          <button onClick={handleSubmit} className="w-full py-5 bg-linear-to-r from-blue-600 to-blue-500 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg">
-            Continue to Medical Information →
+        {/* Actions */}
+        <div className="space-y-4 pb-8">
+          <button 
+            onClick={handleSubmit} 
+            className="group w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-black uppercase tracking-widest shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all relative overflow-hidden"
+          >
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
+            <span className="relative flex items-center justify-center gap-3">
+              Continue to Medical <span className="group-hover:translate-x-1 transition-transform">→</span>
+            </span>
           </button>
-          <button onClick={() => navigate(-1)} className="w-full py-3 bg-gray-200 text-gray-700 rounded-2xl font-bold">
+          
+          <button 
+            onClick={() => navigate(-1)} 
+            className="w-full py-4 bg-white text-slate-600 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-colors"
+          >
             Go Back
           </button>
         </div>
+
       </div>
+
+      <style>{`
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .animate-shimmer { animation: shimmer 1.5s infinite; }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+        @keyframes slide-up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-up { animation: slide-up 0.7s ease-out forwards; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); } 20%, 40%, 60%, 80% { transform: translateX(4px); } }
+        .animate-shake { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both; }
+      `}</style>
     </div>
   );
 };
+
+// --- Reusable UI Components ---
+
+const InputField = ({ label, type = "text", value, onChange, error, placeholder, maxLength, disabled }) => (
+  <div className="space-y-1">
+    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{label}</label>
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+      placeholder={placeholder}
+      maxLength={maxLength}
+      className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-slate-800 placeholder-slate-300 ${disabled ? 'bg-slate-100 text-slate-400' : error ? 'border-red-300 bg-red-50 focus:border-red-500' : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50'}`}
+    />
+    {error && <p className="text-red-500 text-[10px] font-bold mt-1 animate-pulse">{error}</p>}
+  </div>
+);
+
+const SelectField = ({ label, value, onChange, error, options }) => (
+  <div className="space-y-1">
+    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{label}</label>
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-slate-800 appearance-none ${error ? 'border-red-300 bg-red-50 focus:border-red-500' : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50'}`}
+      >
+        <option value="">Select...</option>
+        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+      </select>
+      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">▼</div>
+    </div>
+    {error && <p className="text-red-500 text-[10px] font-bold mt-1 animate-pulse">{error}</p>}
+  </div>
+);
 
 export default KYCPage;
