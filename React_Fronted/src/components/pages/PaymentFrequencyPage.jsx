@@ -2,15 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
 
-/**
- * PAYMENT FREQUENCY PAGE
- * ═════════════════════════════════════════════════════════════
- * 
- * Purpose: Allow users to select their preferred payment frequency
- * Options: Monthly, Quarterly, Half-Yearly, Yearly
- * 
- * ═════════════════════════════════════════════════════════════
- */
 
 const PaymentFrequencyPage = () => {
   const navigate = useNavigate();
@@ -20,7 +11,6 @@ const PaymentFrequencyPage = () => {
   const [selectedFrequency, setSelectedFrequency] = useState('');
   const [error, setError] = useState('');
 
-  // Payment frequency options with benefits
   const frequencyOptions = [
     {
       id: 'monthly',
@@ -62,7 +52,6 @@ const PaymentFrequencyPage = () => {
       return;
     }
 
-    // Proceed to bank info page
     navigate('/bankinfo', {
       state: {
         ...planData,
@@ -76,8 +65,7 @@ const PaymentFrequencyPage = () => {
     <div className="min-h-screen bg-gray-50 pb-20">
       <CheckoutStepper currentStep={6} />
 
-      {/* Header */}
-      <div className="bg-linear-to-r from-purple-600 to-purple-700 text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl mb-8">
+      <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl mb-8">
         <div className="max-w-5xl mx-auto text-center space-y-4">
           <h1 className="text-3xl md:text-4xl font-bold italic tracking-tight">Choose Payment Frequency</h1>
           <p className="text-purple-100 text-lg max-w-2xl mx-auto">
@@ -88,21 +76,18 @@ const PaymentFrequencyPage = () => {
 
       <div className="max-w-5xl mx-auto px-4">
         
-        {/* INFO BANNER */}
         <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-lg mb-8">
           <p className="text-sm text-purple-800 font-medium">
             💡 Longer payment terms offer better discounts on your premium amount.
           </p>
         </div>
 
-        {/* Error Message */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-300 rounded-lg">
             <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
 
-        {/* PAYMENT FREQUENCY OPTIONS */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Select Payment Frequency</h2>
 
@@ -134,14 +119,12 @@ const PaymentFrequencyPage = () => {
                     : 'border-gray-200 bg-white group-hover:border-purple-300'
                 }`}>
                   
-                  {/* Badge */}
                   {option.badge && (
                     <div className="absolute -top-3 -right-3 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                       {option.badge}
                     </div>
                   )}
 
-                  {/* Icon & Label */}
                   <div className="flex items-center gap-3 mb-3">
                     <span className="text-4xl">{option.icon}</span>
                     <div>
@@ -150,7 +133,6 @@ const PaymentFrequencyPage = () => {
                     </div>
                   </div>
 
-                  {/* Discount */}
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-gray-700">Discount:</span>
@@ -158,7 +140,6 @@ const PaymentFrequencyPage = () => {
                     </div>
                   </div>
 
-                  {/* Selected Indicator */}
                   {selectedFrequency === option.id && (
                     <div className="absolute top-4 right-4 bg-purple-600 text-white rounded-full w-6 h-6 flex items-center justify-center">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,8 +153,7 @@ const PaymentFrequencyPage = () => {
           </div>
         </div>
 
-        {/* BENEFITS SECTION */}
-        <div className="bg-linear-to-r from-purple-50 to-blue-50 rounded-2xl shadow-lg p-8 mb-6">
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl shadow-lg p-8 mb-6">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Why Choose Longer Payment Terms?</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-start gap-3">
@@ -200,11 +180,10 @@ const PaymentFrequencyPage = () => {
           </div>
         </div>
 
-        {/* ACTION BUTTONS */}
         <div className="max-w-2xl mx-auto mb-10 space-y-3">
           <button 
             onClick={handleSubmit} 
-            className="w-full py-5 bg-linear-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-[0.98] shadow-purple-500/30"
+            className="w-full py-5 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-[0.98] shadow-purple-500/30"
           >
             Continue to Banking Details →
           </button>
