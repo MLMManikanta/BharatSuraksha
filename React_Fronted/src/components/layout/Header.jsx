@@ -18,8 +18,22 @@ function Header() {
   const mobileMenuRef = useRef(null);
   const menuButtonRef = useRef(null);
 
-  // Define routes that should keep the "Plans" menu item active
-  const planRelatedRoutes = ["/select-plan", "/plan-details", "/customize"];
+  // --- UPDATED: Full list of checkout flow routes ---
+  // This keeps the "Plans" tab active from Step 1 to Step 8 (Success)
+  const planRelatedRoutes = [
+    "/plan-details",       // Step 1: Member Selection
+    "/select-plan",        // Step 2: Plan Selection
+    "/customize",          // Step 2b: Custom Builder
+    "/plan-review",        // Step 3: Review
+    "/proposal-form",      // Intermediate
+    "/kyc",                // Step 4: Proposer Details
+    "/medical",            // Step 5: Medical History
+    "/payment-frequency",  // Step 6: Frequency
+    "/bankinfo",           // Step 7: Bank/Order Summary
+    "/order-summary",      // Step 7: Order Summary (Alt route)
+    "/payment",            // Step 8: Payment Gateway
+    "/payment-success"     // Success Page
+  ];
 
   // Check for reduced motion preference (WCAG 2.2)
   useEffect(() => {
@@ -67,6 +81,9 @@ function Header() {
     const focusableElements = menuElement.querySelectorAll(
       'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
     );
+    
+    if (focusableElements.length === 0) return;
+
     const firstElement = focusableElements[0];
     const lastElement = focusableElements[focusableElements.length - 1];
 
@@ -109,6 +126,7 @@ function Header() {
 
   // Helper for consistent link styling with enhanced accessibility
   const getNavClass = ({ isActive, path }) => {
+    // Check if the current route matches the exact path OR is one of the plan steps
     const isPlanSectionActive = path === "/plans" && planRelatedRoutes.includes(location.pathname);
     const shouldBeActive = isActive || isPlanSectionActive;
 
@@ -201,7 +219,7 @@ function Header() {
         role="navigation"
       >
         
-        {/* LOGO - Enhanced with better spacing and animation */}
+        {/* LOGO */}
         <Link 
           to="/" 
           className={`flex items-center gap-3 group focus-visible-ring ${
@@ -222,7 +240,7 @@ function Header() {
           </span>
         </Link>
 
-        {/* DESKTOP NAVIGATION - Enhanced spacing and typography */}
+        {/* DESKTOP NAVIGATION */}
         <div 
           className="hidden md:flex items-center gap-2 lg:gap-4 text-base lg:text-lg"
           role="menubar"
@@ -241,7 +259,7 @@ function Header() {
           ))}
         </div>
 
-        {/* DESKTOP ACTIONS - Enhanced with better hover states */}
+        {/* DESKTOP ACTIONS */}
         <div className="hidden md:flex items-center gap-3 lg:gap-4">
           <Link
             to="/login"
@@ -268,7 +286,7 @@ function Header() {
           </button>
         </div>
 
-        {/* MOBILE MENU TOGGLE - Enhanced accessibility */}
+        {/* MOBILE MENU TOGGLE */}
         <button
           ref={menuButtonRef}
           onClick={() => setMenuOpen(!menuOpen)}
@@ -309,7 +327,7 @@ function Header() {
         </button>
       </nav>
 
-      {/* MOBILE MENU - Enhanced with smooth animations and accessibility */}
+      {/* MOBILE MENU */}
       {menuOpen && (
         <div 
           ref={mobileMenuRef}
@@ -379,7 +397,7 @@ function Header() {
         </div>
       )}
 
-      {/* Mobile menu overlay for better UX */}
+      {/* Mobile menu overlay */}
       {menuOpen && (
         <div
           className={`fixed inset-0 bg-black/20 backdrop-blur-sm z-[-1] md:hidden ${
