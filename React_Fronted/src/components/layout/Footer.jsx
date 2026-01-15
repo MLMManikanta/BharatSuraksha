@@ -36,6 +36,7 @@ function Footer() {
           
           .footer-link:hover {
             transform: translateX(0.25rem);
+            color: #4A8EFF;
           }
 
           .social-icon {
@@ -61,19 +62,14 @@ function Footer() {
       
       <div className="max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 lg:gap-16">
 
-        {/* BRAND SECTION - Enhanced accessibility and visual hierarchy */}
+        {/* BRAND SECTION */}
         <div className="space-y-6">
           <Link 
             to="/" 
-            className={`flex items-center gap-4 group focus-ring-footer ${prefersReducedMotion ? "" : "logo-hover"}`}
+            className={`flex items-center gap-3 group focus-ring-footer ${prefersReducedMotion ? "" : "logo-hover"}`}
             aria-label="Bharat Suraksha Home"
           >
-            <img
-              src="/images/Logo-circle.png"
-              className={`w-16 h-auto brightness-110 ${prefersReducedMotion ? "" : "transition-transform duration-300"}`}
-              alt=""
-              role="presentation"
-            />
+            <div className="text-4xl filter drop-shadow-lg">🛡️</div> 
             <h2 className="text-2xl font-extrabold leading-tight text-white tracking-wide">
               Bharat <br />
               <span className="text-[#4A8EFF]">Suraksha</span>
@@ -86,7 +82,7 @@ function Footer() {
           </p>
         </div>
 
-        {/* QUICK LINKS - Enhanced with better focus states */}
+        {/* QUICK LINKS */}
         <nav aria-label="Quick links">
           <h3 className="text-white text-lg font-extrabold mb-6 relative inline-block">
             Quick Links
@@ -102,7 +98,7 @@ function Footer() {
               <li key={item.name}>
                 <Link 
                   to={item.path} 
-                  className={`inline-block font-medium hover:text-[#4A8EFF] focus-ring-footer ${prefersReducedMotion ? "" : "footer-link"}`}
+                  className={`inline-block font-medium focus-ring-footer ${prefersReducedMotion ? "hover:text-[#4A8EFF]" : "footer-link"}`}
                 >
                   {item.name}
                 </Link>
@@ -111,7 +107,7 @@ function Footer() {
           </ul>
         </nav>
 
-        {/* CONTACT INFO - Enhanced semantic markup and accessibility */}
+        {/* CONTACT INFO */}
         <div>
           <h3 className="text-white text-lg font-extrabold mb-6 relative inline-block">
             Contact Us
@@ -119,47 +115,38 @@ function Footer() {
           </h3>
 
           <address className="not-italic space-y-4 text-base">
-            <a
-              href="tel:+919063807489"
-              className="flex items-start gap-3 font-medium hover:text-[#4A8EFF] transition-colors duration-300 focus-ring-footer group"
-              aria-label="Call us at +91 90638 07489"
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="w-6 h-6 mt-0.5 text-[#4A8EFF] flex-shrink-0 transition-colors duration-300" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor" 
-                strokeWidth={2}
-                aria-hidden="true"
+            <div className="flex items-start gap-3 group">
+              <span className="text-2xl mt-[-2px]">📞</span>
+              <a
+                href="tel:+919063807489"
+                className="font-medium hover:text-[#4A8EFF] transition-colors duration-300 focus-ring-footer"
+                aria-label="Call us at +91 90638 07489"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              <span>+91 90638 07489</span>
-            </a>
+                +91 90638 07489
+              </a>
+            </div>
 
-            <a
-              href="mailto:mlmmanikanta@outlook.com"
-              className="flex items-start gap-3 font-medium hover:text-[#4A8EFF] transition-colors duration-300 focus-ring-footer group"
-              aria-label="Email us at mlmmanikanta@outlook.com"
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="w-6 h-6 mt-0.5 text-[#4A8EFF] flex-shrink-0 transition-colors duration-300" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor" 
-                strokeWidth={2}
-                aria-hidden="true"
+            <div className="flex items-start gap-3 group">
+              <span className="text-2xl mt-[-2px]">📧</span>
+              <a
+                href="mailto:mlmmanikanta@outlook.com"
+                className="font-medium hover:text-[#4A8EFF] transition-colors duration-300 focus-ring-footer"
+                aria-label="Email us at mlmmanikanta@outlook.com"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <span className="break-all">mlmmanikanta@outlook.com</span>
-            </a>
+                mlmmanikanta@outlook.com
+              </a>
+            </div>
+            
+            <div className="flex items-start gap-3 group">
+              <span className="text-2xl mt-[-2px]">📍</span>
+              <p className="text-slate-400">
+                Tech Park, Bangalore,<br/>Karnataka, India
+              </p>
+            </div>
           </address>
         </div>
 
-        {/* SOCIAL MEDIA - Enhanced with better hover states and accessibility */}
+        {/* SOCIAL MEDIA */}
         <div>
           <h3 className="text-white text-lg font-extrabold mb-6 relative inline-block">
             Follow Us
@@ -173,7 +160,7 @@ function Footer() {
               aria-label="Follow us on Instagram" 
               className={`bg-slate-800 p-3.5 rounded-full hover:bg-gradient-to-br hover:from-purple-600 hover:to-pink-600 hover:text-white hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-slate-950 transition-all duration-300 ${prefersReducedMotion ? "" : "social-icon"}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
             </a>
 
             {/* WhatsApp */}
@@ -182,16 +169,25 @@ function Footer() {
               aria-label="Chat with us on WhatsApp" 
               className={`bg-slate-800 p-3.5 rounded-full hover:bg-green-500 hover:text-white hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-slate-950 transition-all duration-300 ${prefersReducedMotion ? "" : "social-icon"}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
             </a>
             
+            {/* Facebook */}
+            <a 
+              href="#" 
+              aria-label="Follow us on Facebook" 
+              className={`bg-slate-800 p-3.5 rounded-full hover:bg-[#1877F2] hover:text-white hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-[#1877F2] focus:ring-offset-2 focus:ring-offset-slate-950 transition-all duration-300 ${prefersReducedMotion ? "" : "social-icon"}`}
+            >
+               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+            </a>
+
             {/* LinkedIn */}
             <a 
               href="#" 
               aria-label="Connect with us on LinkedIn" 
               className={`bg-slate-800 p-3.5 rounded-full hover:bg-[#0077b5] hover:text-white hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-[#0077b5] focus:ring-offset-2 focus:ring-offset-slate-950 transition-all duration-300 ${prefersReducedMotion ? "" : "social-icon"}`}
             >
-               <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
             </a>
 
           </div>
@@ -199,7 +195,7 @@ function Footer() {
 
       </div>
 
-      {/* COPYRIGHT & LEGAL - Enhanced spacing and contrast */}
+      {/* COPYRIGHT & LEGAL */}
       <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t-2 border-slate-800 text-center sm:flex sm:justify-between sm:items-center sm:text-left">
         <p className="text-base text-slate-400 font-medium">
           © {currentYear} Bharat Suraksha. All Rights Reserved.
