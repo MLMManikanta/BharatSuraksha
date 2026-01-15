@@ -7,8 +7,10 @@ const CheckoutStepper = ({ currentStep }) => {
   const containerRef = useRef(null);
   const activeStepRef = useRef(null);
 
+  // Determine top offset based on route to avoid header overlap
+  // Adjust these values if your main Header height changes
   const isPlanDetailsPage = location.pathname === '/plans';
-  const topOffsetClass = isPlanDetailsPage ? 'top-[7.2rem]' : 'top-[7rem]';
+  const topOffsetClass = isPlanDetailsPage ? 'top-[5rem] md:top-[5.5rem]' : 'top-[4.5rem] md:top-[5rem]';
 
   const steps = [
     { id: 1, label: 'Members', path: '/plans', ariaLabel: 'Step 1: Select Members' },
@@ -16,12 +18,11 @@ const CheckoutStepper = ({ currentStep }) => {
     { id: 3, label: 'Review', path: '/plan-review', ariaLabel: 'Step 3: Review Plan' },
     { id: 4, label: 'KYC', path: '/kyc', ariaLabel: 'Step 4: Complete KYC' },
     { id: 5, label: 'Medical', path: '/medical', ariaLabel: 'Step 5: Medical Information' },
-    { id: 6, label: 'Pay & Bank', path: '/bankinfo', ariaLabel: 'Step 6: Payment and Bank Information' },
+    { id: 6, label: 'Frequency', path: '/payment-frequency', ariaLabel: 'Step 6: Payment Frequency' }, // Updated label for clarity
     { id: 7, label: 'Summary', path: '/order-summary', ariaLabel: 'Step 7: Order Summary' },
     { id: 8, label: 'Payment', path: '/payment', ariaLabel: 'Step 8: Complete Payment' },
   ];
 
-  // Check for reduced motion preference (WCAG 2.2)
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
@@ -44,166 +45,139 @@ const CheckoutStepper = ({ currentStep }) => {
   }, [currentStep, prefersReducedMotion]);
 
   return (
-    <nav 
-      className={`w-full bg-white border-b border-gray-200 fixed left-0 ${topOffsetClass} z-40 shadow-sm`}
-      aria-label="Checkout progress"
-      role="navigation"
-    >
-      <style>{`
-        /* Enhanced stepper animations with reduced motion support */
-        @media (prefers-reduced-motion: no-preference) {
-          .step-indicator {
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-          }
+    <>
+      {/* Placeholder div to prevent content overlap. 
+        This pushes the page content down by the height of the stepper.
+      */}
+      <div className="h-9 md:h-6 w-full" aria-hidden="true" />
 
-          .step-connector {
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-          }
-
-          .step-label {
-            transition: all 0.3s ease-out;
-          }
-
-          .step-completed .step-indicator {
-            animation: checkmark 0.4s ease-out;
-          }
-
+      <nav 
+        className={`w-full bg-white/95 backdrop-blur-md border-b border-slate-200 fixed left-0 ${topOffsetClass} z-40 shadow-sm transition-all duration-300 ease-in-out`}
+        aria-label="Checkout progress"
+        role="navigation"
+      >
+        <style>{`
+          /* Custom Animations */
           @keyframes checkmark {
-            0%, 50% {
-              transform: scale(0.8);
-            }
-            75% {
-              transform: scale(1.1);
-            }
-            100% {
-              transform: scale(1);
-            }
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
           }
 
-          .step-active .step-indicator {
-            animation: pulse 2s ease-in-out infinite;
+          @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(26, 94, 219, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(26, 94, 219, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(26, 94, 219, 0); }
           }
 
-          @keyframes pulse {
-            0%, 100% {
-              box-shadow: 0 0 0 0 rgba(26, 94, 219, 0.4);
-            }
-            50% {
-              box-shadow: 0 0 0 8px rgba(26, 94, 219, 0);
-            }
+          @keyframes slide-in {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
           }
-        }
 
-        /* Hide scrollbar for cleaner look */
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
+          /* Classes */
+          .step-anim-enter {
+            animation: slide-in 0.4s ease-out forwards;
+          }
 
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
+          .step-completed .step-icon {
+            background-color: #1A5EDB;
+            border-color: #1A5EDB;
+            color: white;
+          }
 
-        /* Enhanced focus visible for keyboard navigation */
-        .step-focus:focus-visible {
-          outline: 4px solid #1A5EDB;
-          outline-offset: 4px;
-          border-radius: 50%;
-        }
-      `}</style>
+          .step-completed .check-icon {
+            animation: checkmark 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+          }
 
-      <div className="max-w-7xl mx-auto px-4 py-3">
-        <div 
-          ref={containerRef}
-          className="flex items-center justify-start md:justify-center overflow-x-auto no-scrollbar gap-2 md:gap-4 w-full pb-2"
-          role="list"
-          aria-label="Checkout progress steps"
-        >
-          {steps.map((step, index) => {
-            const isCompleted = step.id < currentStep;
-            const isActive = step.id === currentStep;
+          .step-active .step-icon {
+            background-color: white;
+            border-color: #1A5EDB;
+            color: #1A5EDB;
+            animation: pulse-ring 2s infinite;
+          }
 
-            return (
-              <React.Fragment key={step.id}>
-                {/* STEP ITEM */}
-                <div 
-                  ref={isActive ? activeStepRef : null}
-                  className={`flex items-center gap-2 flex-shrink-0 ${
-                    isCompleted ? 'step-completed' : ''
-                  } ${isActive ? 'step-active' : ''}`}
-                  role="listitem"
-                  aria-current={isActive ? 'step' : undefined}
-                >
-                  
-                  {/* Circle Indicator */}
+          .step-inactive .step-icon {
+            background-color: white;
+            border-color: #E2E8F0; /* slate-200 */
+            color: #94A3B8; /* slate-400 */
+          }
+
+          /* Connector Line Transition */
+          .step-connector {
+            transition: background-color 0.5s ease-in-out;
+          }
+
+          /* Hide Scrollbar */
+          .no-scrollbar::-webkit-scrollbar { display: none; }
+          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        `}</style>
+
+        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 mt-5 -mb-0">
+          <div 
+            ref={containerRef}
+            className="flex items-center justify-start md:justify-center overflow-x-auto no-scrollbar gap-2 md:gap-0 w-full px-2 snap-x snap-mandatory rounded"
+            role="list"
+          >
+            {steps.map((step, index) => {
+              const isCompleted = step.id < currentStep;
+              const isActive = step.id === currentStep;
+              const isLast = index === steps.length - 1;
+
+              return (
+                <React.Fragment key={step.id}>
+                  {/* STEP ITEM */}
                   <div 
-                    className={`step-indicator w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                      prefersReducedMotion ? "" : "step-indicator"
-                    } ${
-                      isCompleted 
-                        ? 'bg-[#1A5EDB] border-[#1A5EDB] border-3 text-white shadow-lg' 
-                        : isActive 
-                          ? 'bg-white border-[#1A5EDB] text-[#1A5EDB] border-[3px] shadow-md' 
-                          : 'bg-white border-2 border-gray-300 text-gray-400'
+                    ref={isActive ? activeStepRef : null}
+                    className={`flex items-center gap-3 flex-shrink-0 snap-center ${
+                      isCompleted ? 'step-completed' : isActive ? 'step-active' : 'step-inactive'
                     }`}
-                    aria-label={step.ariaLabel}
+                    role="listitem"
                     aria-current={isActive ? 'step' : undefined}
-                    aria-describedby={isActive ? `step-${step.id}-label` : undefined}
-                    role="img"
                   >
-                    {isCompleted ? (
-                      <svg 
-                        className="w-5 h-5 md:w-6 md:h-6" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    ) : (
-                      <span aria-hidden="true">{step.id}</span>
-                    )}
+                    
+                    {/* Circle Indicator */}
+                    <div 
+                      className={`step-icon w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-bold border-[3px] transition-all duration-300 relative z-10 shadow-sm`}
+                      aria-label={step.ariaLabel}
+                    >
+                      {isCompleted ? (
+                        <svg className="check-icon w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      ) : (
+                        <span>{step.id}</span>
+                      )}
+                    </div>
+
+                    {/* Label (Hidden on mobile for non-active steps to save space, visible on desktop) */}
+                    <span 
+                      className={`text-xs md:text-sm font-bold whitespace-nowrap transition-colors duration-300 ${
+                        isActive ? 'text-[#1A5EDB] opacity-100' : 
+                        isCompleted ? 'text-[#1A5EDB] hidden md:block opacity-80' : 
+                        'text-slate-400 hidden md:block'
+                      }`}
+                    >
+                      {step.label}
+                    </span>
                   </div>
 
-                  <span 
-                    id={`step-${step.id}-label`}
-                    className={`step-label text-sm md:text-base font-bold whitespace-nowrap ${
-                      isActive || isCompleted 
-                        ? 'text-[#1A5EDB]' 
-                        : 'text-gray-400 hidden md:block'
-                    } ${
-                      isActive ? 'md:text-lg' : ''
-                    }`}
-                  >
-                    {step.label}
-                  </span>
-                </div>
-
-                {/* CONNECTOR LINE (Don't show after last item) */}
-                {index < steps.length - 1 && (
-                  <div 
-                    className={`step-connector h-1 min-w-[24px] md:w-16 lg:w-24 rounded-full ${
-                      isCompleted ? 'bg-[#1A5EDB]' : 'bg-gray-200'
-                    }`}
-                    role="presentation"
-                    aria-hidden="true"
-                  />
-                )}
-
-              </React.Fragment>
-            );
-          })}
+                  {/* CONNECTOR LINE */}
+                  {!isLast && (
+                    <div 
+                      className={`step-connector h-1 min-w-[20px] flex-grow mx-2 rounded-full ${
+                        isCompleted ? 'bg-[#1A5EDB]' : 'bg-slate-200'
+                      }`}
+                      aria-hidden="true"
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
         </div>
-
-        {/* Mobile Progress Indicator */}
-        <div className="md:hidden mt-4 text-center">
-          <span className="text-sm font-semibold text-gray-600">
-            Step <span className="text-[#1A5EDB] text-base">{currentStep}</span> of {steps.length}
-          </span>
-        </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 };
 
