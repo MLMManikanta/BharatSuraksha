@@ -1,27 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
-
-/**
- * MEDICAL INFORMATION PAGE - RESTRUCTURED
- * ═════════════════════════════════════════════════════════════
- * 
- * NEW PATTERN:
- * 1. Height & Weight (MANDATORY AT TOP)
- * 2. Personal Medical History (Member-based with description field)
- * 3. Pre-existing Conditions (Member-based with description field)
- * 4. Lifestyle & Habits (Member-based with description field)
- * 5. Declarations
- * 
- * ═════════════════════════════════════════════════════════════
- */
 
 const MedicalInformationPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const planData = location.state || {};
 
-  // ═══ BUILD MEMBERS LIST FROM KYC DATA ═══
   const membersList = useMemo(() => {
     if (!planData.kycData || !planData.kycData.members) return [];
     
@@ -33,28 +18,40 @@ const MedicalInformationPage = () => {
     }));
   }, [planData.kycData]);
 
-  // ═══ STATE MANAGEMENT ═══
   const [medicalData, setMedicalData] = useState({
-    // Height & Weight
     heightWeightMembers: [],
-    
-    // Personal Medical History
     illnessMembers: [],
-    
-    // Pre-existing Conditions
     conditionsMembers: [],
-    
-    // Lifestyle & Habits
     lifestyleMembers: [],
-    
-    // Declarations
     acceptDeclaration: false,
     correctnessDeclaration: false
   });
 
   const [formErrors, setFormErrors] = useState({});
 
-  // ═══ GENERIC HANDLERS ═══
+  useEffect(() => {
+    if (membersList.length > 0) {
+      setMedicalData(prev => {
+        const existingIds = new Set(prev.heightWeightMembers.map(m => m.memberId));
+        const missingMembers = membersList.filter(m => !existingIds.has(m.id));
+        
+        if (missingMembers.length === 0) return prev;
+
+        const newEntries = missingMembers.map(m => ({
+          memberId: m.id,
+          heightFeet: '',
+          heightInches: '',
+          weight: ''
+        }));
+
+        return {
+          ...prev,
+          heightWeightMembers: [...prev.heightWeightMembers, ...newEntries]
+        };
+      });
+    }
+  }, [membersList]);
+
   const toggleMemberInSection = (section, memberId) => {
     setMedicalData(prev => ({
       ...prev,
@@ -75,13 +72,11 @@ const MedicalInformationPage = () => {
     }));
   };
 
-  // ═══ VALIDATION ═══
   const validateForm = () => {
     const errors = {};
 
-    // Height & Weight validation
     if (medicalData.heightWeightMembers.length === 0) {
-      errors.heightWeight = 'Please select at least one member';
+      errors.heightWeight = 'Please enter details for all members';
     } else {
       medicalData.heightWeightMembers.forEach(m => {
         if (!m.heightFeet || !m.heightInches || !m.weight) {
@@ -90,28 +85,24 @@ const MedicalInformationPage = () => {
       });
     }
 
-    // Illness validation
     medicalData.illnessMembers.forEach(m => {
       if (!m.description.trim()) {
         errors[`ill_${m.memberId}`] = 'Description required';
       }
     });
 
-    // Conditions validation
     medicalData.conditionsMembers.forEach(m => {
       if (!m.description.trim()) {
         errors[`cond_${m.memberId}`] = 'Description required';
       }
     });
 
-    // Lifestyle validation
     medicalData.lifestyleMembers.forEach(m => {
       if (!m.description.trim()) {
         errors[`life_${m.memberId}`] = 'Description required';
       }
     });
 
-    // Declarations
     if (!medicalData.acceptDeclaration) errors.acceptDeclaration = 'Required';
     if (!medicalData.correctnessDeclaration) errors.correctnessDeclaration = 'Required';
 
@@ -119,7 +110,6 @@ const MedicalInformationPage = () => {
     return Object.keys(errors).length === 0;
   };
 
-  // ═══ SUBMIT ═══
   const handleSubmit = () => {
     if (!validateForm()) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -137,7 +127,6 @@ const MedicalInformationPage = () => {
     });
   };
 
-  // ═══ MEMBER CARD COMPONENT ═══
   const MemberCard = ({ member, isSelected, onToggle }) => (
     <label className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
       isSelected ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-gray-50 hover:border-green-300'
@@ -154,8 +143,7 @@ const MedicalInformationPage = () => {
     <div className="min-h-screen bg-gray-50 pb-20">
       <CheckoutStepper currentStep={5} />
 
-      {/* Header */}
-      <div className="bg-linear-to-r from-green-600 to-green-700 text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl mb-8">
+      <div className="bg-linear-to-r from-green-600 to-green-700 text-white pt-10 mt-10 rounded-b-[3rem] shadow-xl mb-4">
         <div className="max-w-5xl mx-auto text-center space-y-4">
           <h1 className="text-3xl md:text-4xl font-bold italic tracking-tight">Medical Information</h1>
           <p className="text-green-100 text-lg max-w-2xl mx-auto">
@@ -171,15 +159,12 @@ const MedicalInformationPage = () => {
           </p>
         </div>
 
-        {/* ══════════════════════════════════════════════════════ */}
-        {/* SECTION 1: HEIGHT & WEIGHT */}
-        {/* ══════════════════════════════════════════════════════ */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
             <span className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">1</span>
             Height & Weight Details
           </h2>
-          <p className="text-sm text-gray-600 mb-6 ml-11">Please enter height and weight for each selected member</p>
+          <p className="text-sm text-gray-600 mb-6 ml-11">Please enter height and weight for all members</p>
 
           {formErrors.heightWeight && (
             <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded-lg">
@@ -187,91 +172,64 @@ const MedicalInformationPage = () => {
             </div>
           )}
 
-          <p className="text-sm text-gray-600 font-semibold mb-3">Select members:</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-            {membersList.map(member => (
-              <MemberCard
-                key={member.id}
-                member={member}
-                isSelected={medicalData.heightWeightMembers.some(m => m.memberId === member.id)}
-                onToggle={() => toggleMemberInSection('heightWeightMembers', member.id)}
-              />
-            ))}
-          </div>
+          <div className="space-y-6 pt-2">
+            {membersList.map(memberInfo => {
+              const m = medicalData.heightWeightMembers.find(d => d.memberId === memberInfo.id);
+              if (!m) return null; 
 
-          {/* Height & Weight Details for Selected Members */}
-          {medicalData.heightWeightMembers.length > 0 && (
-            <div className="space-y-6 pt-6 border-t-2 border-gray-200">
-              {medicalData.heightWeightMembers.map(m => {
-                const memberInfo = membersList.find(mb => mb.id === m.memberId);
-                if (!memberInfo) return null;
-
-                return (
-                  <div key={m.memberId} className="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
-                    <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-300">
-                      <div className="bg-green-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
-                        {memberInfo.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-800">{memberInfo.name}</p>
-                        <p className="text-xs text-gray-600">{memberInfo.relationship}</p>
-                      </div>
+              return (
+                <div key={memberInfo.id} className="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+                  <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-300">
+                    <div className="bg-green-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                      {memberInfo.name.charAt(0).toUpperCase()}
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Height - Feet */}
-                      <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Height (Feet) <span className="text-red-600">*</span></label>
-                        <select
-                          value={m.heightFeet || ''}
-                          onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'heightFeet', e.target.value)}
-                          className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`hw_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
-                        >
-                          <option value="">Select Feet</option>
-                          {[3, 4, 5, 6, 7].map(ft => (
-                            <option key={ft} value={ft}>{ft} Feet</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Height - Inches */}
-                      <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Height (Inches) <span className="text-red-600">*</span></label>
-                        <select
-                          value={m.heightInches || ''}
-                          onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'heightInches', e.target.value)}
-                          className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`hw_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
-                        >
-                          <option value="">Select Inches</option>
-                          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(inch => (
-                            <option key={inch} value={inch}>{inch} Inch</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Weight - KG */}
-                      <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Weight (KG) <span className="text-red-600">*</span></label>
-                        <input
-                          type="number"
-                          placeholder="e.g., 70"
-                          value={m.weight || ''}
-                          onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'weight', e.target.value)}
-                          className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`hw_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
-                        />
-                      </div>
+                    <div>
+                      <p className="font-bold text-gray-800">{memberInfo.name}</p>
+                      <p className="text-xs text-gray-600">{memberInfo.relationship}</p>
                     </div>
-                    {formErrors[`hw_${m.memberId}`] && <p className="text-red-600 text-xs mt-2">{formErrors[`hw_${m.memberId}`]}</p>}
                   </div>
-                );
-              })}
-            </div>
-          )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Height (Feet) <span className="text-red-600">*</span></label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 5"
+                        value={m.heightFeet || ''}
+                        onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'heightFeet', e.target.value)}
+                        className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`hw_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Height (Inches) <span className="text-red-600">*</span></label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 8"
+                        value={m.heightInches || ''}
+                        onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'heightInches', e.target.value)}
+                        className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`hw_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Weight (KG) <span className="text-red-600">*</span></label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 70"
+                        value={m.weight || ''}
+                        onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'weight', e.target.value)}
+                        className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`hw_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
+                      />
+                    </div>
+                  </div>
+                  {formErrors[`hw_${m.memberId}`] && <p className="text-red-600 text-xs mt-2">{formErrors[`hw_${m.memberId}`]}</p>}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* ══════════════════════════════════════════════════════ */}
-        {/* SECTION 2: PERSONAL MEDICAL HISTORY */}
-        {/* ══════════════════════════════════════════════════════ */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
             <span className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">2</span>
@@ -302,9 +260,6 @@ const MedicalInformationPage = () => {
           )}
         </div>
 
-        {/* ══════════════════════════════════════════════════════ */}
-        {/* SECTION 3: PRE-EXISTING CONDITIONS */}
-        {/* ══════════════════════════════════════════════════════ */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
             <span className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">3</span>
@@ -335,9 +290,6 @@ const MedicalInformationPage = () => {
           )}
         </div>
 
-        {/* ══════════════════════════════════════════════════════ */}
-        {/* SECTION 4: LIFESTYLE & HABITS */}
-        {/* ══════════════════════════════════════════════════════ */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
             <span className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">4</span>
@@ -368,9 +320,6 @@ const MedicalInformationPage = () => {
           )}
         </div>
 
-        {/* ══════════════════════════════════════════════════════ */}
-        {/* SECTION 5: DECLARATIONS */}
-        {/* ══════════════════════════════════════════════════════ */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
             <span className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">5</span>
@@ -396,7 +345,6 @@ const MedicalInformationPage = () => {
           </div>
         </div>
 
-        {/* ACTION BUTTONS */}
         <div className="max-w-2xl mx-auto mb-10 space-y-3">
           <button onClick={handleSubmit} className="w-full py-5 bg-linear-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-[0.98] shadow-green-500/30">
             Proceed to Payment method →
