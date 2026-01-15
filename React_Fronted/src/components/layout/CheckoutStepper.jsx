@@ -8,7 +8,7 @@ const CheckoutStepper = ({ currentStep }) => {
   const activeStepRef = useRef(null);
 
   const isPlanDetailsPage = location.pathname === '/plans';
-  const topOffsetClass = isPlanDetailsPage ? 'top-[5.5rem]' : 'top-[6rem]';
+  const topOffsetClass = isPlanDetailsPage ? 'top-[7.2rem]' : 'top-[7rem]';
 
   const steps = [
     { id: 1, label: 'Members', path: '/plans', ariaLabel: 'Step 1: Select Members' },
