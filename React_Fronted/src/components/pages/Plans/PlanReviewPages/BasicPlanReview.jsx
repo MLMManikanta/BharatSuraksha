@@ -37,7 +37,7 @@ const BasicPlanReview = ({ data }) => {
   };
 
   return (
-    <main className="w-full font-sans animate-fade-in-up pb-1">
+    <main className="w-full font-sans animate-fade-in-up">
       
       {/* HEADER SECTION */}
       <div className="bg-gradient-to-r from-cyan-600 to-blue-700 p-8 rounded-t-3xl text-white shadow-lg flex justify-between items-start md:items-center gap-4 relative overflow-hidden">
