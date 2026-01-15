@@ -4,13 +4,11 @@ import LoadingSpinner from '../../../common/LoadingSpinner';
 import PaymentSummary from './paymentSummary';
 import CheckoutStepper from "../../../layout/CheckoutStepper";
 
-// --- SUB-PLAN IMPORTS ---
 import BasicPlanReview from './BasicPlanReview';
 import FamilyPlanReview from './FamilyPlanReview';
 import SeniorPlanReview from './SeniorPlanReview';
 import UniversalPlanReview from './UniversalPlanReview';
 
-// --- CUSTOM BUILDER & REVIEW IMPORTS ---
 import CustomizeHealthPage from '../SubPlans/CustomizeHealthPage';
 import CustomizeReviewHealthPage from './CustomizeReviewHealthPage'; 
 
@@ -18,141 +16,131 @@ const PlanReviewPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Initialize state. If location.state is missing, default to null.
-  const [data, setData] = useState(location.state || null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState(() => {
+    return location.state || null;
+  });
   
-  // Check if user came directly from Home page (view-only mode)
-  const isFromHome = location.state?.fromHome === true;
+  const [isLoading, setIsLoading] = useState(true);
+  const isFromHome = data?.fromHome === true;
 
-  // Handle loading animation on mount only
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 800);
+    }, 600);
     return () => clearTimeout(timer);
-  }, []);
+  }, [data, isFromHome]);
 
-  /**
-   * 1. handleProceed
-   * Triggered when user clicks "Confirm Selection" in the Builder.
-   * It merges the builder config (features, tenure, etc.) into the main data
-   * and sets 'isReviewingCustomPlan' to true.
-   */
+const handleLiveUpdate = (updatedFields) => {
+  setData((prev) => ({
+    ...prev,
+    ...updatedFields,
+    // Ensure nested objects are merged safely if passed partially
+    features: updatedFields.features || prev.features,
+    riders: updatedFields.riders || prev.riders, 
+    sumInsured: updatedFields.sumInsured || prev.sumInsured
+  }));
+};
+
   const handleProceed = (customConfig) => {
-    console.log("Proceeding with config:", customConfig); // Debug log
     setData((prev) => ({
       ...prev,
       ...customConfig,
-      isReviewingCustomPlan: true 
+      isReviewingCustomPlan: true, 
+      features: customConfig.features || prev.features || [],
+      riders: customConfig.riders || prev.riders || [],
+      selectedChronic: customConfig.selectedChronic || prev.selectedChronic || []
     }));
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  /**
-   * 2. handleEdit
-   * Triggered when user clicks "Modify Plan" in the Review screen.
-   * Navigates back to the plan selection page with Vajra tab active.
-   * Disabled when viewing from Home (view-only mode).
-   */
   const handleEdit = () => {
-    if (isFromHome) return; // Prevent edit when viewing from Home
+    if (isFromHome) return;
     
-    // Extract parent data (counts, user) to pass back
-    const { counts, user, ...customizationData } = data || {};
-    
-    navigate('/select-plan', { 
-      state: { 
-        counts, 
-        user,
-        activeTab: 'vajra',  // Keep Vajra tab active
-        customizationData    // Preserve all customization settings
-      } 
-    });
+    if (data.selectedPlan?.isCustom || String(data.selectedPlan?.name).toLowerCase().includes('vajra')) {
+      setData(prev => ({ ...prev, isReviewingCustomPlan: false }));
+    } else {
+      navigate(-1);
+    }
   };
 
-  /**
-   * 3. handleConfirm
-   * Triggered when user clicks "Confirm & Pay".
-   * Navigates to the next step.
-   * Disabled when viewing from Home (view-only mode).
-   */
   const handleConfirm = () => {
-    if (isFromHome) return; // Prevent confirmation when viewing from Home
+    if (isFromHome) return;
     navigate('/proposal-form', { state: data });
   };
 
   const renderReviewContent = () => {
-    // Safety check for missing data
     if (!data || !data.selectedPlan) {
       return (
-        <div className="p-20 text-center bg-white rounded-[3rem] shadow-xl">
-          <p className="text-slate-400 font-bold uppercase tracking-widest italic">
-            No plan data found.
-          </p>
+        <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+          <p className="font-bold">No plan data available.</p>
+          <button onClick={() => navigate('/select-plan')} className="mt-4 text-blue-500 underline">
+            Go to Plan Selection
+          </button>
         </div>
       );
     }
 
-    // --- LOGIC: Check for Vajra/Custom Plan ---
-    const isVajra = data.selectedPlan.isCustom || 
-                    String(data.selectedPlan.name).toLowerCase().includes('vajra');
+    const planName = String(data.selectedPlan.name || "").toLowerCase();
+    const isVajra = data.selectedPlan.isCustom || planName.includes('vajra');
 
     if (isVajra) {
-      // SCENARIO A: User has customized and is now Reviewing
       if (data.isReviewingCustomPlan) {
         return (
           <CustomizeReviewHealthPage 
-            selectionData={data}       // <--- MUST MATCH PROP IN CHILD COMPONENT
-            onEdit={handleEdit}        // Pass the edit handler
-            onConfirm={handleConfirm}  // Pass the confirm handler
+            selectionData={data} 
+            onEdit={handleEdit} 
+            onConfirm={handleConfirm} 
           />
         );
       }
-
-      // SCENARIO B: User is still Building (Default)
-      // We pass 'data' as initialData so settings persist if they go back
-      return <CustomizeHealthPage initialData={data} onProceed={handleProceed} />;
+      // PASS onChange PROP HERE so sidebar updates live
+      return (
+        <CustomizeHealthPage 
+          initialData={data} 
+          onProceed={handleProceed} 
+          onChange={handleLiveUpdate} 
+        />
+      );
     }
 
-    // --- STANDARD PLAN MAPPINGS ---
-    const planName = String(data.selectedPlan.name || "").toLowerCase();
-    
     if (planName.includes('neev')) return <BasicPlanReview data={data} />;
     if (planName.includes('parivar')) return <FamilyPlanReview data={data} />;
     if (planName.includes('varishtha')) return <SeniorPlanReview data={data} />;
     if (planName.includes('vishwa')) return <UniversalPlanReview data={data} />;
 
     return (
-      <div className="p-10 text-center uppercase font-bold text-red-500">
-        Unknown Plan Selection: {data.selectedPlan.name}
+      <div className="p-10 text-center text-red-500">
+        Unknown Plan Type: {data.selectedPlan.name}
       </div>
     );
   };
 
-  // Loading Spinner Component
-  if (isLoading) {
-    return <LoadingSpinner message="Loading Plan Details..." />;
-  }
+  if (isLoading) return <LoadingSpinner message="Calculating Premiums..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="bg-white shadow-sm sticky top-0 z-50">
+    <div className="min-h-screen bg-slate-50 pb-20">
+      <div className="bg-white shadow-sm sticky top-0 z-40">
         <CheckoutStepper currentStep={3} />
       </div>
       
-      <div className="max-w-7xl mx-auto px-4 pt-10 mb-10 animate-in fade-in slide-in-from-top-4 duration-700">
-        <h1 className="text-4xl font-black text-slate-900 uppercase italic tracking-tighter text-center lg:text-left">
-          {data?.isReviewingCustomPlan ? "Review Selection" : "Customize Plan"}
+      <div className="max-w-7xl mx-auto px-4 pt-8 mb-8">
+        <h1 className="text-3xl font-black text-slate-800 uppercase tracking-tighter">
+          {data?.isReviewingCustomPlan ? "Review Your Plan" : "Customize & Review"}
         </h1>
-        <div className="h-1.5 w-24 bg-blue-600 mt-2 rounded-full mx-auto lg:mx-0"></div>
+        <p className="text-slate-500 mt-2">
+          {data?.isReviewingCustomPlan 
+            ? "Verify your coverage details before proceeding to KYC." 
+            : "Tailor your coverage to your exact needs."}
+        </p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-        <div className="lg:col-span-2 bg-white rounded-[3rem] shadow-xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-left-4 duration-700">
+      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="lg:col-span-8 bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden min-h-[500px]">
           {renderReviewContent()}
         </div>
 
-        <div className="lg:col-span-1 animate-in fade-in slide-in-from-right-4 duration-700">
+        <div className="lg:col-span-4 sticky top-24">
           <PaymentSummary data={data} />
         </div>
       </div>
