@@ -44,14 +44,14 @@ const PlanDetails = () => {
   const [errors, setErrors] = useState({});
 
   const memberOptions = [
-    { id: 'self', label: 'Self', icon: '👤', isMulti: false },
-    { id: 'spouse', label: 'Spouse', icon: '👩‍❤️‍👨', isMulti: false },
-    { id: 'son', label: 'Son', icon: '👦', isMulti: true },
-    { id: 'daughter', label: 'Daughter', icon: '👧', isMulti: true },
-    { id: 'father', label: 'Father', icon: '👴', isMulti: false },
-    { id: 'mother', label: 'Mother', icon: '👵', isMulti: false },
-    { id: 'father_in_law', label: 'Father-in-law', icon: '👴', isMulti: false },
-    { id: 'mother_in_law', label: 'Mother-in-law', icon: '👵', isMulti: false },
+    { id: 'self', label: 'Self', icon: '👤', isMulti: false, minAge: 18 },
+    { id: 'spouse', label: 'Spouse', icon: '👩‍❤️‍👨', isMulti: false, minAge: 18 },
+    { id: 'son', label: 'Son', icon: '👦', isMulti: true, minAge: 0 },
+    { id: 'daughter', label: 'Daughter', icon: '👧', isMulti: true, minAge: 0 },
+    { id: 'father', label: 'Father', icon: '👴', isMulti: false, minAge: 35 },
+    { id: 'mother', label: 'Mother', icon: '👵', isMulti: false, minAge: 35 },
+    { id: 'father_in_law', label: 'Father-in-law', icon: '👴', isMulti: false, minAge: 35 },
+    { id: 'mother_in_law', label: 'Mother-in-law', icon: '👵', isMulti: false, minAge: 35 },
   ];
 
   const toggleMember = (id, isMulti) => {
@@ -59,20 +59,13 @@ const PlanDetails = () => {
       const currentCount = prev[id];
       if (isMulti) {
         if (currentCount === 0) {
-          setMemberAges(prevAges => ({
-            ...prevAges,
-            [id]: ['']
-          }));
+          setMemberAges(prevAges => ({ ...prevAges, [id]: [''] }));
           return { ...prev, [id]: 1 };
-        } else if (currentCount === 1) {
-          setMemberAges(prevAges => ({
-            ...prevAges,
-            [id]: ['']
-          }));
-          return { ...prev, [id]: 0 };
         }
+        // For multi, clicking the card again doesn't remove if > 0 (use +/- buttons)
         return prev;
       }
+      // For single members, toggle 0 or 1
       return { ...prev, [id]: currentCount === 1 ? 0 : 1 };
     });
     if (errors.members) setErrors(prev => ({ ...prev, members: '' }));
@@ -112,8 +105,9 @@ const PlanDetails = () => {
   };
 
   const handleAgeChange = (memberId, value, index = null) => {
-    if (value && isNaN(value)) return;
-    
+    // Only allow numbers
+    if (value && !/^\d*$/.test(value)) return;
+
     setMemberAges(prev => {
       if (index !== null) {
         const newAges = [...prev[memberId]];
@@ -134,21 +128,24 @@ const PlanDetails = () => {
     const totalMembers = Object.values(memberCounts).reduce((a, b) => a + b, 0);
     if (totalMembers === 0) newErrors.members = "Please select at least one member.";
 
-    Object.keys(memberCounts).forEach(memberId => {
-      const count = memberCounts[memberId];
+    memberOptions.forEach(option => {
+      const count = memberCounts[option.id];
       if (count > 0) {
-        if (Array.isArray(memberAges[memberId])) {
-          memberAges[memberId].forEach((age, index) => {
-            if (!age || parseInt(age) < 0 || parseInt(age) > 100) {
-              newErrors[`${memberId}_${index}_age`] = "Required";
-            }
-          });
-        } else {
-          const age = memberAges[memberId];
-          if (!age || parseInt(age) < 0 || parseInt(age) > 100) {
-            newErrors[`${memberId}_age`] = "Required";
+        const ages = Array.isArray(memberAges[option.id]) ? memberAges[option.id] : [memberAges[option.id]];
+        
+        ages.forEach((age, idx) => {
+          const errorKey = option.isMulti ? `${option.id}_${idx}_age` : `${option.id}_age`;
+          const ageNum = parseInt(age);
+
+          if (!age) {
+            newErrors[errorKey] = "Required";
+          } else if (ageNum < 0 || ageNum > 100) {
+            newErrors[errorKey] = "Invalid age";
+          } else if (option.minAge && ageNum < option.minAge) {
+            // THIS PREVENTS THE "Original: 5" MISMATCH FOR ADULTS
+            newErrors[errorKey] = `Min age is ${option.minAge}`;
           }
-        }
+        });
       }
     });
 
@@ -271,7 +268,7 @@ const PlanDetails = () => {
                     </span>
                     
                     {member.isMulti && isSelected ? (
-                       <div className="flex items-center gap-3 mt-2 bg-white rounded-full px-2 py-1 shadow-sm border border-blue-100" onClick={(e) => e.stopPropagation()} role="group" aria-label={`${member.label} count controls`}>
+                        <div className="flex items-center gap-3 mt-2 bg-white rounded-full px-2 py-1 shadow-sm border border-blue-100" onClick={(e) => e.stopPropagation()} role="group" aria-label={`${member.label} count controls`}>
                           <button 
                             type="button"
                             onClick={(e) => updateCount(e, member.id, false)}
@@ -289,10 +286,10 @@ const PlanDetails = () => {
                             aria-controls={`${member.id}-count`}
                             disabled={count >= 4}
                           >+</button>
-                       </div>
+                        </div>
                     ) : isSelected && (
                       <div className="mt-2 w-6 h-6 bg-[#1A5EDB] rounded-full flex items-center justify-center" aria-hidden="true">
-                         <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                       </div>
                     )}
                   </div>
@@ -302,6 +299,7 @@ const PlanDetails = () => {
             })}
           </div>
         </section>
+        
         {/* AGE INPUT SECTION - Only show if members are selected */}
         {Object.values(memberCounts).reduce((a, b) => a + b, 0) > 0 && (
           <section className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 mb-8" aria-labelledby="age-section-heading">
@@ -328,8 +326,9 @@ const PlanDetails = () => {
                         {Array.from({ length: count }).map((_, index) => (
                           <div key={index} className="space-y-1">
                             <input
-                              type="number"
+                              type="text"
                               inputMode="numeric"
+                              pattern="[0-9]*"
                               maxLength="3"
                               value={memberAges[member.id]?.[index] || ''}
                               onChange={(e) => handleAgeChange(member.id, e.target.value, index)}
@@ -347,8 +346,9 @@ const PlanDetails = () => {
                     ) : (
                       <div className="space-y-1">
                         <input
-                          type="number"
+                          type="text"
                           inputMode="numeric"
+                          pattern="[0-9]*"
                           maxLength="3"
                           value={memberAges[member.id] || ''}
                           onChange={(e) => handleAgeChange(member.id, e.target.value)}
