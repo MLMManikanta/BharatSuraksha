@@ -128,232 +128,342 @@ const MedicalInformationPage = () => {
   };
 
   const MemberCard = ({ member, isSelected, onToggle }) => (
-    <label className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-      isSelected ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-gray-50 hover:border-green-300'
+    <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 group ${
+      isSelected 
+        ? 'border-emerald-500 bg-emerald-50/50 shadow-md' 
+        : 'border-gray-100 bg-white hover:border-emerald-200 hover:shadow-sm'
     }`}>
-      <input type="checkbox" checked={isSelected} onChange={onToggle} className="w-4 h-4 mt-1" />
+      <div className={`mt-1 flex-shrink-0 w-6 h-6 rounded flex items-center justify-center text-lg transition-colors`}>
+        {isSelected ? '✅' : '⬜'}
+      </div>
+      <input type="checkbox" checked={isSelected} onChange={onToggle} className="hidden" />
       <div className="flex-1">
-        <p className="font-bold text-gray-800">{member.name}</p>
-        <p className="text-xs text-gray-600">{member.relationship} • Age: {member.age || 'N/A'}</p>
+        <p className={`font-bold transition-colors ${isSelected ? 'text-emerald-900' : 'text-gray-700'}`}>{member.name}</p>
+        <p className="text-xs text-gray-500">{member.relationship} • Age: {member.age || 'N/A'}</p>
       </div>
     </label>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
       <CheckoutStepper currentStep={5} />
 
-      <div className="bg-linear-to-r from-green-600 to-green-700 text-white pt-10 mt-10 rounded-b-[3rem] shadow-xl mb-4">
-        <div className="max-w-5xl mx-auto text-center space-y-4">
-          <h1 className="text-3xl md:text-4xl font-bold italic tracking-tight">Medical Information</h1>
-          <p className="text-green-100 text-lg max-w-2xl mx-auto">
-            Help us understand your health profile for accurate underwriting and premium assessment.
+      <div className="relative bg-gradient-to-br from-teal-700 via-emerald-600 to-green-800 text-white pt-12 pb-24 px-4 rounded-b-[4rem] shadow-2xl overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
+          <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full mix-blend-overlay blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-cyan-400 rounded-full mix-blend-overlay blur-3xl"></div>
+        </div>
+
+        <div className="relative max-w-4xl mx-auto text-center space-y-4 animate-fade-in-up">
+          <div className="inline-flex items-center justify-center text-4xl p-4 bg-white/20 backdrop-blur-md rounded-full mb-4 ring-1 ring-white/30 shadow-lg">
+            🩺
+          </div>
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Medical Information</h1>
+          <p className="text-emerald-100 text-lg max-w-2xl mx-auto font-light">
+            Help us understand your health profile for accurate underwriting.
           </p>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4">
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg mb-8">
-          <p className="text-sm text-blue-800 font-medium">
-            ℹ️ All information provided will be kept confidential and used only for underwriting purposes.
+      <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-10 space-y-8 animate-slide-up">
+        
+        <div className="bg-sky-50 border border-sky-100 p-4 rounded-2xl shadow-sm flex gap-3 items-start">
+          <span className="text-xl mt-0.5">🔒</span>
+          <p className="text-sm text-sky-800 font-medium leading-relaxed pt-1">
+            All information provided will be kept strictly confidential and used only for underwriting purposes.
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-            <span className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">1</span>
-            Height & Weight Details
-          </h2>
-          <p className="text-sm text-gray-600 mb-6 ml-11">Please enter height and weight for all members</p>
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="p-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+              <span className="bg-emerald-100 rounded-xl w-10 h-10 flex items-center justify-center text-xl shadow-sm">
+                📏
+              </span>
+              Height & Weight
+            </h2>
+            
+            {formErrors.heightWeight && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 animate-shake">
+                <span className="text-red-500 text-lg">⚠️</span>
+                <p className="text-sm text-red-700 font-medium">{formErrors.heightWeight}</p>
+              </div>
+            )}
 
-          {formErrors.heightWeight && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded-lg">
-              <p className="text-sm text-red-700">{formErrors.heightWeight}</p>
+            <div className="space-y-6">
+              {membersList.map(memberInfo => {
+                const m = medicalData.heightWeightMembers.find(d => d.memberId === memberInfo.id);
+                if (!m) return null; 
+
+                return (
+                  <div key={memberInfo.id} className="bg-gray-50/50 p-6 rounded-2xl border border-gray-200 hover:border-emerald-200 transition-colors">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold shadow-md text-sm">
+                        👤
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-800">{memberInfo.name}</p>
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{memberInfo.relationship}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                      <div className="relative group">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Height (Ft) <span className="text-red-400">*</span></label>
+                        <input
+                          type="number"
+                          placeholder="e.g. 5"
+                          value={m.heightFeet || ''}
+                          onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'heightFeet', e.target.value)}
+                          className={`w-full px-4 py-3 bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all ${formErrors[`hw_${m.memberId}`] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:border-emerald-500 focus:ring-emerald-100'}`}
+                        />
+                      </div>
+
+                      <div className="relative group">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Height (In) <span className="text-red-400">*</span></label>
+                        <input
+                          type="number"
+                          placeholder="e.g. 8"
+                          value={m.heightInches || ''}
+                          onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'heightInches', e.target.value)}
+                          className={`w-full px-4 py-3 bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all ${formErrors[`hw_${m.memberId}`] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:border-emerald-500 focus:ring-emerald-100'}`}
+                        />
+                      </div>
+
+                      <div className="relative group">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Weight (KG) <span className="text-red-400">*</span></label>
+                        <input
+                          type="number"
+                          placeholder="e.g. 70"
+                          value={m.weight || ''}
+                          onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'weight', e.target.value)}
+                          className={`w-full px-4 py-3 bg-white border rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all ${formErrors[`hw_${m.memberId}`] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:border-emerald-500 focus:ring-emerald-100'}`}
+                        />
+                      </div>
+                    </div>
+                    {formErrors[`hw_${m.memberId}`] && <p className="text-red-500 text-xs mt-3 flex items-center gap-1 font-medium">⚠️ {formErrors[`hw_${m.memberId}`]}</p>}
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
+        </div>
 
-          <div className="space-y-6 pt-2">
-            {membersList.map(memberInfo => {
-              const m = medicalData.heightWeightMembers.find(d => d.memberId === memberInfo.id);
-              if (!m) return null; 
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+              <span className="bg-emerald-100 rounded-xl w-10 h-10 flex items-center justify-center text-xl shadow-sm">
+                🏥
+              </span>
+              Medical History
+            </h2>
+            <p className="text-sm text-gray-500 mb-8 ml-14">Any significant illness in the last 5 years?</p>
 
-              return (
-                <div key={memberInfo.id} className="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
-                  <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-300">
-                    <div className="bg-green-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
-                      {memberInfo.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-800">{memberInfo.name}</p>
-                      <p className="text-xs text-gray-600">{memberInfo.relationship}</p>
-                    </div>
-                  </div>
+            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Select applicable members</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {membersList.map(member => (
+                  <MemberCard key={member.id} member={member} isSelected={medicalData.illnessMembers.some(m => m.memberId === member.id)} onToggle={() => toggleMemberInSection('illnessMembers', member.id)} />
+                ))}
+              </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">Height (Feet) <span className="text-red-600">*</span></label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 5"
-                        value={m.heightFeet || ''}
-                        onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'heightFeet', e.target.value)}
-                        className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`hw_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">Height (Inches) <span className="text-red-600">*</span></label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 8"
-                        value={m.heightInches || ''}
-                        onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'heightInches', e.target.value)}
-                        className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`hw_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">Weight (KG) <span className="text-red-600">*</span></label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 70"
-                        value={m.weight || ''}
-                        onChange={(e) => updateMemberData('heightWeightMembers', m.memberId, 'weight', e.target.value)}
-                        className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`hw_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`}
-                      />
-                    </div>
-                  </div>
-                  {formErrors[`hw_${m.memberId}`] && <p className="text-red-600 text-xs mt-2">{formErrors[`hw_${m.memberId}`]}</p>}
+              {medicalData.illnessMembers.length > 0 && (
+                <div className="space-y-4 mt-6 pt-6 border-t border-gray-200 animate-fade-in-up">
+                  {medicalData.illnessMembers.map(m => {
+                    const memberInfo = membersList.find(mb => mb.id === m.memberId);
+                    return (
+                      <div key={m.memberId} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                        <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                          <span className="text-lg">🤒</span>
+                          {memberInfo?.name}
+                        </p>
+                        <textarea 
+                          value={m.description} 
+                          onChange={(e) => updateMemberData('illnessMembers', m.memberId, 'description', e.target.value)} 
+                          placeholder="Describe illness, treatment details, and outcomes..." 
+                          rows="3" 
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:bg-white transition-all ${formErrors[`ill_${m.memberId}`] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:border-emerald-500 focus:ring-emerald-100'}`} 
+                        />
+                        {formErrors[`ill_${m.memberId}`] && <p className="text-red-500 text-xs mt-2 font-medium">{formErrors[`ill_${m.memberId}`]}</p>}
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-            <span className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">2</span>
-            Personal Medical History
-          </h2>
-          <p className="text-sm text-gray-600 mb-6 ml-11">Any significant illness in the last 5 years?</p>
-
-          <p className="text-sm text-gray-600 font-semibold mb-3">Select members:</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-            {membersList.map(member => (
-              <MemberCard key={member.id} member={member} isSelected={medicalData.illnessMembers.some(m => m.memberId === member.id)} onToggle={() => toggleMemberInSection('illnessMembers', member.id)} />
-            ))}
-          </div>
-
-          {medicalData.illnessMembers.length > 0 && (
-            <div className="space-y-4 pt-6 border-t-2 border-gray-200">
-              {medicalData.illnessMembers.map(m => {
-                const memberInfo = membersList.find(mb => mb.id === m.memberId);
-                return (
-                  <div key={m.memberId} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="text-sm font-bold text-gray-800 mb-3">{memberInfo?.name} ({memberInfo?.relationship})</p>
-                    <textarea value={m.description} onChange={(e) => updateMemberData('illnessMembers', m.memberId, 'description', e.target.value)} placeholder="Describe any significant illnesses, treatment details, and outcomes..." rows="3" className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`ill_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`} />
-                    {formErrors[`ill_${m.memberId}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`ill_${m.memberId}`]}</p>}
-                  </div>
-                );
-              })}
+              )}
             </div>
-          )}
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-            <span className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">3</span>
-            Pre-existing Conditions
-          </h2>
-          <p className="text-sm text-gray-600 mb-6 ml-11">Check any conditions affecting member(s)</p>
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+              <span className="bg-emerald-100 rounded-xl w-10 h-10 flex items-center justify-center text-xl shadow-sm">
+                🦠
+              </span>
+              Pre-existing Conditions
+            </h2>
+            <p className="text-sm text-gray-500 mb-8 ml-14">Diabetes, hypertension, asthma, etc.</p>
 
-          <p className="text-sm text-gray-600 font-semibold mb-3">Select members:</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-            {membersList.map(member => (
-              <MemberCard key={member.id} member={member} isSelected={medicalData.conditionsMembers.some(m => m.memberId === member.id)} onToggle={() => toggleMemberInSection('conditionsMembers', member.id)} />
-            ))}
-          </div>
+            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Select applicable members</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {membersList.map(member => (
+                  <MemberCard key={member.id} member={member} isSelected={medicalData.conditionsMembers.some(m => m.memberId === member.id)} onToggle={() => toggleMemberInSection('conditionsMembers', member.id)} />
+                ))}
+              </div>
 
-          {medicalData.conditionsMembers.length > 0 && (
-            <div className="space-y-4 pt-6 border-t-2 border-gray-200">
-              {medicalData.conditionsMembers.map(m => {
-                const memberInfo = membersList.find(mb => mb.id === m.memberId);
-                return (
-                  <div key={m.memberId} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="text-sm font-bold text-gray-800 mb-3">{memberInfo?.name} ({memberInfo?.relationship})</p>
-                    <textarea value={m.description} onChange={(e) => updateMemberData('conditionsMembers', m.memberId, 'description', e.target.value)} placeholder="List pre-existing conditions: diabetes, hypertension, asthma, etc. Include diagnosis date and treatment..." rows="3" className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`cond_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`} />
-                    {formErrors[`cond_${m.memberId}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`cond_${m.memberId}`]}</p>}
-                  </div>
-                );
-              })}
+              {medicalData.conditionsMembers.length > 0 && (
+                <div className="space-y-4 mt-6 pt-6 border-t border-gray-200 animate-fade-in-up">
+                  {medicalData.conditionsMembers.map(m => {
+                    const memberInfo = membersList.find(mb => mb.id === m.memberId);
+                    return (
+                      <div key={m.memberId} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                        <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                          <span className="text-lg">🧪</span>
+                          {memberInfo?.name}
+                        </p>
+                        <textarea 
+                          value={m.description} 
+                          onChange={(e) => updateMemberData('conditionsMembers', m.memberId, 'description', e.target.value)} 
+                          placeholder="List conditions, diagnosis date and treatment..." 
+                          rows="3" 
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:bg-white transition-all ${formErrors[`cond_${m.memberId}`] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:border-emerald-500 focus:ring-emerald-100'}`} 
+                        />
+                        {formErrors[`cond_${m.memberId}`] && <p className="text-red-500 text-xs mt-2 font-medium">{formErrors[`cond_${m.memberId}`]}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-            <span className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">4</span>
-            Lifestyle & Habits
-          </h2>
-          <p className="text-sm text-gray-600 mb-6 ml-11">Smoking, alcohol, exercise, diet information</p>
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+              <span className="bg-emerald-100 rounded-xl w-10 h-10 flex items-center justify-center text-xl shadow-sm">
+                🏃
+              </span>
+              Lifestyle & Habits
+            </h2>
+            <p className="text-sm text-gray-500 mb-8 ml-14">Smoking, alcohol, exercise, diet information</p>
 
-          <p className="text-sm text-gray-600 font-semibold mb-3">Select members:</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-            {membersList.map(member => (
-              <MemberCard key={member.id} member={member} isSelected={medicalData.lifestyleMembers.some(m => m.memberId === member.id)} onToggle={() => toggleMemberInSection('lifestyleMembers', member.id)} />
-            ))}
-          </div>
+            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Select applicable members</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {membersList.map(member => (
+                  <MemberCard key={member.id} member={member} isSelected={medicalData.lifestyleMembers.some(m => m.memberId === member.id)} onToggle={() => toggleMemberInSection('lifestyleMembers', member.id)} />
+                ))}
+              </div>
 
-          {medicalData.lifestyleMembers.length > 0 && (
-            <div className="space-y-4 pt-6 border-t-2 border-gray-200">
-              {medicalData.lifestyleMembers.map(m => {
-                const memberInfo = membersList.find(mb => mb.id === m.memberId);
-                return (
-                  <div key={m.memberId} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="text-sm font-bold text-gray-800 mb-3">{memberInfo?.name} ({memberInfo?.relationship})</p>
-                    <textarea value={m.description} onChange={(e) => updateMemberData('lifestyleMembers', m.memberId, 'description', e.target.value)} placeholder="Describe lifestyle habits: Do you smoke? Alcohol consumption? How often do you exercise? Diet type?..." rows="3" className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${formErrors[`life_${m.memberId}`] ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'}`} />
-                    {formErrors[`life_${m.memberId}`] && <p className="text-red-600 text-xs mt-1">{formErrors[`life_${m.memberId}`]}</p>}
-                  </div>
-                );
-              })}
+              {medicalData.lifestyleMembers.length > 0 && (
+                <div className="space-y-4 mt-6 pt-6 border-t border-gray-200 animate-fade-in-up">
+                  {medicalData.lifestyleMembers.map(m => {
+                    const memberInfo = membersList.find(mb => mb.id === m.memberId);
+                    return (
+                      <div key={m.memberId} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                        <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                          <span className="text-lg">🥗</span>
+                          {memberInfo?.name}
+                        </p>
+                        <textarea 
+                          value={m.description} 
+                          onChange={(e) => updateMemberData('lifestyleMembers', m.memberId, 'description', e.target.value)} 
+                          placeholder="Details on smoking, alcohol, exercise frequency..." 
+                          rows="3" 
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:bg-white transition-all ${formErrors[`life_${m.memberId}`] ? 'border-red-300 focus:ring-red-200' : 'border-gray-200 focus:border-emerald-500 focus:ring-emerald-100'}`} 
+                        />
+                        {formErrors[`life_${m.memberId}`] && <p className="text-red-500 text-xs mt-2 font-medium">{formErrors[`life_${m.memberId}`]}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-            <span className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">5</span>
-            Declarations & Acknowledgments
-          </h2>
-
-          <div className="space-y-4">
-            <label className="flex items-start gap-3 cursor-pointer p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <input type="checkbox" checked={medicalData.acceptDeclaration} onChange={(e) => setMedicalData(prev => ({ ...prev, acceptDeclaration: e.target.checked }))} className="w-4 h-4 mt-1" />
-              <span className="text-sm text-blue-900">I declare that the above information is true, accurate, and complete to the best of my knowledge.</span>
-            </label>
-            {formErrors.acceptDeclaration && <p className="text-red-600 text-xs">{formErrors.acceptDeclaration}</p>}
-
-            <label className="flex items-start gap-3 cursor-pointer p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <input type="checkbox" checked={medicalData.correctnessDeclaration} onChange={(e) => setMedicalData(prev => ({ ...prev, correctnessDeclaration: e.target.checked }))} className="w-4 h-4 mt-1" />
-              <span className="text-sm text-blue-900">I understand that providing false or misleading information may result in claim rejection or policy cancellation.</span>
-            </label>
-            {formErrors.correctnessDeclaration && <p className="text-red-600 text-xs">{formErrors.correctnessDeclaration}</p>}
-          </div>
-
-          <div className="mt-4 bg-amber-50 border-l-4 border-amber-500 p-3 rounded">
-            <p className="text-xs text-amber-800 font-medium">⚠️ Your responses will be reviewed by our medical underwriting team. Additional medical tests may be required.</p>
           </div>
         </div>
 
-        <div className="max-w-2xl mx-auto mb-10 space-y-3">
-          <button onClick={handleSubmit} className="w-full py-5 bg-linear-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-[0.98] shadow-green-500/30">
-            Proceed to Payment method →
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+              <span className="bg-emerald-100 rounded-xl w-10 h-10 flex items-center justify-center text-xl shadow-sm">
+                ✍️
+              </span>
+              Declarations
+            </h2>
+
+            <div className="space-y-4">
+              <label className={`flex items-start gap-4 cursor-pointer p-5 rounded-xl border transition-all ${medicalData.acceptDeclaration ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-gray-50 border-gray-200 hover:bg-white'}`}>
+                <div className="relative flex items-center">
+                   <span className="text-xl">{medicalData.acceptDeclaration ? '☑️' : '⬜'}</span>
+                   <input type="checkbox" checked={medicalData.acceptDeclaration} onChange={(e) => setMedicalData(prev => ({ ...prev, acceptDeclaration: e.target.checked }))} className="hidden" />
+                </div>
+                <span className="text-sm text-gray-700 leading-relaxed mt-1">I declare that the above information is true, accurate, and complete to the best of my knowledge.</span>
+              </label>
+              {formErrors.acceptDeclaration && <p className="text-red-500 text-xs ml-2 font-medium">{formErrors.acceptDeclaration}</p>}
+
+              <label className={`flex items-start gap-4 cursor-pointer p-5 rounded-xl border transition-all ${medicalData.correctnessDeclaration ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-gray-50 border-gray-200 hover:bg-white'}`}>
+                <div className="relative flex items-center">
+                  <span className="text-xl">{medicalData.correctnessDeclaration ? '☑️' : '⬜'}</span>
+                  <input type="checkbox" checked={medicalData.correctnessDeclaration} onChange={(e) => setMedicalData(prev => ({ ...prev, correctnessDeclaration: e.target.checked }))} className="hidden" />
+                </div>
+                <span className="text-sm text-gray-700 leading-relaxed mt-1">I understand that providing false or misleading information may result in claim rejection or policy cancellation.</span>
+              </label>
+              {formErrors.correctnessDeclaration && <p className="text-red-500 text-xs ml-2 font-medium">{formErrors.correctnessDeclaration}</p>}
+            </div>
+
+            <div className="mt-6 bg-amber-50 border border-amber-100 p-4 rounded-xl flex gap-3 items-start">
+               <span className="text-xl mt-0.5">⚠️</span>
+               <p className="text-xs text-amber-800 font-medium leading-relaxed pt-1">Your responses will be reviewed by our medical underwriting team. Additional medical tests may be required based on the disclosures.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4 pb-8">
+          <button onClick={() => navigate(-1)} className="group flex items-center justify-center gap-2 py-4 px-6 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm hover:shadow-md order-2 md:order-1">
+            ⬅️ Go Back
           </button>
-          <button onClick={() => navigate(-1)} className="w-full py-3 bg-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-300 transition-all">
-            Go Back
+          <button onClick={handleSubmit} className="group relative flex items-center justify-center gap-2 py-4 px-6 bg-emerald-600 text-white rounded-xl font-bold overflow-hidden shadow-lg shadow-emerald-500/30 transition-all hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] order-1 md:order-2">
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
+            <span>Proceed to Payment</span>
+            ➡️
           </button>
         </div>
       </div>
+
+      <style>{`
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 1.5s infinite;
+        }
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out forwards;
+        }
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.6s ease-out 0.2s forwards;
+          opacity: 0;
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+          20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+        .animate-shake {
+          animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+      `}</style>
     </div>
   );
 };
