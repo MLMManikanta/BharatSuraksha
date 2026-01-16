@@ -14,6 +14,7 @@ import PlanReviewPage from "./components/pages/Plans/PlanReviewPages/PlanReviewP
 import KYCPage from "./components/pages/KYCPage";
 import MedicalInformationPage from "./components/pages/MedicalInformationPage";
 import BankInformationPage from "./components/pages/BankInformationPage";
+import PaymentFrequencyPage from "./components/pages/PaymentFrequencyPage";
 import OrderSummaryPage from "./components/pages/OrderSummaryPage";
 import PaymentPage from "./components/pages/PaymentPage";
 import PaymentSuccessPage from "./components/pages/PaymentSuccessPage";
@@ -50,6 +51,8 @@ function App() {
 
         {/* Step 6: Pay & Bank Details (Merged) */}
         <Route path="/bankinfo" element={ <Layout> <BankInformationPage /> </Layout> } />
+
+        <Route path="/payment-frequency" element={ <Layout> <PaymentFrequencyPage /> </Layout> } />
 
         {/* Step 7: Order Summary */}
         <Route path="/order-summary" element={ <Layout> <OrderSummaryPage /> </Layout> } />
