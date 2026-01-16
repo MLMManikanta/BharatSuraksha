@@ -8,6 +8,9 @@ import Aboutus from "./components/pages/Aboutus";
 import ContactUs from "./components/pages/ContactUs";
 import PlanDetails from "./components/pages/Plans/PlanDetails"; 
 
+// Import the 404 Page
+import NotFoundPage from './NotFoundPage';
+
 import PlanPreExistingSelection from "./components/pages/Plans/PlanPreExistingSelection";
 import CustomizeHealthPage from "./components/pages/Plans/SubPlans/CustomizeHealthPage.jsx"; 
 import PlanReviewPage from "./components/pages/Plans/PlanReviewPages/PlanReviewPage.jsx";
@@ -66,8 +69,8 @@ function App() {
         <Route path="/contact" element={ <Layout> <ContactUs /> </Layout> } />
 
         {/* --- ERROR CATCHING --- */}
-        {/* Redirects any invalid URL back to Home */}
-        <Route path="*" element={<Layout><Home /></Layout>} />
+        {/* Shows the custom 404 page for any undefined URL */}
+        <Route path="*" element={<Layout><NotFoundPage /></Layout>} />
       </Routes>
     </BrowserRouter>
   );
