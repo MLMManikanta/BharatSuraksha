@@ -251,5 +251,4 @@ const PaymentFrequencyPage = () => {
     </div>
   );
 };
-
 export default PaymentFrequencyPage;
