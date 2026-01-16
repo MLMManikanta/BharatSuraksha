@@ -1,81 +1,160 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ identifier: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false);
+      navigate('/'); // Redirect to Home or Dashboard after login
+    }, 1500);
+  };
+
   return (
-    <>
-   
-  <div className="min-h-screen flex items-center justify-center px-4">
-    <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden border border-[#B8D2FF] transition-transform duration-500 md:hover:-translate-y-1 md:hover:shadow-2xl card-enter">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-[#E8F1FF] via-[#F0F6FF] to-[#E8F1FF] font-sans">
+      
+      <div className="w-full max-w-5xl bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-blue-100 transition-all duration-500 animate-in fade-in zoom-in duration-500">
+        <div className="grid md:grid-cols-2 min-h-[600px]">
 
-      <div className="grid md:grid-cols-2">
+          {/* Left Side - Brand Visual */}
+          <div className="hidden md:flex bg-gradient-to-br from-[#1A5EDB] to-[#0F4BA8] text-white px-10 py-12 flex-col justify-center items-center relative overflow-hidden">
+            {/* Background Decorations */}
+            <div className="absolute top-[-20%] left-[-20%] w-80 h-80 bg-white opacity-10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-[-20%] right-[-20%] w-80 h-80 bg-blue-300 opacity-10 rounded-full blur-3xl"></div>
 
-
-        <div className="hidden md:flex bg-linear-to-b from-[#0F52D9] via-[#1A5EDB] to-[#4A8DFF] text-white px-10 py-12 flex-col bg-animate justify-center items-center">
-
-          <div className="flex flex-col gap-6 justify-center items-center">
-            <img src="/images/Logo-circle.png" className="w-100" alt="Logo" />
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-wide text-center">Bharat Suraksha</h1>
-              <p className="mt-3 text-sm leading-relaxed text-blue-100 text-center">Your trusted partner for comprehensive<br />insurance protection and peace of mind.</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="px-6 sm:px-8 md:px-12 py-8 md:py-10 bg-white">
-          <div className="flex items-center gap-3 mb-6 md:hidden">
-            <div className="w-12 h-12 rounded-full bg-linear-to-br from-[#0F52D9] to-[#4A8DFF] flex items-center justify-center float-icon">
-              <img src="/images/Logo-circle.png" className="w-7" alt="Logo"/>
-            </div>
-            <div>
-              <p className="text-xs text-[#4B5D9A] font-medium tracking-wide">Welcome to</p>
-              <h1 className="text-xl font-bold text-[#123C8A] leading-tight">Bharat Suraksha</h1>
+            <div className="relative z-10 flex flex-col gap-6 justify-center items-center text-center">
+              <div className="p-6 bg-white/10 backdrop-blur-md rounded-full shadow-lg border border-white/20">
+                <img src="/images/Logo-circle.png" className="w-32 h-auto drop-shadow-xl" alt="Bharat Suraksha Logo" />
+              </div>
+              <div>
+                <h1 className="text-3xl lg:text-4xl font-black tracking-tight mb-2 drop-shadow-md">Bharat Suraksha</h1>
+                <p className="text-blue-100 text-lg font-medium max-w-xs mx-auto leading-relaxed">
+                  Your trusted partner for comprehensive insurance protection.
+                </p>
+              </div>
             </div>
           </div>
 
-          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-[#123C8A]">Login to access your dashboard</h2>
-
-          <form className="mt-6 sm:mt-8 space-y-5 sm:space-y-6">
-
-           
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-[#184A9E]">Email or Mobile Number <span className="text-red-500">*</span></label>
-              <input type="text" placeholder="Enter your email or 10-digit mobile" className="mt-1 w-full rounded-lg border border-[#C8D8FF] bg-[#F6F8FF] px-3 sm:px-4 py-2.5 sm:py-3 text-sm outline-none focus:ring-2 focus:ring-[#1A5EDB] focus:border-[#1A5EDB] transition-all duration-200" />
-            </div>
-
-       
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-[#184A9E]">Password <span className="text-red-500">*</span></label>
-
-              <div className="relative mt-1">
-                <input type="password" placeholder="Enter your password" className="w-full rounded-lg border border-[#C8D8FF] bg-[#F6F8FF] px-3 sm:px-4 py-2.5 sm:py-3 text-sm pr-12 outline-none focus:ring-2 focus:ring-[#1A5EDB] focus:border-[#1A5EDB] transition-all duration-200" />
-
-                <button type="button" className="absolute inset-y-0 right-3 flex items-center text-xs text-[#5278CC] hover:text-[#2449A3] transition-colors duration-150">Show</button>
+          {/* Right Side - Login Form */}
+          <div className="px-6 sm:px-10 md:px-16 py-12 bg-white flex flex-col justify-center">
+            
+            {/* Mobile Brand Header */}
+            <div className="flex md:hidden items-center gap-3 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
+                <img src="/images/Logo-circle.png" className="w-8 brightness-200" alt="Logo"/>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Welcome to</p>
+                <h1 className="text-xl font-black text-slate-800">Bharat Suraksha</h1>
               </div>
             </div>
 
-            <div className="flex items-center justify-end">
-              <Link to="#" className="text-xs font-medium text-[#1A5EDB] hover:text-[#0F3C9F] transition-colors duration-150 underline">Forgot Password?</Link>
+            <div className="mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">Welcome Back! 👋</h2>
+              <p className="text-slate-500 text-sm">Please login to access your dashboard.</p>
             </div>
 
-          
-            <div className="space-y-3 pt-1 sm:pt-2">
-              <button type="submit" className="w-full rounded-lg bg-[#1A5EDB] hover:bg-[#0F52D9] text-white font-semibold py-2.5 sm:py-3 text-sm shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">Login Securely</button>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Email or Mobile <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  name="identifier"
+                  value={formData.identifier}
+                  onChange={handleChange}
+                  placeholder="name@example.com" 
+                  className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                  required 
+                />
+              </div>
 
-              <button type="button" className="w-full rounded-lg border border-[#1A5EDB] text-[#1A5EDB] hover:bg-[#E3EEFF] font-semibold py-2.5 sm:py-3 text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm">Login with OTP</button>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Enter password" 
+                    className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium pr-14 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                    required
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 px-4 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-wide"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                  <span className="text-sm text-slate-500 font-medium">Remember me</span>
+                </label>
+                <Link to="#" className="text-sm font-bold text-blue-600 hover:text-blue-800 hover:underline">
+                  Forgot Password?
+                </Link>
+              </div>
+
+              <div className="space-y-3 pt-4">
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className={`w-full rounded-xl bg-[#1A5EDB] hover:bg-[#0F4BA8] text-white font-bold py-3.5 shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${loading ? 'opacity-80 cursor-wait' : ''}`}
+                >
+                  {loading ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                      Logging In...
+                    </>
+                  ) : (
+                    "Login Securely"
+                  )}
+                </button>
+
+                <button 
+                  type="button" 
+                  className="w-full rounded-xl border-2 border-slate-200 text-slate-600 font-bold py-3.5 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-[0.98]"
+                >
+                  Login with OTP
+                </button>
+              </div>
+            </form>
+
+            <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+              <p className="text-sm text-slate-500 mb-2">New to Bharat Suraksha?</p>
+              <Link 
+                to="/plans" 
+                className="inline-flex items-center gap-2 text-blue-600 font-black text-lg hover:text-blue-800 transition-colors group"
+              >
+                Get a Quote <span className="group-hover:translate-x-1 transition-transform">→</span>
+              </Link>
             </div>
-          </form>
-
-          <div className="mt-6 sm:mt-8 text-center text-sm text-[#000000] ">
-            <p>Insure yourself and family</p>
-            <Link to="#" className="font-semibold text-[#1A5EDB] hover:text-[#0F3C9F] transition-colors duration-150 text-lg underline">Get Quote and secure </Link>
           </div>
-        </div>
 
+        </div>
       </div>
     </div>
-  </div>
-    </>
-  )
+  );
 }
 
-export default Login
+export default Login;
