@@ -96,6 +96,11 @@ function App() {
             <Layout> <RaiseClaim /> </Layout>
           /* </ProtectedRoute> */
         } />
+        <Route path="/claims/raise-claim/:dependentId" element={
+          /* <ProtectedRoute> */
+            <Layout> <RaiseClaim /> </Layout>
+          /* </ProtectedRoute> */
+        } />
         <Route path="/claims/raise-new" element={<Navigate to="/claims/raise-claim" replace />} />
 
         {/* --- UTILITIES --- */}

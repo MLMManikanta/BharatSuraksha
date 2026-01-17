@@ -88,6 +88,8 @@ const login = async (req, res) => {
     return res.status(200).json({
       jwtToken: token,
       userId: user._id,
+      email: user.email,
+      role: user.role,
       userData: {
         email: user.email,
         mobileNumber: user.mobileNumber,

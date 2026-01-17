@@ -29,6 +29,10 @@ const claimSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    dependentName: {
+      type: String,
+      trim: true,
+    },
     dayCare: {
       type: String,
       required: true,

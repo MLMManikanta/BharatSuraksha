@@ -2,20 +2,35 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../../utils/api";
 
-const CLAIM_CYCLES = [
-  { id: "2025-26", label: "Policy Year 2025-26", window: "1 Apr 2025 - 31 Mar 2026" },
-  { id: "2024-25", label: "Policy Year 2024-25", window: "1 Apr 2024 - 31 Mar 2025" },
-];
+const getDateOnly = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString().slice(0, 10);
+};
+
+const DEPENDENT_NAME_MAP = {
+  DEP001: "Priya Sharma",
+  DEP002: "Aarav Sharma",
+  DEP003: "Meera Sharma",
+};
 
 const formatClaim = (claim) => ({
   id: claim._id,
-  name: claim.dependentId || "Policyholder",
+  displayId: claim.dependentId || claim._id,
+  name:
+    claim.dependentName ||
+    (claim.dependentId ? DEPENDENT_NAME_MAP[claim.dependentId] : "") ||
+    claim.dependentId ||
+    "Policyholder",
+  claimType: claim.claimType || "",
   claimedAmount: claim.claimedAmount,
   amountPaid: 0,
   raisedOn: claim.createdAt,
   remarks: claim.remarks || "",
   status: claim.status || "Pending",
   claimCycle: claim.claimCycle,
+  raw: claim,
 });
 
 const STATUS_CLASSES = {
@@ -31,40 +46,43 @@ const CANCELLABLE_STATUSES = ["Pending", "In Progress"];
 const MyClaims = () => {
   const navigate = useNavigate();
 
-  const [cycle, setCycle] = useState(CLAIM_CYCLES[0].id);
   const [claimId, setClaimId] = useState("");
   const [raisedOn, setRaisedOn] = useState("");
   const [status, setStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [claimsByCycle, setClaimsByCycle] = useState({});
+  const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const selectedCycle = useMemo(
-    () => CLAIM_CYCLES.find((c) => c.id === cycle) || CLAIM_CYCLES[0],
-    [cycle]
-  );
-
-  const baseClaims = useMemo(() => claimsByCycle[cycle] || [], [claimsByCycle, cycle]);
+  const baseClaims = useMemo(() => claims || [], [claims]);
 
   useEffect(() => {
     let isMounted = true;
     const loadClaims = async () => {
       try {
         const claims = await api.get("/api/claims", { auth: true });
-        const grouped = claims.reduce((acc, claim) => {
-          const formatted = formatClaim(claim);
-          const key = formatted.claimCycle || CLAIM_CYCLES[0].id;
-          if (!acc[key]) acc[key] = [];
-          acc[key].push(formatted);
-          return acc;
-        }, {});
+        const formattedClaims = claims.map(formatClaim);
+        const dedupedClaims = Object.values(
+          formattedClaims.reduce((acc, claim) => {
+            const key = claim.displayId;
+            if (!acc[key]) {
+              acc[key] = claim;
+              return acc;
+            }
+            const currentDate = new Date(acc[key].raisedOn || 0);
+            const nextDate = new Date(claim.raisedOn || 0);
+            if (nextDate > currentDate) {
+              acc[key] = claim;
+            }
+            return acc;
+          }, {})
+        );
         if (isMounted) {
-          setClaimsByCycle(grouped);
+          setClaims(dedupedClaims);
         }
       } catch (error) {
         if (isMounted) {
-          setClaimsByCycle({});
+          setClaims([]);
         }
       } finally {
         if (isMounted) {
@@ -82,7 +100,7 @@ const MyClaims = () => {
   const filteredClaims = useMemo(() => {
     return baseClaims.filter((claim) => {
       const matchesClaimId = !claimId || claim.id.toLowerCase().includes(claimId.toLowerCase());
-      const matchesDate = !raisedOn || claim.raisedOn === raisedOn;
+      const matchesDate = !raisedOn || getDateOnly(claim.raisedOn) === raisedOn;
       const matchesStatus = !status || claim.status === status;
       return matchesClaimId && matchesDate && matchesStatus;
     });
@@ -100,6 +118,24 @@ const MyClaims = () => {
     setRaisedOn("");
     setStatus("");
     setCurrentPage(1);
+  };
+
+  const handleEdit = (claim) => {
+    navigate(`/claims/raise-claim/${claim.displayId}?id=${claim.id}`, {
+      state: { mode: "edit", claim: claim.raw },
+    });
+  };
+
+  const handleCancel = async (claim) => {
+    if (!canCancelClaim(claim.status)) return;
+    try {
+      const updated = await api.patch(`/api/claims/${claim.id}/cancel`, {}, { auth: true });
+      setClaims((prev) =>
+        prev.map((c) => (c.id === claim.id ? { ...c, status: updated.status } : c))
+      );
+    } catch (error) {
+      // keep silent for now
+    }
   };
 
   const canEditClaim = (claimStatus) => EDITABLE_STATUSES.includes(claimStatus);
@@ -158,35 +194,6 @@ const MyClaims = () => {
             </Link>
           </nav>
         </div>
-
-        <section className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="w-full sm:w-1/2">
-              <label htmlFor="cycle" className="block text-sm font-semibold text-slate-700 mb-2">
-                Claim Cycle
-              </label>
-              <select
-                id="cycle"
-                value={cycle}
-                onChange={(e) => {
-                  setCycle(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 shadow-inner bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              >
-                {CLAIM_CYCLES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="text-sm text-slate-700">
-              <p>Selected cycle: <span className="font-semibold text-slate-900">{selectedCycle.label}</span></p>
-              <p className="text-slate-500">{selectedCycle.window}</p>
-            </div>
-          </div>
-        </section>
 
         <section className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">🔎 Filters</h2>
@@ -251,6 +258,7 @@ const MyClaims = () => {
                 <tr role="row">
                   <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Claim ID</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Name</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Claim Type</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Claimed Amount</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Amount Paid</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Raised On</th>
@@ -271,14 +279,15 @@ const MyClaims = () => {
                     <tr key={claim.id} className="hover:bg-slate-50" role="row">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-700">
                         <button
-                          onClick={() => navigate(`/claims/details/${claim.id}`)}
+                          onClick={() => handleEdit(claim)}
                           className="hover:underline"
-                          aria-label={`View details for claim ${claim.id}`}
+                          aria-label={`Edit claim ${claim.id}`}
                         >
-                          {claim.id}
+                          {claim.displayId}
                         </button>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{claim.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{claim.claimType || "-"}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">₹{claim.claimedAmount.toLocaleString("en-IN")}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{claim.amountPaid ? `₹${claim.amountPaid.toLocaleString("en-IN")}` : "-"}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{new Date(claim.raisedOn).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" })}</td>
@@ -294,14 +303,8 @@ const MyClaims = () => {
                         ) : (
                           <div className="flex items-center gap-4 text-sm font-semibold">
                             <button
-                              disabled={!canEditClaim(claim.status)}
-                              className={`text-blue-700 hover:underline focus:outline-none disabled:text-slate-300 disabled:cursor-not-allowed`}
-                              aria-label={`Edit claim ${claim.id}`}
-                            >
-                              Edit
-                            </button>
-                            <button
                               disabled={!canCancelClaim(claim.status)}
+                              onClick={() => handleCancel(claim)}
                               className={`text-rose-700 hover:underline focus:outline-none disabled:text-slate-300 disabled:cursor-not-allowed`}
                               aria-label={`Cancel claim ${claim.id}`}
                             >
@@ -334,12 +337,13 @@ const MyClaims = () => {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <button
-                        onClick={() => navigate(`/claims/details/${claim.id}`)}
+                        onClick={() => handleEdit(claim)}
                         className="text-sm font-bold text-blue-700 hover:underline"
                       >
-                        {claim.id}
+                        {claim.displayId}
                       </button>
                       <p className="text-sm text-slate-900 font-semibold">{claim.name}</p>
+                      <p className="text-xs text-slate-600">{claim.claimType || "-"}</p>
                       <p className="text-xs text-slate-600">Raised on {new Date(claim.raisedOn).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusClass(claim.status)}`}>
@@ -364,20 +368,13 @@ const MyClaims = () => {
                     {isFinalStatus(claim.status) ? (
                       <span className="text-slate-400">No actions</span>
                     ) : (
-                      <>
-                        <button
-                          disabled={!canEditClaim(claim.status)}
-                          className={`text-blue-700 hover:underline focus:outline-none disabled:text-slate-300 disabled:cursor-not-allowed`}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          disabled={!canCancelClaim(claim.status)}
-                          className={`text-rose-700 hover:underline focus:outline-none disabled:text-slate-300 disabled:cursor-not-allowed`}
-                        >
-                          Cancel
-                        </button>
-                      </>
+                      <button
+                        disabled={!canCancelClaim(claim.status)}
+                        onClick={() => handleCancel(claim)}
+                        className={`text-rose-700 hover:underline focus:outline-none disabled:text-slate-300 disabled:cursor-not-allowed`}
+                      >
+                        Cancel
+                      </button>
                     )}
                   </div>
                 </div>

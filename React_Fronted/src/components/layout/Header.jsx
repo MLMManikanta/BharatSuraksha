@@ -160,11 +160,13 @@ function Header() {
                 </Link>
               )}
 
-              <button className="px-6 py-2 rounded-xl bg-[#1A5EDB]
-                                 text-white font-semibold
-                                 hover:bg-[#0F4BA8] shadow-md transition">
-                Get Quote
-              </button>
+              {!isAuthenticated && (
+                <button className="px-6 py-2 rounded-xl bg-[#1A5EDB]
+                                   text-white font-semibold
+                                   hover:bg-[#0F4BA8] shadow-md transition">
+                  Get Quote
+                </button>
+              )}
             </div>
 
             {/* MOBILE MENU BUTTON */}
@@ -224,10 +226,12 @@ function Header() {
                   </button>
                 )}
 
-                <button className="w-full py-3 rounded-xl
-                                   bg-[#1A5EDB] text-white font-semibold">
-                  Get Quote
-                </button>
+                {!isAuthenticated && (
+                  <button className="w-full py-3 rounded-xl
+                                     bg-[#1A5EDB] text-white font-semibold">
+                    Get Quote
+                  </button>
+                )}
               </div>
             </div>
           )}

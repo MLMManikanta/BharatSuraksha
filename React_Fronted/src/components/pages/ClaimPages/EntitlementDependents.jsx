@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { api } from "../../../utils/api";
 
 const CLAIMS_DEDUCTIBLE_STATUSES = ["Completed", "Approved", "Pending", "In Progress"];
 
@@ -12,32 +13,41 @@ function EntitlementDependents() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setEntitlement({
-        policyNumber: "POL-VAJRA-2026-0001",
-        coverageLimit: 1_000_000,
-        validityFrom: "2026-01-01",
-        validityTo: "2026-12-31",
-      });
+    let isMounted = true;
+    const loadEntitlement = async () => {
+      try {
+        const apiClaims = await api.get("/api/claims", { auth: true });
+        if (!isMounted) return;
+        setEntitlement({
+          policyNumber: "POL-VAJRA-2026-0001",
+          coverageLimit: 1_000_000,
+          validityFrom: "2026-01-01",
+          validityTo: "2026-12-31",
+        });
+        setClaims(apiClaims || []);
+        setDependents([
+          { id: "DEP001", name: "Priya Sharma", relationship: "Spouse", age: 34, status: "Active" },
+          { id: "DEP002", name: "Aarav Sharma", relationship: "Son", age: 8, status: "Active" },
+          { id: "DEP003", name: "Meera Sharma", relationship: "Mother", age: 62, status: "Inactive" },
+        ]);
+      } catch (error) {
+        if (!isMounted) return;
+        setClaims([]);
+        setEntitlement({
+          policyNumber: "POL-VAJRA-2026-0001",
+          coverageLimit: 1_000_000,
+          validityFrom: "2026-01-01",
+          validityTo: "2026-12-31",
+        });
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
 
-      setClaims([
-        { id: "CLM001", claimedAmount: 50_000, status: "Completed" },
-        { id: "CLM002", claimedAmount: 30_000, status: "Pending" },
-        { id: "CLM003", claimedAmount: 75_000, status: "In Progress" },
-        { id: "CLM004", claimedAmount: 20_000, status: "Cancelled" },
-        { id: "CLM005", claimedAmount: 100_000, status: "Completed" },
-      ]);
-
-      setDependents([
-        { id: "DEP001", name: "Priya Sharma", relationship: "Spouse", age: 34, status: "Active" },
-        { id: "DEP002", name: "Aarav Sharma", relationship: "Son", age: 8, status: "Active" },
-        { id: "DEP003", name: "Meera Sharma", relationship: "Mother", age: 62, status: "Inactive" },
-      ]);
-
-      setLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
+    loadEntitlement();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const totalDeducted = useMemo(() => {
