@@ -1,25 +1,22 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { api } from "../../../utils/api";
 
 const CLAIM_CYCLES = [
   { id: "2025-26", label: "Policy Year 2025-26", window: "1 Apr 2025 - 31 Mar 2026" },
   { id: "2024-25", label: "Policy Year 2024-25", window: "1 Apr 2024 - 31 Mar 2025" },
 ];
 
-const CLAIMS_BY_CYCLE = {
-  "2025-26": [
-    { id: "CLM001", name: "Rajesh Kumar", claimedAmount: 50000, amountPaid: 45000, raisedOn: "2026-01-10", remarks: "Pre-authorization approved", status: "Completed" },
-    { id: "CLM002", name: "Priya Sharma", claimedAmount: 30000, amountPaid: 0, raisedOn: "2026-01-15", remarks: "Under review", status: "Pending" },
-    { id: "CLM003", name: "Amit Patel", claimedAmount: 75000, amountPaid: 0, raisedOn: "2026-01-12", remarks: "Documents incomplete", status: "In Progress" },
-    { id: "CLM004", name: "Sunita Reddy", claimedAmount: 20000, amountPaid: 0, raisedOn: "2026-01-08", remarks: "Policy conditions not met", status: "Cancelled" },
-    { id: "CLM005", name: "Vikram Singh", claimedAmount: 100000, amountPaid: 95000, raisedOn: "2026-01-05", remarks: "Partial payment processed", status: "Completed" },
-    { id: "CLM006", name: "Neha Verma", claimedAmount: 45000, amountPaid: 0, raisedOn: "2026-01-18", remarks: "Awaiting discharge summary", status: "In Progress" },
-  ],
-  "2024-25": [
-    { id: "CLM091", name: "Rahul Iyer", claimedAmount: 38000, amountPaid: 38000, raisedOn: "2025-02-14", remarks: "Settled", status: "Completed" },
-    { id: "CLM092", name: "Deepa Nair", claimedAmount: 62000, amountPaid: 0, raisedOn: "2025-03-02", remarks: "Query raised for bills", status: "Pending" },
-  ],
-};
+const formatClaim = (claim) => ({
+  id: claim._id,
+  name: claim.dependentId || "Policyholder",
+  claimedAmount: claim.claimedAmount,
+  amountPaid: 0,
+  raisedOn: claim.createdAt,
+  remarks: claim.remarks || "",
+  status: claim.status || "Pending",
+  claimCycle: claim.claimCycle,
+});
 
 const STATUS_CLASSES = {
   Completed: "bg-emerald-50 text-emerald-700",
@@ -27,6 +24,9 @@ const STATUS_CLASSES = {
   "In Progress": "bg-blue-50 text-blue-700",
   Cancelled: "bg-rose-50 text-rose-700",
 };
+
+const EDITABLE_STATUSES = ["Pending", "In Progress"];
+const CANCELLABLE_STATUSES = ["Pending", "In Progress"];
 
 const MyClaims = () => {
   const navigate = useNavigate();
@@ -37,13 +37,47 @@ const MyClaims = () => {
   const [status, setStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [claimsByCycle, setClaimsByCycle] = useState({});
+  const [loading, setLoading] = useState(true);
 
   const selectedCycle = useMemo(
     () => CLAIM_CYCLES.find((c) => c.id === cycle) || CLAIM_CYCLES[0],
     [cycle]
   );
 
-  const baseClaims = useMemo(() => CLAIMS_BY_CYCLE[cycle] || [], [cycle]);
+  const baseClaims = useMemo(() => claimsByCycle[cycle] || [], [claimsByCycle, cycle]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadClaims = async () => {
+      try {
+        const claims = await api.get("/api/claims", { auth: true });
+        const grouped = claims.reduce((acc, claim) => {
+          const formatted = formatClaim(claim);
+          const key = formatted.claimCycle || CLAIM_CYCLES[0].id;
+          if (!acc[key]) acc[key] = [];
+          acc[key].push(formatted);
+          return acc;
+        }, {});
+        if (isMounted) {
+          setClaimsByCycle(grouped);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setClaimsByCycle({});
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadClaims();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filteredClaims = useMemo(() => {
     return baseClaims.filter((claim) => {
@@ -68,11 +102,11 @@ const MyClaims = () => {
     setCurrentPage(1);
   };
 
-  const isActionDisabled = (claimStatus) => claimStatus === "Cancelled" || claimStatus === "Completed";
+  const canEditClaim = (claimStatus) => EDITABLE_STATUSES.includes(claimStatus);
+  const canCancelClaim = (claimStatus) => CANCELLABLE_STATUSES.includes(claimStatus);
+  const isFinalStatus = (claimStatus) => claimStatus === "Cancelled" || claimStatus === "Completed";
 
   const getStatusClass = (claimStatus) => STATUS_CLASSES[claimStatus] || "bg-slate-100 text-slate-700";
-
-  const handlePrint = () => window.print();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -226,7 +260,13 @@ const MyClaims = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white" role="rowgroup">
-                {currentClaims.length > 0 ? (
+                      {loading ? (
+                        <tr role="row">
+                          <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
+                            <div className="text-2xl font-semibold">Loading claims…</div>
+                          </td>
+                        </tr>
+                      ) : currentClaims.length > 0 ? (
                   currentClaims.map((claim) => (
                     <tr key={claim.id} className="hover:bg-slate-50" role="row">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-700">
@@ -249,37 +289,26 @@ const MyClaims = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <button
-                            disabled={isActionDisabled(claim.status)}
-                            className={`p-2 rounded-lg ${
-                              isActionDisabled(claim.status)
-                                ? "text-slate-300 cursor-not-allowed"
-                                : "text-blue-700 hover:bg-blue-50"
-                            }`}
-                            aria-label={`Edit claim ${claim.id}`}
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            disabled={isActionDisabled(claim.status)}
-                            className={`p-2 rounded-lg ${
-                              isActionDisabled(claim.status)
-                                ? "text-slate-300 cursor-not-allowed"
-                                : "text-rose-700 hover:bg-rose-50"
-                            }`}
-                            aria-label={`Cancel claim ${claim.id}`}
-                          >
-                            ❌
-                          </button>
-                          <button
-                            onClick={handlePrint}
-                            className="p-2 rounded-lg text-emerald-700 hover:bg-emerald-50"
-                            aria-label={`Print claim ${claim.id}`}
-                          >
-                            🖨️
-                          </button>
-                        </div>
+                        {isFinalStatus(claim.status) ? (
+                          <span className="text-sm text-slate-400">No actions</span>
+                        ) : (
+                          <div className="flex items-center gap-4 text-sm font-semibold">
+                            <button
+                              disabled={!canEditClaim(claim.status)}
+                              className={`text-blue-700 hover:underline focus:outline-none disabled:text-slate-300 disabled:cursor-not-allowed`}
+                              aria-label={`Edit claim ${claim.id}`}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              disabled={!canCancelClaim(claim.status)}
+                              className={`text-rose-700 hover:underline focus:outline-none disabled:text-slate-300 disabled:cursor-not-allowed`}
+                              aria-label={`Cancel claim ${claim.id}`}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -297,7 +326,9 @@ const MyClaims = () => {
           </div>
 
           <div className="md:hidden p-4 space-y-3 bg-white">
-            {currentClaims.length > 0 ? (
+            {loading ? (
+              <div className="text-center text-slate-500 text-sm">Loading claims…</div>
+            ) : currentClaims.length > 0 ? (
               currentClaims.map((claim) => (
                 <div key={claim.id} className="border border-slate-200 rounded-xl p-4 shadow-sm bg-slate-50">
                   <div className="flex items-start justify-between gap-3">
@@ -329,30 +360,25 @@ const MyClaims = () => {
                       <p className="font-semibold text-slate-800">{claim.remarks}</p>
                     </div>
                   </div>
-                  <div className="mt-3 flex items-center gap-2">
-                    <button
-                      disabled={isActionDisabled(claim.status)}
-                      className={`px-3 py-2 rounded-lg text-sm ${
-                        isActionDisabled(claim.status)
-                          ? "text-slate-300 bg-slate-100 cursor-not-allowed"
-                          : "text-blue-700 bg-blue-50"
-                      }`}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      disabled={isActionDisabled(claim.status)}
-                      className={`px-3 py-2 rounded-lg text-sm ${
-                        isActionDisabled(claim.status)
-                          ? "text-slate-300 bg-slate-100 cursor-not-allowed"
-                          : "text-rose-700 bg-rose-50"
-                      }`}
-                    >
-                      Cancel
-                    </button>
-                    <button onClick={handlePrint} className="px-3 py-2 rounded-lg text-sm text-emerald-700 bg-emerald-50">
-                      Print
-                    </button>
+                  <div className="mt-3 flex items-center gap-3 text-sm font-semibold">
+                    {isFinalStatus(claim.status) ? (
+                      <span className="text-slate-400">No actions</span>
+                    ) : (
+                      <>
+                        <button
+                          disabled={!canEditClaim(claim.status)}
+                          className={`text-blue-700 hover:underline focus:outline-none disabled:text-slate-300 disabled:cursor-not-allowed`}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          disabled={!canCancelClaim(claim.status)}
+                          className={`text-rose-700 hover:underline focus:outline-none disabled:text-slate-300 disabled:cursor-not-allowed`}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))

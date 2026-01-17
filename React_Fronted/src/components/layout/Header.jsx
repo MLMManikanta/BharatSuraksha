@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 // Define links outside component to keep code DRY
 const NAV_LINKS = [
@@ -12,6 +13,7 @@ const NAV_LINKS = [
 ];
 
 function Header() {
+  const { isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
@@ -174,6 +176,13 @@ function Header() {
     ? "" 
     : "animate-in fade-in slide-in-from-top-4 duration-500";
 
+  const visibleLinks = NAV_LINKS.filter((link) => {
+    if (link.path.startsWith("/claims") || link.path.startsWith("/utilities")) {
+      return isAuthenticated;
+    }
+    return true;
+  });
+
   return (
     <header 
       className={`w-full bg-white sticky top-0 z-50 font-sans transition-shadow duration-300 overflow-visible ${
@@ -269,7 +278,7 @@ function Header() {
           className="hidden md:flex items-center gap-2 lg:gap-4 text-base lg:text-lg"
           role="menubar"
         >
-          {NAV_LINKS.map((link) => (
+          {visibleLinks.map((link) => (
             <NavLink 
               key={link.name} 
               to={link.path} 
@@ -285,18 +294,34 @@ function Header() {
 
         {/* DESKTOP ACTIONS */}
         <div className="hidden md:flex items-center gap-3 lg:gap-4">
-          <Link
-            to="/login"
-            className={`px-5 lg:px-7 py-2.5 lg:py-3 border-2 border-[#1A5EDB] text-[#1A5EDB] font-semibold rounded-lg 
-              hover:bg-[#1A5EDB] hover:text-white hover:shadow-lg
-              focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
-              transition-all duration-300 ease-out ${
-                prefersReducedMotion ? "" : "hover:scale-105 button-press"
-              }`}
-            aria-label="Login to your account"
-          >
-            Login
-          </Link>
+          {isAuthenticated ? (
+            <button
+              type="button"
+              onClick={logout}
+              className={`px-5 lg:px-7 py-2.5 lg:py-3 border-2 border-[#1A5EDB] text-[#1A5EDB] font-semibold rounded-lg 
+                hover:bg-[#1A5EDB] hover:text-white hover:shadow-lg
+                focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
+                transition-all duration-300 ease-out ${
+                  prefersReducedMotion ? "" : "hover:scale-105 button-press"
+                }`}
+              aria-label="Logout of your account"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className={`px-5 lg:px-7 py-2.5 lg:py-3 border-2 border-[#1A5EDB] text-[#1A5EDB] font-semibold rounded-lg 
+                hover:bg-[#1A5EDB] hover:text-white hover:shadow-lg
+                focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
+                transition-all duration-300 ease-out ${
+                  prefersReducedMotion ? "" : "hover:scale-105 button-press"
+                }`}
+              aria-label="Login to your account"
+            >
+              Login
+            </Link>
+          )}
           <button 
             className={`px-5 lg:px-7 py-2.5 lg:py-3 bg-[#1A5EDB] text-white font-semibold rounded-lg 
               hover:bg-[#0F4BA8] shadow-md hover:shadow-xl
@@ -363,7 +388,7 @@ function Header() {
           role="menu"
           aria-label="Mobile navigation menu"
         >
-          {NAV_LINKS.map((link, index) => {
+          {visibleLinks.map((link, index) => {
             const isPlanSectionActive = link.path === "/plans" && planRelatedRoutes.includes(location.pathname);
             const isUtilitiesSectionActive = link.path === "/utilities/e-card" && utilitiesRelatedRoutes.some(route => location.pathname.startsWith(route));
             const shouldBeActive = location.pathname === link.path || isPlanSectionActive || isUtilitiesSectionActive;
@@ -395,18 +420,36 @@ function Header() {
           })}
 
           <div className="flex flex-col gap-3 mt-4 pt-4 border-t-2 border-gray-100">
-            <Link
-              to="/login"
-              onClick={() => setMenuOpen(false)}
-              className={`w-full text-center py-3 px-4 border-2 border-[#1A5EDB] text-[#1A5EDB] font-semibold rounded-lg 
-                hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
-                transition-all duration-200 ${
-                  prefersReducedMotion ? "" : "hover:scale-[1.02] active:scale-[0.98]"
-                }`}
-              aria-label="Login to your account"
-            >
-              Login
-            </Link>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  setMenuOpen(false);
+                }}
+                className={`w-full text-center py-3 px-4 border-2 border-[#1A5EDB] text-[#1A5EDB] font-semibold rounded-lg 
+                  hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
+                  transition-all duration-200 ${
+                    prefersReducedMotion ? "" : "hover:scale-[1.02] active:scale-[0.98]"
+                  }`}
+                aria-label="Logout of your account"
+              >
+                Logout
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setMenuOpen(false)}
+                className={`w-full text-center py-3 px-4 border-2 border-[#1A5EDB] text-[#1A5EDB] font-semibold rounded-lg 
+                  hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
+                  transition-all duration-200 ${
+                    prefersReducedMotion ? "" : "hover:scale-[1.02] active:scale-[0.98]"
+                  }`}
+                aria-label="Login to your account"
+              >
+                Login
+              </Link>
+            )}
             <button 
               className={`w-full py-3 px-4 bg-[#1A5EDB] text-white font-semibold rounded-lg 
                 hover:bg-[#0F4BA8] shadow-md hover:shadow-lg

@@ -1,24 +1,34 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({ identifier: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    setError("");
+    try {
+      const email = formData.identifier.trim();
+      await login({ email, password: formData.password });
+      const redirectTo = location.state?.from || "/";
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      setError(err.message || "Login failed");
+    } finally {
       setLoading(false);
-      navigate('/'); // Redirect to Home or Dashboard after login
-    }, 1500);
+    }
   };
 
   return (
@@ -66,6 +76,11 @@ function Login() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Email or Mobile <span className="text-red-500">*</span>

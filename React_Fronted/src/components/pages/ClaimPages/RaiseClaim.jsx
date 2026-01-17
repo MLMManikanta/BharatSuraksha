@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { api } from '../../../utils/api';
 
 const RaiseClaim = () => {
   const location = useLocation();
@@ -55,6 +56,7 @@ const RaiseClaim = () => {
   const [draftSaved, setDraftSaved] = useState(false);
   const [stepReady, setStepReady] = useState(false);
   const [dropboxSearch, setDropboxSearch] = useState('');
+  const [submitError, setSubmitError] = useState('');
 
   const updateField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -82,16 +84,29 @@ const RaiseClaim = () => {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const nextErrors = validate();
     setErrors(nextErrors);
     setDraftSaved(false);
     if (Object.keys(nextErrors).length) return;
     setSubmitting(true);
-    setTimeout(() => {
+    setSubmitError('');
+    try {
+      await api.post(
+        '/api/claims',
+        {
+          claimType,
+          ...form,
+        },
+        { auth: true }
+      );
       navigate('/claims/my-claims', { replace: true, state: { toast: 'Claim submitted successfully' } });
-    }, 400);
+    } catch (error) {
+      setSubmitError(error.message || 'Failed to submit claim');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSaveDraft = () => {
@@ -236,6 +251,11 @@ const RaiseClaim = () => {
 
         {/* Step 2: Claim Details Form */}
         <form onSubmit={handleSubmit} className={`bg-white rounded-lg shadow-sm p-6 space-y-8 ${!stepReady ? 'opacity-60 pointer-events-none' : ''}`} noValidate>
+          {submitError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {submitError}
+            </div>
+          )}
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-blue-700 uppercase">Step 2</p>
