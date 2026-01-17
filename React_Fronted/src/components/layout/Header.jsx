@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-// Define links outside component to keep code DRY
+/* ---------------- NAV LINKS ---------------- */
 const NAV_LINKS = [
   { name: "🏠 Home", path: "/" },
   { name: "🛡️ Plans", path: "/plans" },
@@ -14,469 +14,235 @@ const NAV_LINKS = [
 
 function Header() {
   const { isAuthenticated, logout } = useAuth();
+  const location = useLocation();
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
-    if (typeof window !== 'undefined' && 'matchMedia' in window) {
-      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    }
-    return false;
-  });
-  const location = useLocation();
+  const [hideHeader, setHideHeader] = useState(false);
+
+  const lastScrollY = useRef(0);
   const mobileMenuRef = useRef(null);
   const menuButtonRef = useRef(null);
 
-  // --- UPDATED: Full list of checkout flow routes ---
-  // This keeps the "Plans" tab active from Step 1 to Step 8 (Success)
-  const planRelatedRoutes = [
-    "/plan-details",       // Step 1: Member Selection
-    "/select-plan",        // Step 2: Plan Selection
-    "/customize",          // Step 2b: Custom Builder
-    "/plan-review",        // Step 3: Review
-    "/proposal-form",      // Intermediate
-    "/kyc",                // Step 4: Proposer Details
-    "/medical",            // Step 5: Medical History
-    "/payment-frequency",  // Step 6: Frequency
-    "/bankinfo",           // Step 7: Bank/Order Summary
-    "/order-summary",      // Step 7: Order Summary (Alt route)
-    "/payment",            // Step 8: Payment Gateway
-    "/payment-success"     // Success Page
-  ];
-
-  // Claims related routes - keeps "Claims" tab active
-  const claimsRelatedRoutes = [
-    "/claims/my-claims",
-    "/claims/entitlement-dependents",
-    "/claims/entitlement",
-    "/claims/raise-claim",
-    "/claims/raise-new",
-    "/claims/details"
-  ];
-
-  const utilitiesRelatedRoutes = [
-    "/utilities/e-card",
-    "/utilities/hospitals",
-    "/utilities/justification-letter",
-    "/utilities/claim-instructions"
-  ];
-
-  // Check for reduced motion preference (WCAG 2.2)
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handleChange = (e) => setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
-  // Handle scroll for enhanced header shadow
+  /* ---------------- SCROLL LOGIC ---------------- */
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      const currentScrollY = window.scrollY;
+
+      // Shadow
+      setIsScrolled(currentScrollY > 10);
+
+      // Hide on scroll down
+      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+        setHideHeader(true);
+      } else {
+        setHideHeader(false);
+      }
+
+      lastScrollY.current = currentScrollY;
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close menu on route change (defer to avoid sync setState in effect)
+  /* ---------------- EXPOSE HEADER HEIGHT ---------------- */
   useEffect(() => {
-    if (!menuOpen) return;
-    const id = setTimeout(() => setMenuOpen(false), 0);
-    return () => clearTimeout(id);
-  }, [location, menuOpen]);
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [menuOpen]);
-
-  // Focus trapping for mobile menu (WCAG 2.2 compliance)
-  useEffect(() => {
-    if (!menuOpen || !mobileMenuRef.current) return;
-
-    const menuElement = mobileMenuRef.current;
-    const focusableElements = menuElement.querySelectorAll(
-      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    document.documentElement.style.setProperty(
+      "--header-height",
+      hideHeader ? "0px" : "5.5rem"
     );
-    
-    if (focusableElements.length === 0) return;
+  }, [hideHeader]);
 
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
+  /* ---------------- CLOSE MENU ON ROUTE CHANGE ---------------- */
+  useEffect(() => {
+    if (menuOpen) setMenuOpen(false);
+  }, [location]);
 
-    // Focus first element when menu opens
-    firstElement?.focus();
-
-    const handleTabKey = (e) => {
-      if (e.key !== 'Tab') return;
-
-      if (e.shiftKey) {
-        // Shift + Tab
-        if (document.activeElement === firstElement) {
-          e.preventDefault();
-          lastElement?.focus();
-        }
-      } else {
-        // Tab
-        if (document.activeElement === lastElement) {
-          e.preventDefault();
-          firstElement?.focus();
-        }
-      }
-    };
-
-    const handleEscapeKey = (e) => {
-      if (e.key === 'Escape') {
-        setMenuOpen(false);
-        menuButtonRef.current?.focus();
-      }
-    };
-
-    menuElement.addEventListener('keydown', handleTabKey);
-    document.addEventListener('keydown', handleEscapeKey);
-
-    return () => {
-      menuElement.removeEventListener('keydown', handleTabKey);
-      document.removeEventListener('keydown', handleEscapeKey);
-    };
+  /* ---------------- BODY SCROLL LOCK ---------------- */
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "unset";
+    return () => (document.body.style.overflow = "unset");
   }, [menuOpen]);
 
-  // Helper for consistent link styling with enhanced accessibility
-  const getNavClass = ({ isActive, path }) => {
-    // Check if the current route matches the exact path OR is one of the plan/claims steps
-    const isPlanSectionActive = path === "/plans" && planRelatedRoutes.includes(location.pathname);
-    const isClaimsSectionActive = path === "/claims" && claimsRelatedRoutes.some(route => location.pathname.startsWith(route));
-    const isUtilitiesSectionActive = path === "/utilities/e-card" && utilitiesRelatedRoutes.some(route => location.pathname.startsWith(route));
-    const shouldBeActive = isActive || isPlanSectionActive || isClaimsSectionActive || isUtilitiesSectionActive;
-
-    const baseClasses = "relative px-1 py-2 font-semibold transition-all duration-300 ease-out";
-    const hoverClasses = prefersReducedMotion 
-      ? "" 
-      : "hover:scale-105 hover:-translate-y-0.5";
-    
-    // Enhanced focus styles for WCAG 2.2
-    const focusClasses = "focus:outline-none focus:ring-2 focus:ring-[#1A5EDB] focus:ring-offset-2 rounded-md";
-    
-    const colorClasses = shouldBeActive
-      ? "text-[#0A0A0A] font-bold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#1A5EDB] after:rounded-full"
-      : "text-[#1A5EDB] hover:text-[#0F4BA8]";
-
-    return `${baseClasses} ${hoverClasses} ${focusClasses} ${colorClasses}`;
-  };
-
-  // Animation classes based on reduced motion preference
-  const animationClass = prefersReducedMotion 
-    ? "" 
-    : "animate-in fade-in slide-in-from-top-4 duration-500";
-
+  /* ---------------- FILTER LINKS ---------------- */
   const visibleLinks = NAV_LINKS.filter((link) => {
-    if (link.path.startsWith("/claims") || link.path.startsWith("/utilities")) {
+    if (
+      link.path.startsWith("/claims") ||
+      link.path.startsWith("/utilities")
+    ) {
       return isAuthenticated;
     }
     return true;
   });
 
+  /* ---------------- NAV LINK STYLE ---------------- */
+  const getNavClass = ({ isActive }) =>
+    `relative px-2 py-2 font-semibold transition
+     ${
+       isActive
+         ? "text-black after:absolute after:left-0 after:right-0 after:-bottom-1 after:h-0.5 after:bg-[#1A5EDB]"
+         : "text-[#1A5EDB] hover:text-[#0F4BA8]"
+     }
+     focus:outline-none focus:ring-2 focus:ring-[#1A5EDB] rounded-md`;
+
+  /* ================= RENDER ================= */
   return (
-    <header 
-      className={`w-full bg-white sticky top-0 z-50 font-sans transition-shadow duration-300 overflow-visible ${
-        isScrolled ? "shadow-lg" : "shadow-md"
-      } ${animationClass}`}
-      role="banner"
-    >
-      <style>{`
-        /* Enhanced animations with reduced motion support */
-        @media (prefers-reduced-motion: no-preference) {
-          @keyframes slideDown {
-            from {
-              opacity: 0;
-              transform: translateY(-1rem);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-          
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-
-          .mobile-menu-enter {
-            animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          }
-
-          .logo-hover-scale:hover img {
-            transform: scale(1.05) rotate(2deg);
-          }
-
-          .button-press:active {
-            transform: scale(0.98);
-          }
-        }
-
-        /* Enhanced focus visible for keyboard navigation */
-        .focus-visible-ring:focus-visible {
-          outline: 3px solid #1A5EDB;
-          outline-offset: 3px;
-          border-radius: 0.5rem;
-        }
-
-        /* Smooth transitions for all interactive elements */
-        a, button {
-          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-                      background-color 0.2s ease,
-                      color 0.2s ease,
-                      box-shadow 0.2s ease;
-        }
-      `}</style>
-      
-      {/* Accessibility: Skip to main content link - WCAG 2.2 */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-100 focus:px-5 focus:py-3 focus:bg-[#1A5EDB] focus:text-white focus:font-semibold focus:rounded-lg focus:shadow-2xl focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2 transition-all"
+    <>
+      {/* FLOATING AUTO-HIDE HEADER */}
+      <header
+        className={`sticky top-3 z-50 flex justify-center px-2
+          transition-transform transition-opacity duration-300 ease-in-out
+          ${hideHeader ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"}
+        `}
+        role="banner"
       >
-        Skip to main content
-      </a>
-
-      <nav 
-        className="max-w-7xl mx-auto flex items-center justify-between py-5 px-6 lg:px-8"
-        aria-label="Main navigation"
-        role="navigation"
-      >
-        
-        {/* LOGO */}
-        <Link 
-          to="/" 
-          className={`flex items-center gap-3 group focus-visible-ring ${
-            prefersReducedMotion ? "" : "logo-hover-scale"
-          }`}
-          aria-label="Bharat Suraksha Home"
+        {/* GLASS CONTAINER */}
+        <div
+          className={`w-full max-w-7xl
+            backdrop-blur-xl bg-white/70
+            border border-white/40
+            rounded-2xl
+            shadow-[0_10px_30px_rgba(0,0,0,0.08)]
+            transition-all duration-300
+            ${isScrolled ? "bg-white/80 shadow-lg" : ""}
+          `}
         >
-          <img
-            src="/images/Logo-circle.png"
-            alt=""
-            role="presentation"
-            className={`h-20 w-auto ${
-              prefersReducedMotion ? "group-hover:opacity-90" : "transition-all duration-300 ease-out"
-            }`}
-          />
-          <span className="text-xl md:text-2xl font-extrabold text-[#1A5EDB] leading-tight tracking-tight">
-            <span>Bharat</span> <br /> <span className="text-black">Suraksha</span>
-          </span>
-        </Link>
-
-        {/* DESKTOP NAVIGATION */}
-        <div 
-          className="hidden md:flex items-center gap-2 lg:gap-4 text-base lg:text-lg"
-          role="menubar"
-        >
-          {visibleLinks.map((link) => (
-            <NavLink 
-              key={link.name} 
-              to={link.path} 
-              end={link.path === "/"} 
-              className={({ isActive }) => getNavClass({ isActive, path: link.path })}
-              role="menuitem"
-              aria-current={location.pathname === link.path ? "page" : undefined}
-            >
-              {link.name}
-            </NavLink>
-          ))}
-        </div>
-
-        {/* DESKTOP ACTIONS */}
-        <div className="hidden md:flex items-center gap-3 lg:gap-4">
-          {isAuthenticated ? (
-            <button
-              type="button"
-              onClick={logout}
-              className={`px-5 lg:px-7 py-2.5 lg:py-3 border-2 border-[#1A5EDB] text-[#1A5EDB] font-semibold rounded-lg 
-                hover:bg-[#1A5EDB] hover:text-white hover:shadow-lg
-                focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
-                transition-all duration-300 ease-out ${
-                  prefersReducedMotion ? "" : "hover:scale-105 button-press"
-                }`}
-              aria-label="Logout of your account"
-            >
-              Logout
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              className={`px-5 lg:px-7 py-2.5 lg:py-3 border-2 border-[#1A5EDB] text-[#1A5EDB] font-semibold rounded-lg 
-                hover:bg-[#1A5EDB] hover:text-white hover:shadow-lg
-                focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
-                transition-all duration-300 ease-out ${
-                  prefersReducedMotion ? "" : "hover:scale-105 button-press"
-                }`}
-              aria-label="Login to your account"
-            >
-              Login
+          {/* NAV BAR */}
+          <nav className="flex items-center justify-between px-4 lg:px-8 py-3">
+            {/* LOGO */}
+            <Link to="/" className="flex items-center gap-3">
+              <img
+                src="/images/Logo-circle.png"
+                alt=""
+                className="h-14 w-auto"
+              />
+              <span className="text-xl font-extrabold leading-tight">
+                <span className="text-[#1A5EDB]">Bharat</span>
+                <br />
+                <span className="text-black">Suraksha</span>
+              </span>
             </Link>
-          )}
-          <button 
-            className={`px-5 lg:px-7 py-2.5 lg:py-3 bg-[#1A5EDB] text-white font-semibold rounded-lg 
-              hover:bg-[#0F4BA8] shadow-md hover:shadow-xl
-              focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
-              transition-all duration-300 ease-out ${
-                prefersReducedMotion ? "" : "hover:scale-105 button-press"
-              }`}
-            aria-label="Get a quote"
-          >
-            Get Quote
-          </button>
-        </div>
 
-        {/* MOBILE MENU TOGGLE */}
-        <button
-          ref={menuButtonRef}
-          onClick={() => setMenuOpen(!menuOpen)}
-          className={`md:hidden p-3 text-[#1A5EDB] rounded-lg
-            focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
-            hover:bg-blue-50 transition-all duration-200 ${
-              prefersReducedMotion ? "" : "active:scale-95"
-            }`}
-          aria-expanded={menuOpen}
-          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
-          aria-controls="mobile-menu"
-        >
-          {menuOpen ? (
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-7 w-7" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-              strokeWidth={2.5}
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          ) : (
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-7 w-7" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-              strokeWidth={2.5}
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
-            </svg>
-          )}
-        </button>
-      </nav>
+            {/* DESKTOP NAV */}
+            <div className="hidden md:flex items-center gap-4">
+              {visibleLinks.map((link) => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  end={link.path === "/"}
+                  className={getNavClass}
+                >
+                  {link.name}
+                </NavLink>
+              ))}
+            </div>
 
-      {/* MOBILE MENU */}
-      {menuOpen && (
-        <div 
-          ref={mobileMenuRef}
-          id="mobile-menu"
-          className={`absolute top-full left-0 w-full md:hidden bg-white shadow-2xl border-t-2 border-gray-100 
-            px-6 py-6 flex flex-col gap-2 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
-              prefersReducedMotion ? "" : "mobile-menu-enter"
-            }`}
-          role="menu"
-          aria-label="Mobile navigation menu"
-        >
-          {visibleLinks.map((link, index) => {
-            const isPlanSectionActive = link.path === "/plans" && planRelatedRoutes.includes(location.pathname);
-            const isUtilitiesSectionActive = link.path === "/utilities/e-card" && utilitiesRelatedRoutes.some(route => location.pathname.startsWith(route));
-            const shouldBeActive = location.pathname === link.path || isPlanSectionActive || isUtilitiesSectionActive;
-            
-            return (
-              <NavLink
-                key={link.name}
-                to={link.path}
-                end={link.path === "/"}
-                className={`text-lg py-3 px-4 rounded-lg border-b border-gray-100 last:border-b-0
-                  focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
-                  transition-all duration-200 hover:bg-blue-50 ${
-                    shouldBeActive 
-                      ? "text-[#1A5EDB] font-bold bg-blue-50" 
-                      : "text-[#333333] font-semibold"
-                  } ${prefersReducedMotion ? "" : "hover:translate-x-1"}`}
-                onClick={() => setMenuOpen(false)}
-                role="menuitem"
-                aria-current={shouldBeActive ? "page" : undefined}
-                style={
-                  prefersReducedMotion 
-                    ? {} 
-                    : { animationDelay: `${index * 50}ms` }
-                }
-              >
-                {link.name}
-              </NavLink>
-            );
-          })}
+            {/* DESKTOP ACTIONS */}
+            <div className="hidden md:flex items-center gap-3">
+              {isAuthenticated ? (
+                <button
+                  onClick={logout}
+                  className="px-5 py-2 rounded-xl border border-[#1A5EDB]
+                             text-[#1A5EDB] font-semibold
+                             hover:bg-[#1A5EDB] hover:text-white transition"
+                >
+                  Logout
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="px-5 py-2 rounded-xl border border-[#1A5EDB]
+                             text-[#1A5EDB] font-semibold
+                             hover:bg-[#1A5EDB] hover:text-white transition"
+                >
+                  Login
+                </Link>
+              )}
 
-          <div className="flex flex-col gap-3 mt-4 pt-4 border-t-2 border-gray-100">
-            {isAuthenticated ? (
-              <button
-                type="button"
-                onClick={() => {
-                  logout();
-                  setMenuOpen(false);
-                }}
-                className={`w-full text-center py-3 px-4 border-2 border-[#1A5EDB] text-[#1A5EDB] font-semibold rounded-lg 
-                  hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
-                  transition-all duration-200 ${
-                    prefersReducedMotion ? "" : "hover:scale-[1.02] active:scale-[0.98]"
-                  }`}
-                aria-label="Logout of your account"
-              >
-                Logout
+              <button className="px-6 py-2 rounded-xl bg-[#1A5EDB]
+                                 text-white font-semibold
+                                 hover:bg-[#0F4BA8] shadow-md transition">
+                Get Quote
               </button>
-            ) : (
-              <Link
-                to="/login"
-                onClick={() => setMenuOpen(false)}
-                className={`w-full text-center py-3 px-4 border-2 border-[#1A5EDB] text-[#1A5EDB] font-semibold rounded-lg 
-                  hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
-                  transition-all duration-200 ${
-                    prefersReducedMotion ? "" : "hover:scale-[1.02] active:scale-[0.98]"
-                  }`}
-                aria-label="Login to your account"
-              >
-                Login
-              </Link>
-            )}
-            <button 
-              className={`w-full py-3 px-4 bg-[#1A5EDB] text-white font-semibold rounded-lg 
-                hover:bg-[#0F4BA8] shadow-md hover:shadow-lg
-                focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2
-                transition-all duration-200 ${
-                  prefersReducedMotion ? "" : "hover:scale-[1.02] active:scale-[0.98]"
-                }`}
-              aria-label="Get a quote"
-            >
-              Get Quote
-            </button>
-          </div>
-        </div>
-      )}
+            </div>
 
-      {/* Mobile menu overlay */}
+            {/* MOBILE MENU BUTTON */}
+            <button
+              ref={menuButtonRef}
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="md:hidden p-2 rounded-lg text-[#1A5EDB]
+                         hover:bg-blue-50 focus:ring-2 focus:ring-[#1A5EDB]"
+              aria-label="Toggle menu"
+            >
+              ☰
+            </button>
+          </nav>
+
+          {/* MOBILE MENU */}
+          {menuOpen && (
+            <div
+              ref={mobileMenuRef}
+              className="md:hidden border-t border-gray-200
+                         bg-white/90 backdrop-blur-xl
+                         rounded-b-2xl px-4 py-4"
+            >
+              {visibleLinks.map((link) => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-3 px-3 rounded-lg font-semibold
+                             text-[#1A5EDB] hover:bg-blue-50"
+                >
+                  {link.name}
+                </NavLink>
+              ))}
+
+              <div className="mt-4 flex flex-col gap-3">
+                {!isAuthenticated ? (
+                  <Link
+                    to="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="w-full text-center py-3 rounded-xl
+                               border border-[#1A5EDB]
+                               text-[#1A5EDB] font-semibold"
+                  >
+                    Login
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMenuOpen(false);
+                    }}
+                    className="w-full py-3 rounded-xl
+                               border border-[#1A5EDB]
+                               text-[#1A5EDB] font-semibold"
+                  >
+                    Logout
+                  </button>
+                )}
+
+                <button className="w-full py-3 rounded-xl
+                                   bg-[#1A5EDB] text-white font-semibold">
+                  Get Quote
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* MOBILE OVERLAY */}
       {menuOpen && (
         <div
-          className={`fixed inset-0 bg-black/20 backdrop-blur-sm z-[-1] md:hidden ${
-            prefersReducedMotion ? "" : "animate-in fade-in duration-300"
-          }`}
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
           onClick={() => setMenuOpen(false)}
           aria-hidden="true"
-          inert=""
         />
       )}
-    </header>
+    </>
   );
 }
 
