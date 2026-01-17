@@ -19,9 +19,18 @@ const userSchema = new mongoose.Schema(
     },
     mobileNumber: {
       type: String,
+      required: true,
       trim: true,
       match: [/^[+]?\d{10,15}$/, "Invalid mobile number"],
     },
+      policyNumber: {
+        type: String,
+        required: true,
+        unique: true,
+        uppercase: true,
+        trim: true,
+        minlength: 6,
+      },
     password: {
       type: String,
       required: true,

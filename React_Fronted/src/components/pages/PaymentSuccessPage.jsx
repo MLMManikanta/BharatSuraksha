@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
 
@@ -14,12 +14,33 @@ const PaymentSuccessPage = () => {
   const amount = planData.finalPayableAmount || planData.price || 0;
   const planName = planData.selectedPlan?.name || "Health Insurance Policy";
 
+  const generatePolicyNumber = (name) => {
+    const year = new Date().getFullYear();
+    const planCode = String(name || "GEN")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 5);
+    const random = Math.random().toString(10).slice(2, 6);
+    return `BS-${planCode || "GEN"}-${year}-${random}`;
+  };
+
+  const policyNumber = useMemo(() => {
+    return (
+      planData.policyNumber ||
+      localStorage.getItem("latestPolicyNumber") ||
+      generatePolicyNumber(planName)
+    );
+  }, [planData.policyNumber, planName]);
+
   const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     // Trigger entrance animation
     setShowConfetti(true);
-  }, []);
+    if (policyNumber) {
+      localStorage.setItem("latestPolicyNumber", policyNumber);
+    }
+  }, [policyNumber]);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans">
@@ -89,6 +110,11 @@ const PaymentSuccessPage = () => {
               </div>
 
               <div className="space-y-1">
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Policy Number</p>
+                <p className="text-base font-bold text-gray-800 font-mono">{policyNumber}</p>
+              </div>
+
+              <div className="space-y-1">
                 <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Policy Status</p>
                 <p className="text-base font-bold text-green-600 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -122,6 +148,13 @@ const PaymentSuccessPage = () => {
             onClick={() => window.print()}
           >
             🖨️ Download Receipt
+          </button>
+
+          <button
+            onClick={() => navigate('/register', { state: { policyNumber } })}
+            className="flex-1 py-4 px-6 bg-white border border-emerald-200 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-50 hover:border-emerald-300 transition-all shadow-sm"
+          >
+            Create Account
           </button>
           
           <button 

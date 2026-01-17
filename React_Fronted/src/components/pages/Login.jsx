@@ -20,8 +20,8 @@ function Login() {
     setLoading(true);
     setError("");
     try {
-      const email = formData.identifier.trim();
-      await login({ email, password: formData.password });
+      const identifier = formData.identifier.trim();
+      await login({ identifier, password: formData.password });
       const redirectTo = location.state?.from || "/";
       navigate(redirectTo, { replace: true });
     } catch (err) {

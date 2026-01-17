@@ -27,13 +27,6 @@ const RaiseClaim = () => {
     { id: 'DEP003', label: 'Meera Sharma (58)' },
   ], []);
 
-  const dropboxLocations = useMemo(() => [
-    'Bangalore - MG Road Dropbox',
-    'Bangalore - Whitefield Dropbox',
-    'Hyderabad - Hitech City Dropbox',
-    'Mumbai - Andheri Dropbox',
-  ], []);
-
   const [claimType, setClaimType] = useState('');
   const [form, setForm] = useState({
     claimCycle: '',
@@ -44,7 +37,6 @@ const RaiseClaim = () => {
     mobile: '',
     hospitalAddress: '',
     diagnosis: '',
-    dropboxLocation: '',
     claimedAmount: '',
     remarks: '',
     consentSummary: false,
@@ -55,7 +47,6 @@ const RaiseClaim = () => {
   const [submitting, setSubmitting] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [stepReady, setStepReady] = useState(false);
-  const [dropboxSearch, setDropboxSearch] = useState('');
   const [submitError, setSubmitError] = useState('');
 
   const updateField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
@@ -72,7 +63,6 @@ const RaiseClaim = () => {
     if (!form.mobile || form.mobile.trim().length < 10) next.mobile = 'Enter a valid mobile number';
     if (!form.hospitalAddress.trim()) next.hospitalAddress = 'Hospital name & address is required';
     if (!form.diagnosis.trim()) next.diagnosis = 'Diagnosis is required';
-    if (!form.dropboxLocation) next.dropboxLocation = 'Dropbox location is required';
     if (!form.claimedAmount || Number(form.claimedAmount) <= 0) next.claimedAmount = 'Enter a valid claimed amount';
     if (!form.consentSummary) next.consentSummary = 'Required';
     if (!form.consentTerms) next.consentTerms = 'Required';
@@ -113,12 +103,6 @@ const RaiseClaim = () => {
     setDraftSaved(true);
     setErrors({});
   };
-
-  const filteredDropboxLocations = useMemo(() => {
-    const q = dropboxSearch.trim().toLowerCase();
-    if (!q) return dropboxLocations;
-    return dropboxLocations.filter((d) => d.toLowerCase().includes(q));
-  }, [dropboxLocations, dropboxSearch]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -396,41 +380,6 @@ const RaiseClaim = () => {
                 {errors.diagnosis && <p className="text-sm text-red-600 mt-1">{errors.diagnosis}</p>}
               </div>
             </div>
-          </section>
-
-          {/* Dropbox Location */}
-          <section className="space-y-3" aria-labelledby="dropbox-location">
-            <div className="flex items-center justify-between">
-              <h3 id="dropbox-location" className="text-lg font-semibold text-gray-900">📍 Dropbox Location (Mandatory)</h3>
-              <div className="flex items-center gap-2 text-sm text-blue-600">
-                <button type="button" className="underline" onClick={() => window.alert('Search locations: feature placeholder')}>Search</button>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Search Dropbox Location</label>
-                <input
-                  type="text"
-                  value={dropboxSearch}
-                  onChange={(e) => setDropboxSearch(e.target.value)}
-                  placeholder="Search by city or branch"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Dropbox Location</label>
-                <select
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={form.dropboxLocation}
-                  onChange={(e) => updateField('dropboxLocation', e.target.value)}
-                >
-                  <option value="">Select Dropbox Location</option>
-                  {filteredDropboxLocations.map((d) => <option key={d} value={d}>{d}</option>)}
-                </select>
-                {errors.dropboxLocation && <p className="text-sm text-red-600 mt-1">{errors.dropboxLocation}</p>}
-              </div>
-            </div>
-            <p className="text-xs text-gray-500">Indicate where physical documents will be dropped.</p>
           </section>
 
           {/* Financial Details */}

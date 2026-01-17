@@ -24,13 +24,13 @@ export const AuthProvider = ({ children }) => {
 		setLoading(false);
 	}, []);
 
-	const login = async ({ email, password }) => {
-		const data = await api.post("/api/auth/login", { email, password });
-		const authUser = { id: data.userId, role: data.role, email };
+	const login = async ({ identifier, password }) => {
+		const data = await api.post("/api/auth/login", { identifier, password });
+		const authUser = { id: data.userId, role: data.role, email: data.email };
 
-		localStorage.setItem("authToken", data.token);
+		localStorage.setItem("authToken", data.jwtToken);
 		localStorage.setItem("authUser", JSON.stringify(authUser));
-		setToken(data.token);
+		setToken(data.jwtToken);
 		setUser(authUser);
 		return authUser;
 	};

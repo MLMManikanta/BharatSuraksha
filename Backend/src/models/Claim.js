@@ -44,7 +44,7 @@ const claimSchema = new mongoose.Schema(
     },
     hospitalAddress: { type: String, required: true, trim: true },
     diagnosis: { type: String, required: true, trim: true },
-    dropboxLocation: { type: String, required: true, trim: true },
+    dropboxLocation: { type: String, trim: true },
     claimedAmount: { type: Number, required: true, min: 1 },
     remarks: { type: String, trim: true, maxlength: 1000 },
     consentSummary: { type: Boolean, required: true },

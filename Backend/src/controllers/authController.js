@@ -1,66 +1,109 @@
 const jwt = require("jsonwebtoken");
 const userService = require("../services/userService");
 
-const register = async (req, res, next) => {
+const register = async (req, res) => {
   try {
-    const { fullName, email, mobileNumber, password, role } = req.body;
+    const {
+      fullName,
+      email,
+      mobileNumber,
+      phoneNumber,
+      password,
+      policyNumber,
+      role,
+    } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+    const normalizedEmail = (email || "").toLowerCase().trim();
+    const normalizedMobileNumber = (mobileNumber || phoneNumber || "").trim();
+    const normalizedPolicyNumber = (policyNumber || "").toUpperCase().trim();
+
+    if (!normalizedEmail || !password || !normalizedMobileNumber || !normalizedPolicyNumber) {
+      return res.status(400).json({
+        message: "Policy number, email, mobile number, and password are required",
+      });
     }
 
-    const existingUser = await userService.findUserByEmail(email);
+    const existingUser = await userService.findUserByEmail(normalizedEmail);
     if (existingUser) {
-      return res.status(409).json({ message: "User already exists" });
+      return res.status(409).json({ error_msg: "User with Email ID already Exists..!!" });
+    }
+
+    const existingPolicy = await userService.findUserByPolicyNumber(
+      normalizedPolicyNumber
+    );
+    if (existingPolicy) {
+      return res.status(409).json({ error_msg: "Policy number already registered..!!" });
     }
 
     const user = await userService.createUser({
       fullName,
-      email,
-      mobileNumber,
+      email: normalizedEmail,
+      mobileNumber: normalizedMobileNumber,
       password,
       role,
+      policyNumber: normalizedPolicyNumber,
     });
 
     return res.status(201).json({
-      id: user._id,
+      yourId: user._id,
+      message: "User Registered Successfully..!!",
       email: user.email,
-      fullName: user.fullName,
+      policyNumber: user.policyNumber,
     });
   } catch (error) {
-    return next(error);
+    console.error(error);
+    return res
+      .status(500)
+      .json({ error_msg: `Internal server error: ${error.message}` });
   }
 };
 
-const login = async (req, res, next) => {
+const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, identifier, password } = req.body;
+    const loginIdentifier = (identifier || email || "").trim();
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+    if (!loginIdentifier || !password) {
+      return res
+        .status(400)
+        .json({ error_msg: "Email or mobile number and password are required" });
     }
 
-    const user = await userService.findUserByEmail(email, true);
+    const user = await userService.findUserByIdentifier(loginIdentifier, true);
     if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ error_msg: "Email ID doesn't Exists..!!" });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ error_msg: "Incorrect Password" });
     }
 
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ error_msg: "JWT secret not configured" });
+    }
 
-    console.log("Login successful:", user.email);
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
 
-    return res.json({ token, userId: user._id, role: user.role });
+    return res.status(200).json({
+      jwtToken: token,
+      userId: user._id,
+      userData: {
+        email: user.email,
+        mobileNumber: user.mobileNumber,
+        policyNumber: user.policyNumber,
+        fullName: user.fullName,
+      },
+      isUserExists: {
+        id: user._id,
+        email: user.email,
+      },
+    });
   } catch (error) {
-    return next(error);
+    console.error(error);
+    return res
+      .status(500)
+      .json({ error_msg: `Internal Server Error: ${error.message}` });
   }
 };
 

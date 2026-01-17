@@ -17,6 +17,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/", authRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/plans", planRoutes);
 app.use("/api/customize", customizationRoutes);

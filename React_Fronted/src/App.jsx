@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Layout from "./components/layout/Layout";
 import Login from "./components/pages/Login";
+import Register from "./components/pages/Register";
 import Home from "./components/pages/Home";
 import Aboutus from "./components/pages/Aboutus";
 import ContactUs from "./components/pages/ContactUs";
@@ -36,6 +37,7 @@ function App() {
       <Routes>
         {/* --- PUBLIC & HOME ROUTES --- */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/" element={ <Layout> <Home /> </Layout>}/>
         <Route path="/home" element={ <Layout> <Home /> </Layout>}/>
         
@@ -79,44 +81,44 @@ function App() {
 
         {/* --- CLAIMS PAGES --- */}
         <Route path="/claims/my-claims" element={
-          <ProtectedRoute>
+         /*  <ProtectedRoute> */
             <Layout> <MyClaims /> </Layout>
-          </ProtectedRoute>
+        /*   </ProtectedRoute> */
         } />
         <Route path="/claims/entitlement-dependents" element={
-          <ProtectedRoute>
+          /* <ProtectedRoute> */
             <Layout> <EntitlementDependents /> </Layout>
-          </ProtectedRoute>
+         /*  </ProtectedRoute> */
         } />
         <Route path="/claims/entitlement" element={<Navigate to="/claims/entitlement-dependents" replace />} />
         <Route path="/claims/raise-claim" element={
-          <ProtectedRoute>
+          /* <ProtectedRoute> */
             <Layout> <RaiseClaim /> </Layout>
-          </ProtectedRoute>
+          /* </ProtectedRoute> */
         } />
         <Route path="/claims/raise-new" element={<Navigate to="/claims/raise-claim" replace />} />
 
         {/* --- UTILITIES --- */}
         <Route path="/utilities" element={<Navigate to="/utilities/e-card" replace />} />
         <Route path="/utilities/e-card" element={
-          <ProtectedRoute>
+          /* <ProtectedRoute> */
             <Layout> <ECard /> </Layout>
-          </ProtectedRoute>
+          /* </ProtectedRoute> */
         } />
         <Route path="/utilities/hospitals" element={
-          <ProtectedRoute>
+          /* <ProtectedRoute> */
             <Layout> <HospitalList /> </Layout>
-          </ProtectedRoute>
+          /* </ProtectedRoute> */
         } />
         <Route path="/utilities/justification-letter" element={
-          <ProtectedRoute>
+          /* <ProtectedRoute> */
             <Layout> <JustificationLetter /> </Layout>
-          </ProtectedRoute>
+          /* </ProtectedRoute> */
         } />
         <Route path="/utilities/claim-instructions" element={
-          <ProtectedRoute>
+         /*  <ProtectedRoute> */
             <Layout> <ClaimInstructions /> </Layout>
-          </ProtectedRoute>
+          /* </ProtectedRoute> */
         } />
 
         {/* --- ERROR CATCHING --- */}
