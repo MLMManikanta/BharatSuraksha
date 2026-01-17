@@ -1,19 +1,23 @@
 # Bharat Suraksha 🛡️
 **Smart Health Insurance Web Application**
 
-Bharat Suraksha is a web application that helps users create, customize, and manage their health insurance policies easily. It provides features like plan customization, claim processing, and admin dashboard access — all with a clean, user-friendly interface.
+![React](https://img.shields.io/badge/Frontend-React-61DAFB?logo=react&logoColor=black)
+![Tailwind CSS](https://img.shields.io/badge/Style-Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)
+![Node](https://img.shields.io/badge/Backend-Node.js-339933?logo=node.js&logoColor=white)
+![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?logo=mongodb&logoColor=white)
+
+**Bharat Suraksha** is a web application designed to simplify the process of creating, customizing, and managing health insurance policies. It streamlines the insurance experience with features like plan customization, seamless claim processing, and a comprehensive admin dashboard—all wrapped in a clean, user-friendly interface.
 
 ---
 
 ## 🚀 Features
 
-- 🧾 **Customizable Health Plans** – Build your own health insurance policy.
-- 🩺 **Add-ons & Riders** – Include options like accident cover or critical illness.
-- 💬 **Admin Dashboard** – Admins can view and manage claim requests.
-- 📄 **Claim Tracking** – Users can submit and track insurance claims.
-- 📱 **Responsive UI** – Works on desktop, tablet, and mobile screens.
-- 🔒 **Secure Login System** – Role-based authentication for users and admins.
-- ⚙️ **Future Scope** – Fitness tracking integration and mobile app extension.
+- 🧾 **Customizable Health Plans** – Users can build and tailor their own health insurance policies.
+- 🩺 **Add-ons & Riders** – Support for additional coverage options like accident cover or critical illness.
+- 💬 **Admin Dashboard** – Dedicated portal for admins to view and manage claim requests.
+- 📄 **Claim Tracking** – Real-time submission and tracking of insurance claims.
+- 🔒 **Secure Authentication** – Role-based login system (User vs. Admin) to ensure data security.
+- 📱 **Responsive UI** – Fully optimized for desktop, tablet, and mobile devices using Tailwind CSS.
 
 ---
 
@@ -21,82 +25,18 @@ Bharat Suraksha is a web application that helps users create, customize, and man
 
 | Area | Technology |
 |------|-------------|
-| **Frontend** | HTML5, CSS3, JavaScript, React.js |
-| **Backend** | Node.js with Express.js |
-| **Database** | MySQL |
-| **Design** | Figma (for UI/UX design) |
+| **Frontend** | React.js, HTML5, **Tailwind CSS**, JavaScript |
+| **Backend** | Node.js |
+| **Database** | MongoDB |
 | **Version Control** | Git & GitHub |
-| **Tools** | Visual Studio Code, Postman |
 
 ---
 
-## 🧩 Folder Structure
+## 📂 Folder Structure
 
-```
+```text
 BharatSuraksha/
-├── React_Fronted/    # React app source
-├── Backend/          # Node.js + Express APIs
-├── index.html
-├── README.md
-```
-
----
-
-## 🔐 Dev / Local Test Credentials (DEVELOPMENT ONLY)
-
-**Use only in local development environments.** These credentials are created automatically when `NODE_ENV=development` and are **not** intended for production.
-
-- **Email:** testuser@example.com
-- **Password:** Test@123
-- **Role:** user
-
-**Important:** Do **not** expose or reuse these credentials in production. No production secrets are included here.
-
----
-
-## 🛠️ Installation & Setup
-
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/MLMManikanta/BharatSuraksha.git
-   cd bharat-suraksha
-   ```
-
-2. **Install Dependencies**
-   - For frontend:
-     ```bash
-     cd frontend
-     npm install
-     npm start
-     ```
-   - For backend:
-     ```bash
-     cd backend
-     npm install
-     npm run dev
-     ```
-
-3. **Setup Database**
-   - Import the MySQL script from `/database/schema.sql`
-   - Update database credentials in backend config
-
-4. **Run the App**
-   - Open `http://localhost:3000` in your browser.
-
----
-
-## 🎨 Design
-All wireframes and UI layouts are created in **Figma**.  
-- Main pages include:  
-  - Home  
-  - User Login / Signup  
-  - Admin Login  
-  - Dashboard  
-  - Policy Customization  
-  - Claim Form  
-  - Claim Status  
-
----
-
-
-
+├── frontend/         # React application source code
+├── backend/          # Node.js API server
+├── README.md         # Project documentation
+└── .gitignore
