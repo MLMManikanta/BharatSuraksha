@@ -3,17 +3,23 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 
 // Define links outside component to keep code DRY
 const NAV_LINKS = [
-  { name: "Home", path: "/" },
-  { name: "Plans", path: "/plans" },
-  { name: "Claims", path: "/claims" },
-  { name: "About Us", path: "/about" },
-  { name: "Contact Us", path: "/contact" },
+  { name: "🏠 Home", path: "/" },
+  { name: "🛡️ Plans", path: "/plans" },
+  { name: "🧾 Claims", path: "/claims" },
+  { name: "🧰 Utilities", path: "/utilities/e-card" },
+  { name: "🛈 About Us", path: "/about" },
+  { name: "✉️ Contact Us", path: "/contact" },
 ];
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
+    if (typeof window !== 'undefined' && 'matchMedia' in window) {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+    return false;
+  });
   const location = useLocation();
   const mobileMenuRef = useRef(null);
   const menuButtonRef = useRef(null);
@@ -35,15 +41,29 @@ function Header() {
     "/payment-success"     // Success Page
   ];
 
+  // Claims related routes - keeps "Claims" tab active
+  const claimsRelatedRoutes = [
+    "/claims/my-claims",
+    "/claims/entitlement-dependents",
+    "/claims/entitlement",
+    "/claims/raise-claim",
+    "/claims/raise-new",
+    "/claims/details"
+  ];
+
+  const utilitiesRelatedRoutes = [
+    "/utilities/e-card",
+    "/utilities/hospitals",
+    "/utilities/justification-letter",
+    "/utilities/claim-instructions"
+  ];
+
   // Check for reduced motion preference (WCAG 2.2)
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
-
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const handleChange = (e) => setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener("change", handleChange);
-
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   // Handle scroll for enhanced header shadow
@@ -56,10 +76,12 @@ function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close menu on route change
+  // Close menu on route change (defer to avoid sync setState in effect)
   useEffect(() => {
-    setMenuOpen(false);
-  }, [location]);
+    if (!menuOpen) return;
+    const id = setTimeout(() => setMenuOpen(false), 0);
+    return () => clearTimeout(id);
+  }, [location, menuOpen]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -126,9 +148,11 @@ function Header() {
 
   // Helper for consistent link styling with enhanced accessibility
   const getNavClass = ({ isActive, path }) => {
-    // Check if the current route matches the exact path OR is one of the plan steps
+    // Check if the current route matches the exact path OR is one of the plan/claims steps
     const isPlanSectionActive = path === "/plans" && planRelatedRoutes.includes(location.pathname);
-    const shouldBeActive = isActive || isPlanSectionActive;
+    const isClaimsSectionActive = path === "/claims" && claimsRelatedRoutes.some(route => location.pathname.startsWith(route));
+    const isUtilitiesSectionActive = path === "/utilities/e-card" && utilitiesRelatedRoutes.some(route => location.pathname.startsWith(route));
+    const shouldBeActive = isActive || isPlanSectionActive || isClaimsSectionActive || isUtilitiesSectionActive;
 
     const baseClasses = "relative px-1 py-2 font-semibold transition-all duration-300 ease-out";
     const hoverClasses = prefersReducedMotion 
@@ -208,7 +232,7 @@ function Header() {
       {/* Accessibility: Skip to main content link - WCAG 2.2 */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-5 focus:py-3 focus:bg-[#1A5EDB] focus:text-white focus:font-semibold focus:rounded-lg focus:shadow-2xl focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2 transition-all"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-100 focus:px-5 focus:py-3 focus:bg-[#1A5EDB] focus:text-white focus:font-semibold focus:rounded-lg focus:shadow-2xl focus:outline-none focus:ring-4 focus:ring-[#1A5EDB] focus:ring-offset-2 transition-all"
       >
         Skip to main content
       </a>
@@ -341,7 +365,8 @@ function Header() {
         >
           {NAV_LINKS.map((link, index) => {
             const isPlanSectionActive = link.path === "/plans" && planRelatedRoutes.includes(location.pathname);
-            const shouldBeActive = location.pathname === link.path || isPlanSectionActive;
+            const isUtilitiesSectionActive = link.path === "/utilities/e-card" && utilitiesRelatedRoutes.some(route => location.pathname.startsWith(route));
+            const shouldBeActive = location.pathname === link.path || isPlanSectionActive || isUtilitiesSectionActive;
             
             return (
               <NavLink
