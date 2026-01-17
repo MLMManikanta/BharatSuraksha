@@ -33,14 +33,24 @@ Bharat Suraksha is a web application that helps users create, customize, and man
 ## 🧩 Folder Structure
 
 ```
-bharat-suraksha/
-├── frontend/         # React app source
-├── backend/          # Node.js + Express APIs
-├── database/         # SQL scripts and schema
-├── designs/          # Figma exports and UI mockups
+BharatSuraksha/
+├── React_Fronted/    # React app source
+├── Backend/          # Node.js + Express APIs
+├── index.html
 ├── README.md
-└── package.json
 ```
+
+---
+
+## 🔐 Dev / Local Test Credentials (DEVELOPMENT ONLY)
+
+**Use only in local development environments.** These credentials are created automatically when `NODE_ENV=development` and are **not** intended for production.
+
+- **Email:** testuser@example.com
+- **Password:** Test@123
+- **Role:** user
+
+**Important:** Do **not** expose or reuse these credentials in production. No production secrets are included here.
 
 ---
 

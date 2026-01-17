@@ -56,6 +56,8 @@ const login = async (req, res, next) => {
       { expiresIn: "7d" }
     );
 
+    console.log("Login successful:", user.email);
+
     return res.json({ token, userId: user._id, role: user.role });
   } catch (error) {
     return next(error);

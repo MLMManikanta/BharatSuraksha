@@ -19,7 +19,29 @@ const findUserByEmail = async (email, includePassword = false) => {
   return query;
 };
 
+const ensureTestUser = async () => {
+  if (process.env.NODE_ENV !== "development") {
+    return null;
+  }
+
+  const email = "testuser@example.com";
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return existingUser;
+  }
+
+  const user = await User.create({
+    fullName: "Test User",
+    email,
+    password: "Test@123",
+    role: "user",
+  });
+
+  return user;
+};
+
 module.exports = {
   createUser,
   findUserByEmail,
+  ensureTestUser,
 };
