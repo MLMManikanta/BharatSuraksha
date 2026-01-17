@@ -269,7 +269,7 @@ function Header() {
             }`}
           />
           <span className="text-xl md:text-2xl font-extrabold text-[#1A5EDB] leading-tight tracking-tight">
-            Bharat <br /> Suraksha
+            <span>Bharat</span> <br /> <span className="text-black">Suraksha</span>
           </span>
         </Link>
 
