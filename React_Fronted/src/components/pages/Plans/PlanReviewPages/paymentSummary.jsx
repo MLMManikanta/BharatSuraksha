@@ -71,7 +71,7 @@ const BASE_RATE_MATRIX = {
 const FEATURE_COSTS = {
   'global': { label: 'Global Coverage', cost: 6000 }, 
   'claim_cover': { label: '100% Claim Coverage', cost: 2500 },
-  'maternity': { label: 'Maternity Cover', cost: 12000 },
+  'maternity': { label: 'Maternity Cover', cost: 12000 }, // Default, will be overridden for Parivar
   'non_deductible': { label: 'Non-Deductible Items', cost: 1500 },
   'auto_restore': { label: 'Automatic Restore Benefit', cost: 1800 },
   'air_amb': { label: 'Emergency Air Ambulance', cost: 1200 },
@@ -81,6 +81,84 @@ const FEATURE_COSTS = {
   'organ_donor': { label: 'Organ Donor Expenses', cost: 800 },
   'domiciliary': { label: 'Domiciliary Expenses', cost: 900 },
   'no_sublimit': { label: 'No Sublimit on Medical Treatment', cost: 2200 }
+};
+
+// Parivar Suraksha Premium Table from CSV (per person per annum)
+// Age bands: 18-22, 23-27, 28-32, 33-37, 38-42, 43-47, 48-52, 53-57, 58-62, 63-67, 68-70
+// Ages < 18 use 18-22 band, Ages > 70 use 68-70 band (capped)
+const PARIVAR_PREMIUM_TABLE = {
+  '10L': { '18-22': 8500, '23-27': 9520, '28-32': 10662, '33-37': 11941, '38-42': 13374, '43-47': 14979, '48-52': 16777, '53-57': 18790, '58-62': 21045, '63-67': 23571, '68-70': 26399 },
+  '15L': { '18-22': 10625, '23-27': 11900, '28-32': 13327, '33-37': 14926, '38-42': 16717, '43-47': 18723, '48-52': 20971, '53-57': 23487, '58-62': 26306, '63-67': 29463, '68-70': 32998 },
+  '20L': { '18-22': 12750, '23-27': 14280, '28-32': 15993, '33-37': 17911, '38-42': 20061, '43-47': 22468, '48-52': 25165, '53-57': 28185, '58-62': 31567, '63-67': 35356, '68-70': 39598 },
+  '25L': { '18-22': 14875, '23-27': 16660, '28-32': 18658, '33-37': 20896, '38-42': 23404, '43-47': 26213, '48-52': 29359, '53-57': 32882, '58-62': 36828, '63-67': 41249, '68-70': 46198 },
+  '50L': { '18-22': 21250, '23-27': 23800, '28-32': 26655, '33-37': 29852, '38-42': 33435, '43-47': 37447, '48-52': 41942, '53-57': 46975, '58-62': 52612, '63-67': 58927, '68-70': 65997 },
+  '1Cr': { '18-22': 29750, '23-27': 33320, '28-32': 37317, '33-37': 41793, '38-42': 46809, '43-47': 52426, '48-52': 58719, '53-57': 65765, '58-62': 73657, '63-67': 82498, '68-70': 92396 }
+};
+
+// Get Parivar age band (5-year slabs)
+// Ages < 18 use 18-22 band, Ages > 70 use 68-70 band (capped)
+const getParivarAgeBand = (age) => {
+  const a = parseFloat(age);
+  if (isNaN(a) || a < 18) return '18-22';  // Below 18 uses 18-22 rate
+  if (a >= 18 && a <= 22) return '18-22';
+  if (a >= 23 && a <= 27) return '23-27';
+  if (a >= 28 && a <= 32) return '28-32';
+  if (a >= 33 && a <= 37) return '33-37';
+  if (a >= 38 && a <= 42) return '38-42';
+  if (a >= 43 && a <= 47) return '43-47';
+  if (a >= 48 && a <= 52) return '48-52';
+  if (a >= 53 && a <= 57) return '53-57';
+  if (a >= 58 && a <= 62) return '58-62';
+  if (a >= 63 && a <= 67) return '63-67';
+  return '68-70';  // 68+ capped at 68-70 rate
+};
+
+// Get Parivar premium for a specific age and coverage
+const getParivarPremium = (age, coverageKey) => {
+  const ageBand = getParivarAgeBand(age);
+  const validKeys = ['10L', '15L', '20L', '25L', '50L', '1Cr'];
+  const effectiveKey = validKeys.includes(coverageKey) ? coverageKey : '10L';
+  return PARIVAR_PREMIUM_TABLE[effectiveKey]?.[ageBand] || PARIVAR_PREMIUM_TABLE['10L']['18-22'];
+};
+
+// Room Rent Restriction Discounts (from CSV) - these reduce premium
+// Room Rent Restriction Discounts (from CSV) - these reduce premium
+// Twin Sharing = maximum cost saving, Single Private AC = least reduction
+const ROOM_RENT_DISCOUNTS = {
+  'single_pvt_ac': 300,      // Single Private AC Room - least reduction
+  'Single Private AC Room': 300,
+  'Single Private AC': 300,
+  'single_pvt': 460,         // Single Private Room - moderate reduction  
+  'Single Private Room': 460,
+  'Single Private': 460,
+  'twin': 640,               // Twin Sharing - maximum cost saving
+  'Twin Sharing': 640,
+  'twin_sharing': 640
+};
+
+// Get room rent discount amount
+const getRoomRentDiscount = (roomRentRestriction) => {
+  return ROOM_RENT_DISCOUNTS[roomRentRestriction] || 0;
+};
+
+// Parivar Suraksha Maternity Cover Limits based on Sum Insured
+const PARIVAR_MATERNITY_CONFIG = {
+  '10L': { limit: 75000, display: '₹75,000' },
+  '15L': { limit: 75000, display: '₹75,000' },
+  '20L': { limit: 100000, display: '₹1,00,000' },
+  '25L': { limit: 100000, display: '₹1,00,000' },
+  '50L': { limit: 200000, display: '₹2,00,000' },
+  '1Cr': { limit: 200000, display: '₹2,00,000' }
+};
+
+// Air Ambulance Rider cost (from CSV) - ₹250 flat
+const AIR_AMBULANCE_RIDER_COST = 250;
+
+// Check if maternity is eligible (requires Self + Spouse)
+const checkMaternityEligibility = (counts = {}) => {
+  const hasSelf = Number(counts.self || 0) > 0;
+  const hasSpouse = Number(counts.spouse || 0) > 0;
+  return hasSelf && hasSpouse;
 };
 
 const CHRONIC_BASE_FEE = 3500; 
@@ -101,7 +179,8 @@ const RIDER_COSTS = {
   'super_bonus': { label: 'Super Bonus (7x)', cost: 3200 },
   'ped_wait': { label: 'PED Wait Reduction', cost: 5500 }, 
   'specific_wait': { label: 'Specific Disease Wait', cost: 2100 },
-  'maternity_boost': { label: 'Maternity Booster', cost: 8500 }
+  'maternity_boost': { label: 'Maternity Booster', cost: 8500 },
+  'air_ambulance': { label: 'Air Ambulance Cover', cost: 250 }  // From CSV
 };
 
 const GST_RATE = 0.00;
@@ -178,16 +257,28 @@ const PaymentSummary = ({ data }) => {
     let planMultiplier = 1.0;
     const planNameRaw = (selectedPlan.name || 'Parivar').toLowerCase();
     const isNeevPlan = planNameRaw.includes('neev');
+    const isParivarPlan = planNameRaw.includes('parivar');
     
     if (planNameRaw.includes('neev')) planMultiplier = PLAN_MULTIPLIERS.neev;
     else if (planNameRaw.includes('vishwa')) planMultiplier = PLAN_MULTIPLIERS.vishwa;
     else if (planNameRaw.includes('varishtha')) planMultiplier = PLAN_MULTIPLIERS.varishtha;
     else if (planNameRaw.includes('vajra') || selectedPlan.isCustom) planMultiplier = PLAN_MULTIPLIERS.vajra;
-    else planMultiplier = PLAN_MULTIPLIERS.parivar; 
+    else planMultiplier = PLAN_MULTIPLIERS.parivar;
+
+    // Check maternity eligibility for Parivar plan (requires Self + Spouse)
+    const isMaternityEligible = isParivarPlan ? checkMaternityEligibility(counts) : true; 
 
     const effectiveSI = sumInsured || currentSI;
     const coverageKey = getCoverageKey(effectiveSI);
     const baseRatePerAdult = BASE_RATE_MATRIX[coverageKey] || BASE_RATE_MATRIX['10L'];
+    
+    // Get room rent restriction from plan data for Parivar discount
+    // Check multiple possible sources for room rent selection
+    const roomRentRestriction = selectedPlan?.room_rent_restriction || 
+                                selectedPlan?.roomRentRestriction || 
+                                roomRentLimit ||  // From FamilyPlanReview state
+                                '';
+    const roomRentDiscountPerMember = isParivarPlan ? getRoomRentDiscount(roomRentRestriction) : 0;
     
     let totalBasePremium = 0;
     const memberBreakdown = [];
@@ -206,7 +297,13 @@ const PaymentSummary = ({ data }) => {
           // Use Neev-specific premium table for Neev plan
           if (isNeevPlan) {
             adjustedPremium = getNeevPremium(age, coverageKey);
-          } else {
+          } 
+          // Use Parivar-specific premium table for Parivar plan
+          else if (isParivarPlan) {
+            adjustedPremium = getParivarPremium(age, coverageKey);
+            // Room rent discount is applied separately in discountAmount, not here
+          }
+          else {
             const adjustmentPercent = getAgeAdjustmentPercent(age);
             adjustedPremium = Math.round(baseRatePerAdult * (1 + (adjustmentPercent / 100)));
             adjustedPremium = Math.round(adjustedPremium * planMultiplier);
@@ -217,8 +314,8 @@ const PaymentSummary = ({ data }) => {
           memberBreakdown.push({
             label: `${memberType.charAt(0).toUpperCase() + memberType.slice(1).replace('_', ' ')} ${idx + 1}`,
             age: age,
-            base: isNeevPlan ? adjustedPremium : baseRatePerAdult,
-            adjustment: isNeevPlan ? 0 : getAgeAdjustmentPercent(age),
+            base: isNeevPlan ? adjustedPremium : (isParivarPlan ? getParivarPremium(age, coverageKey) : baseRatePerAdult),
+            adjustment: isNeevPlan || isParivarPlan ? 0 : getAgeAdjustmentPercent(age),
             final: adjustedPremium
           });
         });
@@ -237,10 +334,23 @@ const PaymentSummary = ({ data }) => {
       if (isActive) {
         const nId = normalizeId(itemId);
         
-        const fKey = Object.keys(FEATURE_COSTS).find(k => normalizeId(k) === nId);
-        if (fKey) {
-          featureCost += FEATURE_COSTS[fKey].cost;
-          explanationLines.push(`${FEATURE_COSTS[fKey].label}: +₹${FEATURE_COSTS[fKey].cost}`);
+        // Special handling for maternity in Parivar plan
+        if (nId === 'maternity' && isParivarPlan) {
+          if (isMaternityEligible) {
+            const maternityConfig = PARIVAR_MATERNITY_CONFIG[coverageKey] || PARIVAR_MATERNITY_CONFIG['10L'];
+            // Maternity rider cost based on age (from CSV)
+            const maternityCost = maternityConfig.limit; // Using limit as cost per CSV
+            featureCost += maternityCost;
+            explanationLines.push(`Maternity Rider (Up to ${maternityConfig.display}): +₹${maternityCost.toLocaleString('en-IN')}`);
+          } else {
+            explanationLines.push(`Maternity Cover: Not eligible (requires Self + Spouse)`);
+          }
+        } else {
+          const fKey = Object.keys(FEATURE_COSTS).find(k => normalizeId(k) === nId);
+          if (fKey) {
+            featureCost += FEATURE_COSTS[fKey].cost;
+            explanationLines.push(`${FEATURE_COSTS[fKey].label}: +₹${FEATURE_COSTS[fKey].cost}`);
+          }
         }
         
         const rKey = Object.keys(RIDER_COSTS).find(k => normalizeId(k) === nId);
@@ -272,14 +382,19 @@ const PaymentSummary = ({ data }) => {
       discountAmount += Math.round(subTotal * 0.20);
     }
 
-    const isRoomRentRestricted = roomRentLimit === true || 
-                                 isRoomRentCapped === true || 
-                                 optionalEnhancements?.roomRentRestriction === true;
-
-    if (isRoomRentRestricted) {
-      const roomDiscount = Math.round(subTotal * 0.10);
-      discountAmount += roomDiscount;
-      explanationLines.push(`Room Rent Limit: -₹${roomDiscount}`);
+    // Apply room rent restriction discount for Parivar plan (fixed amount per member)
+    if (isParivarPlan && roomRentDiscountPerMember > 0) {
+      const memberCount = memberBreakdown.length;
+      const totalRoomDiscount = roomRentDiscountPerMember * memberCount;
+      discountAmount += totalRoomDiscount;
+      
+      // Get display name for the room type
+      let roomTypeName = 'Room Rent Restriction';
+      if (roomRentRestriction.toLowerCase().includes('twin')) roomTypeName = 'Twin Sharing';
+      else if (roomRentRestriction.toLowerCase().includes('single private ac') || roomRentRestriction === 'single_pvt_ac') roomTypeName = 'Single Private AC';
+      else if (roomRentRestriction.toLowerCase().includes('single private') || roomRentRestriction === 'single_pvt') roomTypeName = 'Single Private Room';
+      
+      explanationLines.push(`${roomTypeName}: -₹${roomRentDiscountPerMember} × ${memberCount} = -₹${totalRoomDiscount}`);
     }
 
     const netPremium = (totalBasePremium + featureCost + chronicCost + riderCost) - discountAmount;
@@ -331,12 +446,17 @@ const PaymentSummary = ({ data }) => {
           </span>
           <span className="font-bold">₹{totalBasePremium.toLocaleString('en-IN')}</span>
           
-          <div className="absolute left-0 bottom-6 w-72 bg-slate-800 p-4 rounded-xl border border-slate-600 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+          <div className="absolute left-0 bottom-6 w-80 bg-slate-800 p-4 rounded-xl border border-slate-600 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
             <p className="text-xs font-bold text-blue-300 mb-2 border-b border-slate-600 pb-2">Member Breakdown</p>
             {memberBreakdown.map((m, i) => (
               <div key={i} className="flex justify-between text-[11px] text-slate-300 mb-1.5">
                 <span>{m.label} ({m.age}y)</span>
-                <span className="font-mono">₹{m.final.toLocaleString()}</span>
+                <div className="text-right">
+                  <span className="font-mono">₹{m.final.toLocaleString()}</span>
+                  {m.roomRentDiscount && (
+                    <span className="text-green-400 text-[9px] block">(-₹{m.roomRentDiscount} room rent)</span>
+                  )}
+                </div>
               </div>
             ))}
           </div>

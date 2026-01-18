@@ -111,6 +111,24 @@ const insurancePlanSchema = new mongoose.Schema(
       },
       maternityDays: { type: Number, min: 0, default: 0 },
     },
+    // Maternity coverage limits based on sum insured for Parivar Suraksha
+    // Structure: { sumInsuredKey -> limit }
+    maternityLimits: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {
+        '10L': 75000,
+        '15L': 75000,
+        '20L': 100000,
+        '25L': 100000,
+        '50L': 200000,
+        '1Cr': 200000
+      }
+    },
+    // Flag to indicate maternity requires both self and spouse
+    maternityRequiresSelfAndSpouse: {
+      type: Boolean,
+      default: true
+    },
     preHospitalizationDays: { type: Number, min: 0, default: 0 },
     postHospitalizationDays: { type: Number, min: 0, default: 0 },
     restorationBenefit: {

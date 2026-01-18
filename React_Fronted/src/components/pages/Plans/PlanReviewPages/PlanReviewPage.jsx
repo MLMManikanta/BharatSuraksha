@@ -141,10 +141,10 @@ const PlanReviewPage = () => {
     }
 
     // SCENARIO B: Standard Plans
-    if (planName.includes('neev')) return <BasicPlanReview data={data} />;
-    if (planName.includes('parivar')) return <FamilyPlanReview data={data} />;
-    if (planName.includes('varishtha')) return <SeniorPlanReview data={data} />;
-    if (planName.includes('vishwa')) return <UniversalPlanReview data={data} />;
+    if (planName.includes('neev')) return <BasicPlanReview data={data} onChange={handleLiveUpdate} />;
+    if (planName.includes('parivar')) return <FamilyPlanReview data={data} onChange={handleLiveUpdate} />;
+    if (planName.includes('varishtha')) return <SeniorPlanReview data={data} onChange={handleLiveUpdate} />;
+    if (planName.includes('vishwa')) return <UniversalPlanReview data={data} onChange={handleLiveUpdate} />;
 
     return (
       <div className="p-10 text-center text-red-500 font-bold bg-red-50 rounded-3xl">

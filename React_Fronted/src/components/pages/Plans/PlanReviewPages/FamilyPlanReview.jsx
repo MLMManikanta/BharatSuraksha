@@ -1,30 +1,75 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const FamilyPlanReview = ({ data }) => {
+const FamilyPlanReview = ({ data, onChange }) => {
   const navigate = useNavigate();
-  const basePremium = data?.basePremium || 10500;
   const siValue = data?.sumInsured?.value || 0;
   const siLabel = data?.sumInsured?.label || "₹10L";
+
+  // --- MATERNITY LIMIT CONFIGURATION FOR PARIVAR SURAKSHA (from CSV) ---
+  // Maternity Cover Limit: ₹75k for 10L & 15L, ₹1L for 20L & 25L, ₹2L for 50L & 1Cr
+  const MATERNITY_LIMITS = {
+    1000000: { limit: 75000, display: '₹75,000', riderCost: 75000 },     // 10L
+    1500000: { limit: 75000, display: '₹75,000', riderCost: 75000 },     // 15L
+    2000000: { limit: 100000, display: '₹1,00,000', riderCost: 100000 },  // 20L
+    2500000: { limit: 100000, display: '₹1,00,000', riderCost: 100000 },  // 25L
+    5000000: { limit: 200000, display: '₹2,00,000', riderCost: 200000 },  // 50L
+    10000000: { limit: 200000, display: '₹2,00,000', riderCost: 200000 }  // 1Cr
+  };
+
+  // Get maternity limit based on sum insured
+  const getMaternityLimit = () => {
+    const si = siValue;
+    if (si <= 1000000) return MATERNITY_LIMITS[1000000];
+    if (si <= 1500000) return MATERNITY_LIMITS[1500000];
+    if (si <= 2000000) return MATERNITY_LIMITS[2000000];
+    if (si <= 2500000) return MATERNITY_LIMITS[2500000];
+    if (si <= 5000000) return MATERNITY_LIMITS[5000000];
+    return MATERNITY_LIMITS[10000000];
+  };
+
+  // Check maternity eligibility - requires both Self AND Spouse
+  const memberCounts = data?.counts || {};
+  const hasSelf = Number(memberCounts.self || 0) > 0;
+  const hasSpouse = Number(memberCounts.spouse || 0) > 0;
+  const isMaternityEligible = hasSelf && hasSpouse;
+
+  const maternityInfo = getMaternityLimit();
 
   // --- 1. RIDER STATES ---
   const [roomRiderActive, setRoomRiderActive] = useState(false);
   const [selectedRoomLimit, setSelectedRoomLimit] = useState("Single Private Room");
   const [airAmbulanceActive, setAirAmbulanceActive] = useState(false);
-  const [maternityWaitingRider, setMaternityWaitingRider] = useState(false);
-  const [currentPremium, setCurrentPremium] = useState(basePremium);
 
-  // --- 2. DYNAMIC PRICING LOGIC ---
+  // --- 2. DYNAMIC PRICING LOGIC & NOTIFY PARENT ---
   useEffect(() => {
-    let total = basePremium;
-    if (airAmbulanceActive) total += 2500; 
-    if (maternityWaitingRider) total += 3500;
-    if (roomRiderActive) total -= 1200; 
-    setCurrentPremium(total);
-  }, [roomRiderActive, airAmbulanceActive, maternityWaitingRider, basePremium]);
+    // Build riders array for PaymentSummary
+    const activeRiders = [];
+    if (airAmbulanceActive) {
+      activeRiders.push({ id: 'air_ambulance', name: 'Air Ambulance', active: true });
+    }
+    
+    // Notify parent of changes so PaymentSummary updates
+    if (onChange) {
+      onChange({
+        riders: activeRiders,
+        isRoomRentCapped: roomRiderActive,
+        roomRentLimit: roomRiderActive ? selectedRoomLimit : null,
+        // Pass room rent restriction for premium discount calculation
+        selectedPlan: {
+          ...(data?.selectedPlan || {}),
+          room_rent_restriction: roomRiderActive ? selectedRoomLimit : null,
+          roomRentRestriction: roomRiderActive ? selectedRoomLimit : null
+        },
+        optionalEnhancements: {
+          roomRentRestriction: roomRiderActive,
+          airAmbulance: airAmbulanceActive
+        }
+      });
+    }
+  }, [roomRiderActive, airAmbulanceActive, selectedRoomLimit, onChange, data?.selectedPlan]);
 
-  // --- 3. DYNAMIC MATERNITY LOGIC ---
-  const maternityLimit = siValue >= 3000000 ? "₹2,00,000" : "₹1,00,000"; 
+ 
 
   const handleBack = () => {
     navigate('/select-plan', { state: { ...data, activeTab: 'parivar' } });
@@ -90,6 +135,22 @@ const FamilyPlanReview = ({ data }) => {
                     </ul>
                  </div>
               </article>
+
+              {/* MATERNITY COVERAGE - Only shown when eligible (Self + Spouse) */}
+              {isMaternityEligible && (
+                <article className="flex gap-4">
+                   <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 bg-pink-50">🤰</div>
+                   <div>
+                      <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Maternity Coverage</h2>
+                      <p className="font-extrabold text-pink-700 text-lg">Up to {maternityInfo.display}</p>
+                      <ul className="text-xs text-gray-500 mt-1 space-y-0.5">
+                        <li>• Normal & C-Section Delivery</li>
+                        <li>• Pre & Post Natal Expenses</li>
+                        <li>• Newborn Baby Cover (90 days)</li>
+                      </ul>
+                   </div>
+                </article>
+              )}
            </div>
 
            <div className="space-y-6">
@@ -119,31 +180,8 @@ const FamilyPlanReview = ({ data }) => {
            </div>
         </section>
 
-        {/* MATERNITY & BENEFITS BANNER */}
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-5 border border-purple-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-           <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-2xl">👶</div>
-              <div>
-                 <h3 className="font-bold text-gray-800 text-sm uppercase tracking-wide">Maternity Limit</h3>
-                 <p className="text-2xl font-black text-purple-700">{maternityLimit}</p>
-                 <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">
-                   Waiting: {maternityWaitingRider ? "1 Year (Rider)" : "3 Years (Std)"}
-                 </p>
-              </div>
-           </div>
-           <div className="flex gap-4 text-xs font-medium text-gray-600 bg-white/60 px-4 py-2 rounded-xl">
-              <div className="text-center">
-                 <span className="block font-bold text-gray-800">60 Days</span>
-                 <span>Pre-Hosp</span>
-              </div>
-              <div className="w-px bg-gray-300"></div>
-              <div className="text-center">
-                 <span className="block font-bold text-gray-800">180 Days</span>
-                 <span>Post-Hosp</span>
-              </div>
-           </div>
-        </div>
-
+   
+  
         {/* RIDER SECTION */}
         <section aria-labelledby="riders-title" className="space-y-4">
            <h2 id="riders-title" className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -181,22 +219,8 @@ const FamilyPlanReview = ({ data }) => {
                  </div>
               </div>
 
-              {/* 2. Maternity Waiting Reduction Rider */}
-              <div className={`flex flex-col md:flex-row justify-between items-center gap-4 p-5 rounded-xl border transition-all ${maternityWaitingRider ? 'bg-purple-50 border-purple-200' : 'bg-gray-50 border-gray-100'}`}>
-                 <div className="flex-1 text-center md:text-left">
-                    <p className="text-sm font-bold text-gray-900 uppercase flex items-center gap-2 md:justify-start justify-center">
-                       Maternity Wait Reduction
-                       {maternityWaitingRider && <span className="text-[10px] bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full">Active</span>}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Reduce 3-year waiting period to 1 year.</p>
-                 </div>
-                 <button 
-                    onClick={() => setMaternityWaitingRider(!maternityWaitingRider)} 
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${maternityWaitingRider ? 'bg-purple-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
-                 >
-                    {maternityWaitingRider ? 'Remove' : 'Add (+₹3,500)'}
-                 </button>
-              </div>
+            
+             
 
               {/* 3. Air Ambulance Rider */}
               <div className={`flex flex-col md:flex-row justify-between items-center gap-4 p-5 rounded-xl border transition-all ${airAmbulanceActive ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-100'}`}>
@@ -211,7 +235,7 @@ const FamilyPlanReview = ({ data }) => {
                     onClick={() => setAirAmbulanceActive(!airAmbulanceActive)} 
                     className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${airAmbulanceActive ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
                  >
-                    {airAmbulanceActive ? 'Remove' : 'Add (+₹2,500)'}
+                    {airAmbulanceActive ? 'Remove' : 'Add'}
                  </button>
               </div>
            </div>
@@ -221,6 +245,19 @@ const FamilyPlanReview = ({ data }) => {
         <section aria-labelledby="exclusions-heading">
            <h2 id="exclusions-heading" className="text-xs font-bold text-red-400 uppercase tracking-widest mb-4">❌ Exclusions</h2>
            <div className="flex flex-wrap gap-2">
+              {/* Dynamic exclusions: Maternity & Newborn when spouse not selected */}
+              {!isMaternityEligible && (
+                <>
+                  <span className="text-[10px] font-bold text-red-700 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 uppercase flex items-center gap-1">
+                    🤰 Maternity Cover
+                    <span className="text-[8px] text-red-500 font-normal normal-case">(Requires Self + Spouse)</span>
+                  </span>
+                  <span className="text-[10px] font-bold text-red-700 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 uppercase flex items-center gap-1">
+                    👶 Newborn Baby Cover
+                    <span className="text-[8px] text-red-500 font-normal normal-case">(Requires Self + Spouse)</span>
+                  </span>
+                </>
+              )}
               {['Global Treatment', 'Cosmetic Surgery', 'Infertility / IVF', 'Adventure Sports'].map((exc, i) => (
                  <span key={i} className="text-[10px] font-bold text-red-700 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 uppercase">
                     {exc}

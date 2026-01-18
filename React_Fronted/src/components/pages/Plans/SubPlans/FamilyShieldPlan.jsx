@@ -1,13 +1,35 @@
 import React, { useState } from 'react';
 
-const FamilyShieldPlan = ({ onSelectPlan }) => {
+const FamilyShieldPlan = ({ onSelectPlan, memberCounts = {} }) => {
   const [view, setView] = useState('covered');
   const [selectedSumInsured, setSelectedSumInsured] = useState('10L');
 
+  // Check maternity eligibility - requires both Self AND Spouse
+  const hasSelf = Number(memberCounts.self || 0) > 0;
+  const hasSpouse = Number(memberCounts.spouse || 0) > 0;
+  const isMaternityEligible = hasSelf && hasSpouse;
+
+  // Maternity Cover limits based on sum insured for Parivar Suraksha (from CSV)
+  // ₹75k for 10L & 15L, ₹1L for 20L & 25L, ₹2L for 50L & 1Cr
+  const MATERNITY_LIMITS = {
+    '10L': '₹75,000',
+    '15L': '₹75,000',
+    '20L': '₹1,00,000',
+    '25L': '₹1,00,000',
+    '50L': '₹2,00,000',
+    '1Cr': '₹2,00,000'
+  };
+
+  const getMaternityLimit = () => MATERNITY_LIMITS[selectedSumInsured] || '₹75,000';
+
+  // Features - Maternity & Newborn only shown when eligible (Self + Spouse)
   const features = [
     { title: "Any Room Category", icon: "🛏️" },
-    { title: "Maternity Coverage (Up to ₹2L)", icon: "🤰" },
-    { title: "Newborn Baby Cover", icon: "👶" },
+    // Conditionally include maternity & newborn features
+    ...(isMaternityEligible ? [
+      { title: `Maternity Coverage (Up to ${getMaternityLimit()})`, icon: "🤰", isDynamic: true },
+      { title: "Newborn Baby Cover", icon: "👶" }
+    ] : []),
     { title: "100% Restoration of Cover", icon: "🔄" },
     { title: "Free Annual Health Checkup", icon: "🩺" },
     { title: "Sum Insured: ₹10L - 1Cr", icon: "💰" },
@@ -22,6 +44,11 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
   ];
 
   const exclusions = [
+    // Conditionally include maternity & newborn in exclusions when spouse not selected
+    ...(!isMaternityEligible ? [
+      { title: "Maternity Cover (Requires Self + Spouse)", icon: "🤰", isConditional: true },
+      { title: "Newborn Baby Cover (Requires Self + Spouse)", icon: "👶", isConditional: true }
+    ] : []),
     { title: "Infertility / IVF Treatments", icon: "🧬" },
     { title: "Cosmetic & Plastic Surgery", icon: "💄" },
     { title: "Self-Inflicted Injuries", icon: "🤕" },
@@ -72,6 +99,7 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
                  >
                     <option value="10L">₹10 Lakhs</option>
                     <option value="15L">₹15 Lakhs</option>
+                    <option value="20L">₹20 Lakhs</option>
                     <option value="25L">₹25 Lakhs</option>
                     <option value="50L">₹50 Lakhs</option>
                     <option value="1Cr">₹1 Crore</option>
@@ -131,7 +159,9 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
                 <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
                   {item.icon}
                 </div>
-                <p className="text-sm font-bold text-gray-700 leading-snug group-hover:text-purple-700 transition-colors">{item.title}</p>
+                <p className="text-sm font-bold text-gray-700 leading-snug group-hover:text-purple-700 transition-colors">
+                  {item.isDynamic ? `Maternity Coverage (Up to ${getMaternityLimit()})` : item.title}
+                </p>
               </div>
             ))}
           </div>
@@ -140,12 +170,25 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
             {exclusions.map((item, idx) => (
               <div
                 key={idx}
-                className="group bg-red-50/30 p-5 rounded-2xl border border-red-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center h-full opacity-80 hover:opacity-100"
+                className={`group p-5 rounded-2xl border shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center h-full opacity-80 hover:opacity-100 ${
+                  item.isConditional 
+                    ? 'bg-orange-50/50 border-orange-200' 
+                    : 'bg-red-50/30 border-red-100'
+                }`}
               >
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl mb-4 grayscale group-hover:grayscale-0 transition-all border border-red-50">
+                <div className={`w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl mb-4 transition-all border ${
+                  item.isConditional 
+                    ? 'border-orange-100 grayscale-0' 
+                    : 'border-red-50 grayscale group-hover:grayscale-0'
+                }`}>
                   {item.icon}
                 </div>
-                <p className="text-sm font-bold text-gray-700 leading-snug">{item.title}</p>
+                <p className={`text-sm font-bold leading-snug ${
+                  item.isConditional ? 'text-orange-700' : 'text-gray-700'
+                }`}>{item.title}</p>
+                {item.isConditional && (
+                  <p className="text-[9px] text-orange-500 mt-1">Add spouse to enable</p>
+                )}
               </div>
             ))}
           </div>
