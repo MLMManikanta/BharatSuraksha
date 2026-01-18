@@ -20,11 +20,36 @@ const AGE_ADJUSTMENT_TABLE = {
 };
 
 const PLAN_MULTIPLIERS = {
-  'neev': 0.85,      
+  'neev': 1.0,       // Neev uses direct premium lookup, multiplier not used
   'parivar': 1.0,    
   'varishtha': 1.3,  
   'vishwa': 1.8,     
   'vajra': 1.1       
+};
+
+// Neev Suraksha Premium Table (as per Neev_Premium.csv)
+// Age groups: 0-35 (91 Days to 35 years), 36-50, 51-100
+const NEEV_PREMIUM_TABLE = {
+  '3L': { '0-35': 4500, '36-50': 5600, '51-100': 7800 },
+  '4L': { '0-35': 6600, '36-50': 7700, '51-100': 9900 },
+  '5L': { '0-35': 7500, '36-50': 8600, '51-100': 10800 }
+};
+
+// Helper to get Neev age bracket
+const getNeevAgeBracket = (age) => {
+  const a = parseFloat(age);
+  if (isNaN(a)) return '0-35';
+  if (a <= 35) return '0-35';
+  if (a >= 36 && a <= 50) return '36-50';
+  return '51-100';
+};
+
+// Get Neev premium directly from table
+const getNeevPremium = (age, coverageKey) => {
+  const ageBracket = getNeevAgeBracket(age);
+  const validCoverageKeys = ['3L', '4L', '5L'];
+  const effectiveKey = validCoverageKeys.includes(coverageKey) ? coverageKey : '5L';
+  return NEEV_PREMIUM_TABLE[effectiveKey]?.[ageBracket] || NEEV_PREMIUM_TABLE['5L'][ageBracket];
 };
 
 const BASE_RATE_MATRIX = {
@@ -152,6 +177,7 @@ const PaymentSummary = ({ data }) => {
 
     let planMultiplier = 1.0;
     const planNameRaw = (selectedPlan.name || 'Parivar').toLowerCase();
+    const isNeevPlan = planNameRaw.includes('neev');
     
     if (planNameRaw.includes('neev')) planMultiplier = PLAN_MULTIPLIERS.neev;
     else if (planNameRaw.includes('vishwa')) planMultiplier = PLAN_MULTIPLIERS.vishwa;
@@ -175,18 +201,24 @@ const PaymentSummary = ({ data }) => {
         ages.forEach((age, idx) => {
           if (!age) return;
           
-          const adjustmentPercent = getAgeAdjustmentPercent(age);
-          let adjustedPremium = Math.round(baseRatePerAdult * (1 + (adjustmentPercent / 100)));
+          let adjustedPremium;
           
-          adjustedPremium = Math.round(adjustedPremium * planMultiplier);
+          // Use Neev-specific premium table for Neev plan
+          if (isNeevPlan) {
+            adjustedPremium = getNeevPremium(age, coverageKey);
+          } else {
+            const adjustmentPercent = getAgeAdjustmentPercent(age);
+            adjustedPremium = Math.round(baseRatePerAdult * (1 + (adjustmentPercent / 100)));
+            adjustedPremium = Math.round(adjustedPremium * planMultiplier);
+          }
 
           totalBasePremium += adjustedPremium;
 
           memberBreakdown.push({
             label: `${memberType.charAt(0).toUpperCase() + memberType.slice(1).replace('_', ' ')} ${idx + 1}`,
             age: age,
-            base: baseRatePerAdult,
-            adjustment: adjustmentPercent,
+            base: isNeevPlan ? adjustedPremium : baseRatePerAdult,
+            adjustment: isNeevPlan ? 0 : getAgeAdjustmentPercent(age),
             final: adjustedPremium
           });
         });

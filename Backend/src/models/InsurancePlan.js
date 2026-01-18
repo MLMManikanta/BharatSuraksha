@@ -33,6 +33,17 @@ const insurancePlanSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    // Age-based premium table for plans like Neev Suraksha
+    // Structure: { "3L": { "0-35": 4500, "36-50": 5600, "51-100": 7800 }, ... }
+    premiumTable: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    // Flag to indicate if this plan uses age-based premium calculation
+    usesAgePremiumTable: {
+      type: Boolean,
+      default: false,
+    },
     currency: {
       type: String,
       required: true,
