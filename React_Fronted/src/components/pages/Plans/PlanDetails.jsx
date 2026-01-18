@@ -128,9 +128,11 @@ const PlanDetails = () => {
     memberOptions.forEach(option => {
       const count = memberCounts[option.id];
       if (count > 0) {
-        const ages = Array.isArray(memberAges[option.id]) ? memberAges[option.id] : [memberAges[option.id]];
+        const ages = Array.isArray(memberAges[option.id]) 
+          ? memberAges[option.id] 
+          : [memberAges[option.id]];
         
-        ages.forEach((age, idx) => {
+        ages.slice(0, count).forEach((age, idx) => {
           const errorKey = option.isMulti ? `${option.id}_${idx}_age` : `${option.id}_age`;
           const ageNum = parseInt(age);
 
@@ -152,18 +154,39 @@ const PlanDetails = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  /* ============================
+     ✅ FIXED NORMALIZATION LOGIC
+     ============================ */
   const handleContinue = () => {
-    if (validateForm()) {
-      navigate('/select-plan', { 
-        state: { 
-          counts: memberCounts,
-          memberAges: memberAges,
-          user: userDetails 
-        } 
-      });
-    } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!validateForm()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
+
+    const normalizedAges = { ...memberAges };
+
+    memberOptions.forEach(option => {
+      if (option.isMulti) {
+        const count = memberCounts[option.id] || 0;
+        const ages = Array.isArray(memberAges[option.id])
+          ? memberAges[option.id]
+          : [];
+
+        // ✅ CRITICAL FIX: Ensure array length exactly matches count
+        normalizedAges[option.id] = Array.from(
+          { length: count },
+          (_, i) => ages[i] ?? ''
+        );
+      }
+    });
+
+    navigate('/select-plan', {
+      state: {
+        counts: memberCounts,
+        memberAges: normalizedAges,
+        user: userDetails
+      }
+    });
   };
 
   return (
