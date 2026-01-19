@@ -18,16 +18,14 @@ const UniversalPlanReview = ({ data }) => {
 
   // --- 2. RIDER & PRICING STATES ---
   const [opdRider, setOpdRider] = useState(false);
-  const [globalMaternity, setGlobalMaternity] = useState(false);
   const [currentPremium, setCurrentPremium] = useState(basePremium);
 
   // --- 3. DYNAMIC PRICING LOGIC ---
   useEffect(() => {
     let total = basePremium;
     if (opdRider) total += 12000;
-    if (globalMaternity) total += 15000;
     setCurrentPremium(total);
-  }, [opdRider, globalMaternity, basePremium]);
+  }, [opdRider, basePremium]);
 
   const handleBack = () => {
     navigate('/select-plan', { 
@@ -89,7 +87,7 @@ const UniversalPlanReview = ({ data }) => {
                  <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-xl shrink-0">🏨</div>
                  <div>
                     <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Accommodation & Co-Pay</h2>
-                    <p className="font-extrabold text-gray-800 text-lg">Any Private Room (No Limit)</p>
+                    <p className="font-extrabold text-gray-800 text-lg">Any Room (No Limit)</p>
                     <p className="text-xs text-emerald-700 font-black uppercase bg-emerald-50 inline-block px-2 py-1 rounded mt-1">
                       0% Co-Pay Worldwide
                     </p>
@@ -129,7 +127,7 @@ const UniversalPlanReview = ({ data }) => {
                     <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Universal Maternity</h2>
                     <p className="font-extrabold text-gray-800 text-lg">₹2,00,000 Limit</p>
                     <p className="text-xs text-pink-600 font-bold bg-pink-50 inline-block px-2 py-1 rounded mt-1">
-                      Waiting: {globalMaternity ? "1 Year (Rider)" : "2 Years (Std)"}
+                      Waiting: 2 Years
                     </p>
                  </div>
               </article>
@@ -169,7 +167,7 @@ const UniversalPlanReview = ({ data }) => {
              <div>
                 <h3 className="text-xs font-bold text-blue-800 uppercase">Secure Benefit Active</h3>
                 <p className="text-sm font-bold text-slate-800">Unlimited Automatic Restoration</p>
-                <p className="text-xs text-slate-500 mt-0.5">Refills instantly for unrelated illnesses.</p>
+                <p className="text-xs text-slate-500 mt-0.5">Refills instantly for related or unrelated illnesses.</p>
              </div>
           </div>
         )}
@@ -181,19 +179,6 @@ const UniversalPlanReview = ({ data }) => {
            </h2>
            
            <div className="grid grid-cols-1 gap-4">
-              <div className={`flex flex-col md:flex-row justify-between items-center gap-4 p-5 rounded-2xl border transition-all ${globalMaternity ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100'}`}>
-                 <div className="flex-1">
-                    <p className="text-sm font-bold text-gray-900 uppercase flex items-center gap-2">
-                       Maternity Wait Reduction
-                       {globalMaternity && <span className="text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">Active</span>}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Reduce waiting period to 1 year.</p>
-                 </div>
-                 <button onClick={() => setGlobalMaternity(!globalMaternity)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black transition-all ${globalMaternity ? 'bg-emerald-800 text-white shadow-lg' : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-50'}`}>
-                    {globalMaternity ? 'Active' : 'Add (+₹15,000)'}
-                 </button>
-              </div>
-
               <div className={`flex flex-col md:flex-row justify-between items-center gap-4 p-5 rounded-2xl border transition-all ${opdRider ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100'}`}>
                  <div className="flex-1">
                     <p className="text-sm font-bold text-gray-900 uppercase flex items-center gap-2">
