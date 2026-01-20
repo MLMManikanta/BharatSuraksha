@@ -2,22 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const FamilyPlanReview = ({ data, onChange }) => {
-  const navigate = useNavigate();
-  const siValue = data?.sumInsured?.value || 0;
-  const siLabel = data?.sumInsured?.label || "₹10L";
+const navigate = useNavigate();
+const siValue = data?.sumInsured?.value || 0;
+const siLabel = data?.sumInsured?.label || "₹10L";
 
-  // --- MATERNITY LIMIT CONFIGURATION FOR PARIVAR SURAKSHA (from CSV) ---
-  // Maternity Cover Limit: ₹75k for 10L & 15L, ₹1L for 20L & 25L, ₹2L for 50L & 1Cr
+
   const MATERNITY_LIMITS = {
-    1000000: { limit: 75000, display: '₹75,000', riderCost: 75000 },     // 10L
-    1500000: { limit: 75000, display: '₹75,000', riderCost: 75000 },     // 15L
-    2000000: { limit: 100000, display: '₹1,00,000', riderCost: 100000 },  // 20L
-    2500000: { limit: 100000, display: '₹1,00,000', riderCost: 100000 },  // 25L
-    5000000: { limit: 200000, display: '₹2,00,000', riderCost: 200000 },  // 50L
-    10000000: { limit: 200000, display: '₹2,00,000', riderCost: 200000 }  // 1Cr
+    1000000: { limit: 75000, display: '₹75,000', riderCost: 75000 },    
+    1500000: { limit: 75000, display: '₹75,000', riderCost: 75000 },     
+    2000000: { limit: 100000, display: '₹1,00,000', riderCost: 100000 }, 
+    2500000: { limit: 100000, display: '₹1,00,000', riderCost: 100000 },  
+    5000000: { limit: 200000, display: '₹2,00,000', riderCost: 200000 },  
+    10000000: { limit: 200000, display: '₹2,00,000', riderCost: 200000 }  
   };
 
-  // Get maternity limit based on sum insured
   const getMaternityLimit = () => {
     const si = siValue;
     if (si <= 1000000) return MATERNITY_LIMITS[1000000];
@@ -69,11 +67,19 @@ const FamilyPlanReview = ({ data, onChange }) => {
     }
   }, [roomRiderActive, airAmbulanceActive, selectedRoomLimit, onChange, data?.selectedPlan]);
 
- 
+const handleBack = () => {
+  navigate('/select-plan', {
+    state: {
+      ...data,
+      activeTab: 'parivar'
+    },
+    replace: false
+  });
 
-  const handleBack = () => {
-    navigate('/select-plan', { state: { ...data, activeTab: 'parivar' } });
-  };
+  setTimeout(() => {
+    navigate(0);
+  }, 0);
+};
 
   return (
     <main className="w-full font-sans animate-fade-in-up">

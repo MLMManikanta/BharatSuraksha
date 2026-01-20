@@ -18,6 +18,7 @@ const PlanPreExistingSelection = () => {
   const prevData = location.state || {}; 
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'parivar');
   const [customizationData, setCustomizationData] = useState(location.state?.customizationData || null); 
+  const [skipRedirect, setSkipRedirect] = useState(false);
 
   // Sync tab if navigation state updates externally
   useEffect(() => {
@@ -112,12 +113,14 @@ const PlanPreExistingSelection = () => {
 
   // Redirect safety
   useEffect(() => {
-    console.log('🛡️ Redirect safety check - prevData.counts:', prevData.counts, 'prevData.members:', prevData.members);
-    if (!hasMemberData(prevData)) { 
-      console.warn('⚠️ No counts or members data found, redirecting to /plans');
-      navigate('/plans');
-    }
-  }, [prevData, navigate]);
+  // ✅ Prevent redirect when closing customization
+  if (skipRedirect) return;
+
+  if (!hasMemberData(prevData)) { 
+    navigate('/plans');
+  }
+}, [prevData, navigate, skipRedirect]);
+
 
   // --- HANDLERS ---
 
@@ -171,8 +174,8 @@ const PlanPreExistingSelection = () => {
         '1Cr': { '18-25': 29750, '26-35': 37317, '36-40': 46809, '41-45': 52426, '46-50': 58719, '51-55': 65765, '56-60': 73657, '61-65': 82498, '66-70': 92396, '71-75': 103484, '76-100': 119007 }
       },
       'Varishtha Suraksha': {
-        '5L': { '18-25': 3024, '26-35': 3188, '36-40': 4044, '41-45': 4740, '46-50': 5968, '51-55': 8120, '56-60': 10032, '61-65': 14136, '66-70': 18296, '71-75': 23396, '76-100': 28836 },
-        '10L': { '18-25': 3916, '26-35': 4152, '36-40': 5248, '41-45': 6156, '46-50': 7748, '51-55': 10532, '56-60': 13024, '61-65': 18344, '66-70': 23696, '71-75': 30320, '76-100': 37360 }
+        '5L': {  '60-65': 14136, '66-70': 18296, '71-75': 23396, '76-100': 28836 },
+        '10L': {  '60-65': 18344, '66-70': 23696, '71-75': 30320, '76-100': 37360 }
       },
       'Vishwa Suraksha': {
         '5L': { '18-25': 4570, '26-35': 4820, '36-40': 6110, '41-45': 7165, '46-50': 9020, '51-55': 12280, '56-60': 15165, '61-65': 21380, '66-70': 27645, '71-75': 35360, '76-100': 43590 },
@@ -273,11 +276,13 @@ const PlanPreExistingSelection = () => {
     });
   };
 
-  const handleCloseCustomization = () => {
-    setCustomizationData(null); 
-    setActiveTab('parivar');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+ const handleCloseCustomization = () => {
+  setSkipRedirect(true);       
+  setCustomizationData(null); 
+  setActiveTab('parivar');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
