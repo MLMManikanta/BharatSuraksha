@@ -27,12 +27,9 @@ const BasicPlanReview = ({ data }) => {
     return "₹37,000"; 
   })();
 
-  const handleBack = () => {
+    const handleBack = () => {
     navigate('/select-plan', { 
-        state: { 
-            ...data, 
-            activeTab: data.selectedPlan?.name.toLowerCase().includes('parivar') ? 'parivar' : 'neev' 
-        } 
+      state: { ...data, activeTab: 'neev' } 
     });
   };
 
