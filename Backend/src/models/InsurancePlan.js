@@ -137,6 +137,91 @@ const insurancePlanSchema = new mongoose.Schema(
       default: "none",
     },
     dayCareCoverage: { type: Boolean, default: false },
+    
+    // Riders configuration for this plan
+    // Structure: Array of rider definitions with costs, eligibility rules
+    riders: {
+      type: [{
+        riderId: { type: String, required: true, trim: true },
+        name: { type: String, required: true, trim: true },
+        description: { type: String, trim: true },
+        icon: { type: String, trim: true },
+        // Cost can be fixed, percentage of premium, or lookup table
+        costType: {
+          type: String,
+          enum: ['fixed', 'percentage', 'table', 'age_based'],
+          default: 'fixed'
+        },
+        // Fixed cost amount
+        fixedCost: { type: Number, min: 0, default: 0 },
+        // Percentage of base premium
+        percentageCost: { type: Number, min: 0, max: 100, default: 0 },
+        // Cost lookup table by coverage key
+        // Structure: { "10L": 500, "15L": 600, ... }
+        costTable: { type: mongoose.Schema.Types.Mixed, default: {} },
+        // Age-based cost multipliers
+        // Structure: { "18-25": 1.0, "26-35": 1.2, ... }
+        ageMultipliers: { type: mongoose.Schema.Types.Mixed, default: {} },
+        // Whether rider is enabled by default
+        defaultEnabled: { type: Boolean, default: false },
+        // Whether rider can be toggled by user
+        isOptional: { type: Boolean, default: true },
+        // Eligibility conditions
+        eligibility: {
+          minAge: { type: Number, default: 0 },
+          maxAge: { type: Number, default: 100 },
+          requiredFeatures: [String],  // Features that must be active
+          excludedFeatures: [String],  // Features that must be inactive
+          applicableCoverages: [String] // Coverage keys where this rider is available
+        },
+        // Display order
+        sortOrder: { type: Number, default: 0 }
+      }],
+      default: []
+    },
+    
+    // Features/Benefits configuration for this plan
+    features: {
+      type: [{
+        featureId: { type: String, required: true, trim: true },
+        name: { type: String, required: true, trim: true },
+        description: { type: String, trim: true },
+        icon: { type: String, trim: true },
+        // Cost can be fixed, table-based, or age-based
+        costType: {
+          type: String,
+          enum: ['included', 'fixed', 'table', 'age_based'],
+          default: 'included'
+        },
+        fixedCost: { type: Number, min: 0, default: 0 },
+        costTable: { type: mongoose.Schema.Types.Mixed, default: {} },
+        ageMultipliers: { type: mongoose.Schema.Types.Mixed, default: {} },
+        defaultEnabled: { type: Boolean, default: true },
+        isLocked: { type: Boolean, default: false }, // Cannot be disabled by user
+        sortOrder: { type: Number, default: 0 }
+      }],
+      default: []
+    },
+    
+    // Chronic conditions coverage for this plan
+    chronicConditions: {
+      type: [{
+        conditionId: { type: String, required: true, trim: true },
+        name: { type: String, required: true, trim: true },
+        costPerCondition: { type: Number, min: 0, default: 0 },
+        costTable: { type: mongoose.Schema.Types.Mixed, default: {} },
+        ageMultipliers: { type: mongoose.Schema.Types.Mixed, default: {} },
+        waitingPeriodDays: { type: Number, default: 31 }
+      }],
+      default: []
+    },
+    
+    // Flag to indicate this is a customizable plan (like Vajra)
+    isCustomizable: {
+      type: Boolean,
+      default: false
+    },
+    
     tags: {
       type: [String],
       default: [],

@@ -30,12 +30,34 @@ const CustomizeReviewHealthPage = ({ selectionData, onConfirm, onEdit }) => {
     preHosp,
     postHosp,
     features = [],
-    riders = [],
+    riders: ridersData = [],
     selectedChronic = [],
   } = selectionData;
 
+  // Handle riders in both array and object format
+  // Object format: { features, selectedRiders, addons, chronicConditions }
+  // Array format: [{ id, label, active, ... }, ...]
+  let processedRiders = [];
+  if (Array.isArray(ridersData)) {
+    processedRiders = ridersData;
+  } else if (ridersData && typeof ridersData === 'object') {
+    // Object format - combine selectedRiders/addons
+    const combined = [
+      ...(ridersData.selectedRiders || []),
+      ...(ridersData.addons || [])
+    ];
+    // Remove duplicates by id
+    const seenIds = new Set();
+    processedRiders = combined.filter(r => {
+      const id = r?.id;
+      if (!id || seenIds.has(id)) return false;
+      seenIds.add(id);
+      return true;
+    });
+  }
+
   const activeFeatures = features.filter((f) => f.active);
-  const activeRiders = riders.filter((r) => r.active);
+  const activeRiders = processedRiders.filter((r) => r.active !== false);
 
   return (
     <main className="w-full font-sans animate-fade-in-up">
