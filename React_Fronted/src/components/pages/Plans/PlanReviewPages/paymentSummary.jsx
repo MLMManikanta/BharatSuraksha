@@ -95,6 +95,66 @@ const PARIVAR_PREMIUM_TABLE = {
   '1Cr': { '18-22': 29750, '23-27': 33320, '28-32': 37317, '33-37': 41793, '38-42': 46809, '43-47': 52426, '48-52': 58719, '53-57': 65765, '58-62': 73657, '63-67': 82498, '68-70': 92396 }
 };
 
+// Vishwa Suraksha Premium Table from CSV (per person per annum)
+// Age Slabs: Below 18, 18-22, 23-27, 28-32, 33-37, 38-42, 43-47, 48-52, 53-57, 58-62, 63-67, 68-70, Above 70
+// Coverage Options: 50L, 1Cr, 2Cr, 5Cr, Unlimited (99Cr)
+const VISHWA_PREMIUM_TABLE = {
+  '50L': { 'below18': 65800, '18-22': 67800, '23-27': 73224, '28-32': 78648, '33-37': 84750, '38-42': 91530, '43-47': 101699, '48-52': 115261, '53-57': 132210, '58-62': 152550, '63-67': 176280, '68-70': 203400, 'above70': 206400 },
+  '1Cr': { 'below18': 78512, '18-22': 80512, '23-27': 86954, '28-32': 93394, '33-37': 100641, '38-42': 108691, '43-47': 120768, '48-52': 136872, '53-57': 156999, '58-62': 181154, '63-67': 209332, '68-70': 241538, 'above70': 244538 },
+  '2Cr': { 'below18': 99700, '18-22': 101700, '23-27': 109836, '28-32': 117972, '33-37': 127126, '38-42': 137294, '43-47': 152549, '48-52': 172891, '53-57': 198314, '58-62': 228826, '63-67': 264420, '68-70': 305100, 'above70': 308100 },
+  '5Cr': { 'below18': 133600, '18-22': 135600, '23-27': 146448, '28-32': 157296, '33-37': 169501, '38-42': 183059, '43-47': 203398, '48-52': 230522, '53-57': 264419, '58-62': 305101, '63-67': 352560, '68-70': 406800, 'above70': 409800 },
+  'Unlimited': { 'below18': 159025, '18-22': 161025, '23-27': 173907, '28-32': 186789, '33-37': 201282, '38-42': 217383, '43-47': 241536, '48-52': 273744, '53-57': 313998, '58-62': 362307, '63-67': 418665, '68-70': 483075, 'above70': 486075 }
+};
+
+// Vishwa Suraksha OPD Rider Options from CSV
+const VISHWA_OPD_OPTIONS = {
+  '25k': { 'below18': 15000, '18-22': 17000, '23-27': 18360, '28-32': 19720, '33-37': 21250, '38-42': 22950, '43-47': 25500, '48-52': 28900, '53-57': 33150, '58-62': 38250, '63-67': 44200, '68-70': 51000, 'above70': 54000 },
+  '50k': { 'below18': 27000, '18-22': 29000, '23-27': 31320, '28-32': 33640, '33-37': 36250, '38-42': 39150, '43-47': 43500, '48-52': 49300, '53-57': 56550, '58-62': 65250, '63-67': 75400, '68-70': 87000, 'above70': 90000 },
+  '75k': { 'below18': 40000, '18-22': 42000, '23-27': 45360, '28-32': 48720, '33-37': 52500, '38-42': 56700, '43-47': 63000, '48-52': 71400, '53-57': 81900, '58-62': 94500, '63-67': 109200, '68-70': 126000, 'above70': 129000 },
+  '1L': { 'below18': 49000, '18-22': 51000, '23-27': 55080, '28-32': 59160, '33-37': 63750, '38-42': 68850, '43-47': 76500, '48-52': 86700, '53-57': 99450, '58-62': 114750, '63-67': 132600, '68-70': 153000, 'above70': 156000 }
+};
+
+// Vishwa Suraksha Base Premium (without coverage selection) from CSV
+const VISHWA_BASE_PREMIUM = {
+  'below18': 40375, '18-22': 42375, '23-27': 45765, '28-32': 49155, '33-37': 52969, '38-42': 57206, '43-47': 63562, '48-52': 72038, '53-57': 82631, '58-62': 95344, '63-67': 110175, '68-70': 127125, 'above70': 130125
+};
+
+// Varishtha Suraksha Premium Table (Senior Citizen Plan - 60+ years only)
+// Age Groups: 60-65, 66-70, 71-75, 76-100
+// Coverage Options: 5L, 10L, 15L, 25L, 50L
+const VARISHTHA_PREMIUM_TABLE = {
+  '5L': {
+    '60-65': 14136,
+    '66-70': 18296,
+    '71-75': 23396,
+    '76-100': 28836
+  },
+  '10L': {
+    '60-65': 18344,
+    '66-70': 23696,
+    '71-75': 30320,
+    '76-100': 37360
+  },
+  '15L': {
+    '60-65': 27516,
+    '66-70': 35544,
+    '71-75': 45480,
+    '76-100': 56040
+  },
+  '25L': {
+    '60-65': 45860,
+    '66-70': 59240,
+    '71-75': 75800,
+    '76-100': 93400
+  },
+  '50L': {
+    '60-65': 91720,
+    '66-70': 118480,
+    '71-75': 151600,
+    '76-100': 186800
+  }
+};
+
 // Get Parivar age band (5-year slabs)
 // Ages < 18 use 18-22 band, Ages > 70 use 68-70 band (capped)
 const getParivarAgeBand = (age) => {
@@ -111,6 +171,116 @@ const getParivarAgeBand = (age) => {
   if (a >= 58 && a <= 62) return '58-62';
   if (a >= 63 && a <= 67) return '63-67';
   return '68-70';  // 68+ capped at 68-70 rate
+};
+
+// Get Vishwa Suraksha age bracket based on CSV age slabs
+const getVishwaAgeBracket = (age) => {
+  const a = parseFloat(age);
+  if (isNaN(a) || a < 18) return 'below18';
+  if (a >= 18 && a <= 22) return '18-22';
+  if (a >= 23 && a <= 27) return '23-27';
+  if (a >= 28 && a <= 32) return '28-32';
+  if (a >= 33 && a <= 37) return '33-37';
+  if (a >= 38 && a <= 42) return '38-42';
+  if (a >= 43 && a <= 47) return '43-47';
+  if (a >= 48 && a <= 52) return '48-52';
+  if (a >= 53 && a <= 57) return '53-57';
+  if (a >= 58 && a <= 62) return '58-62';
+  if (a >= 63 && a <= 67) return '63-67';
+  if (a >= 68 && a <= 70) return '68-70';
+  return 'above70';  // Above 70 years
+};
+
+// Get Vishwa premium from table based on age and coverage
+const getVishwaPremium = (age, coverageKey) => {
+  const ageBracket = getVishwaAgeBracket(age);
+  const validKeys = ['50L', '1Cr', '2Cr', '5Cr', 'Unlimited'];
+  const effectiveKey = validKeys.includes(coverageKey) ? coverageKey : '1Cr';
+  return VISHWA_PREMIUM_TABLE[effectiveKey]?.[ageBracket] || VISHWA_PREMIUM_TABLE['1Cr'][ageBracket];
+};
+
+// Get Vishwa OPD rider cost based on age and OPD limit selection
+const getVishwaOPDCost = (age, opdLimit) => {
+  const ageBracket = getVishwaAgeBracket(age);
+  const validOPDKeys = ['25k', '50k', '75k', '1L'];
+  const effectiveKey = validOPDKeys.includes(opdLimit) ? opdLimit : null;
+  if (!effectiveKey) return 0;
+  return VISHWA_OPD_OPTIONS[effectiveKey]?.[ageBracket] || 0;
+};
+
+// Varishtha Suraksha Rider Costs (from CSV specification)
+const VARISHTHA_RIDER_COSTS = {
+  // Chronic Care Conditions Cover (from Day 31) - ₹4,032 per condition
+  chronicCare: {
+    perCondition: 4032,
+    conditions: ['diabetes', 'high_cholesterol', 'copd', 'heart_disease', 'hypertension', 'asthma']
+  },
+  // PED Waiting Period Reduction (3 years to 1 year)
+  pedReduction: 3387,
+  // Specific Illness Waiting Period Reduction (2 years to 1 year)
+  specificIllnessReduction: 5302,
+  // Co-pay Waiver Options (reduces from 10% standard)
+  copayWaiver: {
+    '5%': 1234,   // Reduce to 5% co-pay
+    '0%': 1934    // Reduce to 0% co-pay (nil)
+  },
+  // Non-Medical Consumables Cover
+  consumables: 996,
+  // Room Rent Options (upgrade from Single Private Room)
+  roomRent: {
+    'Any Room': 1267,            // Any room category
+    'Deluxe Room': 967,          // Deluxe room
+    'Single Private AC Room': 489 // Single Private AC Room
+  },
+  // Voluntary Deductible Discounts (reduces premium)
+  deductible: {
+    '10k': 1568,   // ₹10,000 deductible
+    '25k': 3067,   // ₹25,000 deductible
+    '50k': 4998,   // ₹50,000 deductible
+    '1L': 8654     // ₹1,00,000 deductible
+  }
+};
+
+// Get Varishtha chronic care cost based on selected conditions
+const getVarishthaChronicCost = (selectedConditions = []) => {
+  if (!Array.isArray(selectedConditions) || selectedConditions.length === 0) return 0;
+  return selectedConditions.length * VARISHTHA_RIDER_COSTS.chronicCare.perCondition;
+};
+
+// Get Varishtha co-pay waiver cost
+const getVarishthaCopayWaiverCost = (copayLevel) => {
+  if (copayLevel === 'standard' || !copayLevel) return 0;
+  return VARISHTHA_RIDER_COSTS.copayWaiver[copayLevel] || 0;
+};
+
+// Get Varishtha room rent upgrade cost
+const getVarishthaRoomCost = (roomType) => {
+  if (!roomType || roomType === 'Single Private Room') return 0;
+  return VARISHTHA_RIDER_COSTS.roomRent[roomType] || 0;
+};
+
+// Get Varishtha deductible discount
+const getVarishthaDeductibleDiscount = (deductible) => {
+  if (deductible === 'None' || !deductible) return 0;
+  return VARISHTHA_RIDER_COSTS.deductible[deductible] || 0;
+};
+
+// Get Varishtha Suraksha age bracket (Senior Citizen - 60+ only)
+const getVarishthaAgeBracket = (age) => {
+  const a = parseFloat(age);
+  if (isNaN(a) || a < 60) return '60-65'; // Default to lowest bracket if under 60
+  if (a >= 60 && a <= 65) return '60-65';
+  if (a >= 66 && a <= 70) return '66-70';
+  if (a >= 71 && a <= 75) return '71-75';
+  return '76-100'; // 76 and above
+};
+
+// Get Varishtha premium from table based on age and coverage
+const getVarishthaPremium = (age, coverageKey) => {
+  const ageBracket = getVarishthaAgeBracket(age);
+  const validKeys = ['5L', '10L', '15L', '25L', '50L'];
+  const effectiveKey = validKeys.includes(coverageKey) ? coverageKey : '10L';
+  return VARISHTHA_PREMIUM_TABLE[effectiveKey]?.[ageBracket] || VARISHTHA_PREMIUM_TABLE['10L'][ageBracket];
 };
 
 // Get Parivar premium for a specific age and coverage
@@ -149,6 +319,16 @@ const PARIVAR_MATERNITY_CONFIG = {
   '25L': { limit: 100000, display: '₹1,00,000' },
   '50L': { limit: 200000, display: '₹2,00,000' },
   '1Cr': { limit: 200000, display: '₹2,00,000' }
+};
+
+// Vishwa Suraksha Maternity Cover Limits based on Sum Insured (from CSV)
+// ₹1L for 50L SI, ₹2L for 1Cr/2Cr SI, ₹2.5L for 5Cr/Unlimited SI
+const VISHWA_MATERNITY_CONFIG = {
+  '50L': { limit: 100000, display: '₹1,00,000', cost: 15000 },
+  '1Cr': { limit: 200000, display: '₹2,00,000', cost: 18000 },
+  '2Cr': { limit: 200000, display: '₹2,00,000', cost: 22000 },
+  '5Cr': { limit: 250000, display: '₹2,50,000', cost: 28000 },
+  'Unlimited': { limit: 250000, display: '₹2,50,000', cost: 35000 }
 };
 
 // Air Ambulance Rider cost (from CSV) - ₹250 flat
@@ -258,6 +438,8 @@ const PaymentSummary = ({ data }) => {
     const planNameRaw = (selectedPlan.name || 'Parivar').toLowerCase();
     const isNeevPlan = planNameRaw.includes('neev');
     const isParivarPlan = planNameRaw.includes('parivar');
+    const isVishwaPlan = planNameRaw.includes('vishwa');
+    const isVarishthaPlan = planNameRaw.includes('varishtha');
     
     if (planNameRaw.includes('neev')) planMultiplier = PLAN_MULTIPLIERS.neev;
     else if (planNameRaw.includes('vishwa')) planMultiplier = PLAN_MULTIPLIERS.vishwa;
@@ -266,7 +448,10 @@ const PaymentSummary = ({ data }) => {
     else planMultiplier = PLAN_MULTIPLIERS.parivar;
 
     // Check maternity eligibility for Parivar plan (requires Self + Spouse)
-    const isMaternityEligible = isParivarPlan ? checkMaternityEligibility(counts) : true; 
+    const isMaternityEligible = isParivarPlan ? checkMaternityEligibility(counts) : true;
+    
+    // Get OPD rider selection for Vishwa plan (if any)
+    const opdRiderSelection = data.opdRider || data.selectedOPD || optionalEnhancements?.opd || null; 
 
     const effectiveSI = sumInsured || currentSI;
     const coverageKey = getCoverageKey(effectiveSI);
@@ -281,6 +466,7 @@ const PaymentSummary = ({ data }) => {
     const roomRentDiscountPerMember = isParivarPlan ? getRoomRentDiscount(roomRentRestriction) : 0;
     
     let totalBasePremium = 0;
+    let totalOPDCost = 0; // Track OPD cost separately for display
     const memberBreakdown = [];
     const explanationLines = [];
 
@@ -293,6 +479,7 @@ const PaymentSummary = ({ data }) => {
           if (!age) return;
           
           let adjustedPremium;
+          let opdCost = 0;
           
           // Use Neev-specific premium table for Neev plan
           if (isNeevPlan) {
@@ -302,6 +489,19 @@ const PaymentSummary = ({ data }) => {
           else if (isParivarPlan) {
             adjustedPremium = getParivarPremium(age, coverageKey);
             // Room rent discount is applied separately in discountAmount, not here
+          }
+          // Use Vishwa-specific premium table for Vishwa plan (from CSV)
+          else if (isVishwaPlan) {
+            adjustedPremium = getVishwaPremium(age, coverageKey);
+            // Add OPD rider cost if selected (tracked separately)
+            if (opdRiderSelection) {
+              opdCost = getVishwaOPDCost(age, opdRiderSelection);
+              totalOPDCost += opdCost;
+            }
+          }
+          // Use Varishtha-specific premium table for Senior Citizen plan (60+ years)
+          else if (isVarishthaPlan) {
+            adjustedPremium = getVarishthaPremium(age, coverageKey);
           }
           else {
             const adjustmentPercent = getAgeAdjustmentPercent(age);
@@ -314,25 +514,93 @@ const PaymentSummary = ({ data }) => {
           memberBreakdown.push({
             label: `${memberType.charAt(0).toUpperCase() + memberType.slice(1).replace('_', ' ')} ${idx + 1}`,
             age: age,
-            base: isNeevPlan ? adjustedPremium : (isParivarPlan ? getParivarPremium(age, coverageKey) : baseRatePerAdult),
-            adjustment: isNeevPlan || isParivarPlan ? 0 : getAgeAdjustmentPercent(age),
-            final: adjustedPremium
+            base: isNeevPlan ? adjustedPremium : 
+                  (isParivarPlan ? getParivarPremium(age, coverageKey) : 
+                  (isVishwaPlan ? getVishwaPremium(age, coverageKey) : 
+                  (isVarishthaPlan ? getVarishthaPremium(age, coverageKey) : baseRatePerAdult))),
+            adjustment: isNeevPlan || isParivarPlan || isVishwaPlan || isVarishthaPlan ? 0 : getAgeAdjustmentPercent(age),
+            final: adjustedPremium,
+            opdCost: opdCost > 0 ? opdCost : undefined
           });
         });
       }
     });
+    
+    // Add OPD explanation line if selected for Vishwa plan
+    if (isVishwaPlan && opdRiderSelection && totalOPDCost > 0) {
+      const opdLimitDisplay = opdRiderSelection === '1L' ? '₹1,00,000' : `₹${opdRiderSelection.replace('k', ',000')}`;
+      explanationLines.push(`Worldwide OPD (${opdLimitDisplay}): +₹${totalOPDCost.toLocaleString('en-IN')}`);
+    }
 
     let featureCost = 0;
     let riderCost = 0;
     
-    const allAddons = [...(features || []), ...(riders || [])];
-    
-    allAddons.forEach(item => {
-      const isActive = typeof item === 'string' ? true : (item.active === true || item.selected === true);
-      const itemId = typeof item === 'string' ? item : (item.id || item.name);
+    // Handle Varishtha plan riders (object format from SeniorPlanReview)
+    if (isVarishthaPlan && riders && typeof riders === 'object' && !Array.isArray(riders)) {
+      // Chronic Care Conditions - ₹4,032 per condition
+      if (riders.chronicConditions && Array.isArray(riders.chronicConditions)) {
+        const chronicCost = riders.chronicConditions.length * VARISHTHA_RIDER_COSTS.chronicCare.perCondition;
+        if (chronicCost > 0) {
+          riderCost += chronicCost;
+          explanationLines.push(`Chronic Care (${riders.chronicConditions.length} conditions): +₹${chronicCost.toLocaleString('en-IN')}`);
+        }
+      }
       
-      if (isActive) {
-        const nId = normalizeId(itemId);
+      // PED Waiting Period Reduction - ₹3,387
+      if (riders.pedCover) {
+        riderCost += VARISHTHA_RIDER_COSTS.pedReduction;
+        explanationLines.push(`PED Wait Reduction (3yr→1yr): +₹${VARISHTHA_RIDER_COSTS.pedReduction.toLocaleString('en-IN')}`);
+      }
+      
+      // Specific Illness Reduction - ₹5,302
+      if (riders.specificIllness) {
+        riderCost += VARISHTHA_RIDER_COSTS.specificIllnessReduction;
+        explanationLines.push(`Specific Illness Reduction: +₹${VARISHTHA_RIDER_COSTS.specificIllnessReduction.toLocaleString('en-IN')}`);
+      }
+      
+      // Non-Medical Consumables - ₹996
+      if (riders.consumables) {
+        riderCost += VARISHTHA_RIDER_COSTS.consumables;
+        explanationLines.push(`Non-Medical Consumables: +₹${VARISHTHA_RIDER_COSTS.consumables.toLocaleString('en-IN')}`);
+      }
+      
+      // Co-pay Waiver
+      if (riders.copayLevel && riders.copayLevel !== 'standard') {
+        const copayWaiverCost = VARISHTHA_RIDER_COSTS.copayWaiver[riders.copayLevel] || 0;
+        if (copayWaiverCost > 0) {
+          riderCost += copayWaiverCost;
+          explanationLines.push(`Co-pay Waiver (${riders.copayLevel}): +₹${copayWaiverCost.toLocaleString('en-IN')}`);
+        }
+      }
+      
+      // Room Rent Upgrade
+      if (riders.roomUpgrade) {
+        const roomCost = VARISHTHA_RIDER_COSTS.roomRent[riders.roomUpgrade] || 0;
+        if (roomCost > 0) {
+          riderCost += roomCost;
+          explanationLines.push(`Room Upgrade (${riders.roomUpgrade}): +₹${roomCost.toLocaleString('en-IN')}`);
+        }
+      }
+      
+      // Voluntary Deductible Discount (reduces premium)
+      if (riders.deductible && riders.deductible !== 'None') {
+        const deductibleDiscount = VARISHTHA_RIDER_COSTS.deductible[riders.deductible] || 0;
+        if (deductibleDiscount > 0) {
+          riderCost -= deductibleDiscount; // Negative since it's a discount
+          explanationLines.push(`Voluntary Deductible (₹${riders.deductible === '1L' ? '1,00,000' : riders.deductible.replace('k', ',000')}): -₹${deductibleDiscount.toLocaleString('en-IN')}`);
+        }
+      }
+    } else {
+      // Standard handling for array-based riders (other plans)
+      const ridersArray = Array.isArray(riders) ? riders : [];
+      const allAddons = [...(features || []), ...ridersArray];
+    
+      allAddons.forEach(item => {
+        const isActive = typeof item === 'string' ? true : (item.active === true || item.selected === true);
+        const itemId = typeof item === 'string' ? item : (item.id || item.name);
+        
+        if (isActive) {
+          const nId = normalizeId(itemId);
         
         // Special handling for maternity in Parivar plan
         if (nId === 'maternity' && isParivarPlan) {
@@ -345,7 +613,14 @@ const PaymentSummary = ({ data }) => {
           } else {
             explanationLines.push(`Maternity Cover: Not eligible (requires Self + Spouse)`);
           }
-        } else {
+        } 
+        // Special handling for maternity in Vishwa plan (SI-based limits from CSV)
+        else if (nId === 'maternity' && isVishwaPlan) {
+          const vishwaMaternityConfig = VISHWA_MATERNITY_CONFIG[coverageKey] || VISHWA_MATERNITY_CONFIG['1Cr'];
+          featureCost += vishwaMaternityConfig.cost;
+          explanationLines.push(`Global Maternity (Up to ${vishwaMaternityConfig.display}): +₹${vishwaMaternityConfig.cost.toLocaleString('en-IN')}`);
+        }
+        else {
           const fKey = Object.keys(FEATURE_COSTS).find(k => normalizeId(k) === nId);
           if (fKey) {
             featureCost += FEATURE_COSTS[fKey].cost;
@@ -360,6 +635,7 @@ const PaymentSummary = ({ data }) => {
         }
       }
     });
+    } // End of else block for non-Varishtha plans
 
     let chronicCost = 0;
     if (selectedChronic && selectedChronic.length > 0) {
@@ -397,7 +673,7 @@ const PaymentSummary = ({ data }) => {
       explanationLines.push(`${roomTypeName}: -₹${roomRentDiscountPerMember} × ${memberCount} = -₹${totalRoomDiscount}`);
     }
 
-    const netPremium = (totalBasePremium + featureCost + chronicCost + riderCost) - discountAmount;
+    const netPremium = (totalBasePremium + featureCost + chronicCost + riderCost + totalOPDCost) - discountAmount;
     const gstAmount = Math.round(netPremium * GST_RATE);
     
     const finalAnnualPremium = netPremium + gstAmount;
@@ -409,6 +685,8 @@ const PaymentSummary = ({ data }) => {
       featureCost,
       chronicCost,
       riderCost,
+      totalOPDCost,
+      opdRiderSelection,
       discountAmount,
       netPremium,
       gstAmount,
@@ -424,7 +702,7 @@ const PaymentSummary = ({ data }) => {
   if (!data || !calculations) return null;
 
   const { 
-    totalBasePremium, memberBreakdown, featureCost, chronicCost, riderCost, 
+    totalBasePremium, memberBreakdown, featureCost, chronicCost, riderCost, totalOPDCost,
     discountAmount, gstAmount, totalPayable, planName, coverageDisplay 
   } = calculations;
 
@@ -453,6 +731,9 @@ const PaymentSummary = ({ data }) => {
                 <span>{m.label} ({m.age}y)</span>
                 <div className="text-right">
                   <span className="font-mono">₹{m.final.toLocaleString()}</span>
+                  {m.opdCost && (
+                    <span className="text-cyan-400 text-[9px] block">(+₹{m.opdCost.toLocaleString()} OPD)</span>
+                  )}
                   {m.roomRentDiscount && (
                     <span className="text-green-400 text-[9px] block">(-₹{m.roomRentDiscount} room rent)</span>
                   )}
@@ -476,6 +757,13 @@ const PaymentSummary = ({ data }) => {
           </div>
         )}
 
+        {totalOPDCost > 0 && (
+          <div className="flex justify-between items-center">
+            <span className="text-cyan-400 font-medium">Worldwide OPD</span>
+            <span className="font-bold text-cyan-400">₹{totalOPDCost.toLocaleString('en-IN')}</span>
+          </div>
+        )}
+
         {riderCost > 0 && (
           <div className="flex justify-between items-center">
             <span className="text-purple-300 font-medium">Riders</span>
@@ -494,7 +782,7 @@ const PaymentSummary = ({ data }) => {
 
         <div className="flex justify-between items-center">
           <span className="text-slate-400">Net Premium</span>
-          <span className="font-medium">₹{(totalBasePremium + featureCost + chronicCost + riderCost - discountAmount).toLocaleString('en-IN')}</span>
+          <span className="font-medium">₹{(totalBasePremium + featureCost + chronicCost + riderCost + (totalOPDCost || 0) - discountAmount).toLocaleString('en-IN')}</span>
         </div>
 
         <div className="flex justify-between items-center">

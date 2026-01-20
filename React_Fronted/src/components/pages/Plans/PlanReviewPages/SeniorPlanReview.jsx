@@ -1,7 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const SeniorPlanReview = ({ data }) => {
+// Varishtha Suraksha Rider Pricing (from CSV specification)
+const VARISHTHA_RIDER_COSTS = {
+  chronicCare: 4032,           // Per condition
+  pedReduction: 3387,          // 3 years to 1 year
+  specificIllnessReduction: 5302, // 2 years to 1 year
+  copayWaiver: { '5%': 1234, '0%': 1934 },
+  consumables: 996,
+  roomRent: {
+    'Any Room': 1267,
+    'Deluxe Room': 967,
+    'Single Private AC Room': 489
+  },
+  deductible: {
+    '10k': 1568,
+    '25k': 3067,
+    '50k': 4998,
+    '1L': 8654
+  }
+};
+
+const CHRONIC_CONDITIONS = [
+  { id: 'diabetes', label: 'Diabetes' },
+  { id: 'high_cholesterol', label: 'High Cholesterol' },
+  { id: 'copd', label: 'COPD' },
+  { id: 'heart_disease', label: 'Heart Disease' },
+  { id: 'hypertension', label: 'Hypertension' },
+  { id: 'asthma', label: 'Asthma' }
+];
+
+const SeniorPlanReview = ({ data, onChange }) => {
   const navigate = useNavigate();
   const basePremium = data?.basePremium || 18500;
   const siLabel = data?.sumInsured?.label || "₹5L";
@@ -12,25 +41,70 @@ const SeniorPlanReview = ({ data }) => {
   const [roomRiderActive, setRoomRiderActive] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState("Single Private AC Room");
   const [selectedDeductible, setSelectedDeductible] = useState("None");
-  const [copayLevel, setCopayLevel] = useState("standard"); 
+  const [copayLevel, setCopayLevel] = useState("standard");
+  const [selectedChronicConditions, setSelectedChronicConditions] = useState([]);
 
-  const [currentPremium, setCurrentPremium] = useState(basePremium);
+  // Toggle chronic condition
+  const toggleChronicCondition = useCallback((conditionId) => {
+    setSelectedChronicConditions(prev => 
+      prev.includes(conditionId) 
+        ? prev.filter(c => c !== conditionId)
+        : [...prev, conditionId]
+    );
+  }, []);
 
-  useEffect(() => {
+  // Calculate premium using useMemo (no setState in render)
+  const currentPremium = useMemo(() => {
     let total = basePremium;
     
-    if (pedCoverActive) total += 4500;
-    if (specificIllnessRider) total += 2200;
-    if (consumablesRider) total += 1500;
-    if (copayLevel === "5%") total += 2500;
-    if (copayLevel === "0%") total += 5500;
-    if (roomRiderActive && (selectedRoom === "Deluxe Room" || selectedRoom === "Any Room")) total += 3000;
+    // Chronic Care Conditions (from Day 31) - ₹4,032 per condition
+    total += selectedChronicConditions.length * VARISHTHA_RIDER_COSTS.chronicCare;
     
-    const deductibleValues = { "10k": 1000, "15k": 1500, "25k": 2500, "40k": 4000, "50k": 5000, "1L": 8000 };
-    if (selectedDeductible !== "None") total -= (deductibleValues[selectedDeductible] || 0);
+    // PED Waiting Period Reduction (3yr to 1yr) - ₹3,387
+    if (pedCoverActive) total += VARISHTHA_RIDER_COSTS.pedReduction;
+    
+    // Specific Illness Waiting Period Reduction (2yr to 1yr) - ₹5,302
+    if (specificIllnessRider) total += VARISHTHA_RIDER_COSTS.specificIllnessReduction;
+    
+    // Non-Medical Consumables - ₹996
+    if (consumablesRider) total += VARISHTHA_RIDER_COSTS.consumables;
+    
+    // Co-pay Waiver
+    if (copayLevel === "5%") total += VARISHTHA_RIDER_COSTS.copayWaiver['5%'];
+    if (copayLevel === "0%") total += VARISHTHA_RIDER_COSTS.copayWaiver['0%'];
+    
+    // Room Rent Upgrade
+    if (roomRiderActive && selectedRoom) {
+      total += VARISHTHA_RIDER_COSTS.roomRent[selectedRoom] || 0;
+    }
+    
+    // Voluntary Deductible Discount
+    if (selectedDeductible !== "None") {
+      total -= VARISHTHA_RIDER_COSTS.deductible[selectedDeductible] || 0;
+    }
 
-    setCurrentPremium(total);
-  }, [pedCoverActive, specificIllnessRider, consumablesRider, copayLevel, roomRiderActive, selectedRoom, selectedDeductible, basePremium]);
+    return total;
+  }, [basePremium, pedCoverActive, specificIllnessRider, consumablesRider, copayLevel, roomRiderActive, selectedRoom, selectedDeductible, selectedChronicConditions]);
+
+  // Notify parent component of rider changes
+  // Notify parent component of rider changes
+  useEffect(() => {
+    if (onChange) {
+      onChange({
+        riderCost: currentPremium - basePremium,
+        riders: {
+          chronicConditions: selectedChronicConditions,
+          pedCover: pedCoverActive,
+          specificIllness: specificIllnessRider,
+          consumables: consumablesRider,
+          copayLevel,
+          roomUpgrade: roomRiderActive ? selectedRoom : null,
+          deductible: selectedDeductible
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPremium, basePremium, pedCoverActive, specificIllnessRider, consumablesRider, copayLevel, roomRiderActive, selectedRoom, selectedDeductible, selectedChronicConditions]);
 
   const handleBack = () => {
     navigate('/select-plan', { state: { ...data, activeTab: 'varishtha' } });
@@ -152,6 +226,43 @@ const SeniorPlanReview = ({ data }) => {
            
            <div className="grid grid-cols-1 gap-4">
               
+              {/* RIDER 0: CHRONIC CARE CONDITIONS */}
+              <div className={`flex flex-col gap-4 p-5 rounded-xl border transition-all ${selectedChronicConditions.length > 0 ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-100'}`}>
+                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                    <div className="flex-1">
+                       <p className="text-sm font-bold text-gray-900 uppercase flex items-center gap-2">
+                          Chronic Care Conditions
+                          {selectedChronicConditions.length > 0 && (
+                            <span className="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">
+                              {selectedChronicConditions.length} Selected
+                            </span>
+                          )}
+                       </p>
+                       <p className="text-xs text-gray-500 mt-1">Cover chronic conditions from Day 31 (₹4,032 per condition)</p>
+                    </div>
+                    {selectedChronicConditions.length > 0 && (
+                      <span className="text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-lg">
+                        +₹{(selectedChronicConditions.length * VARISHTHA_RIDER_COSTS.chronicCare).toLocaleString('en-IN')}
+                      </span>
+                    )}
+                 </div>
+                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {CHRONIC_CONDITIONS.map(condition => (
+                      <button
+                        key={condition.id}
+                        onClick={() => toggleChronicCondition(condition.id)}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          selectedChronicConditions.includes(condition.id)
+                            ? 'bg-amber-600 text-white shadow-md'
+                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+                        }`}
+                      >
+                        {condition.label}
+                      </button>
+                    ))}
+                 </div>
+              </div>
+              
               {/* RIDER 1: PED COVER */}
               <div className={`flex flex-col md:flex-row justify-between items-center gap-4 p-5 rounded-xl border transition-all ${pedCoverActive ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-100'}`}>
                  <div className="flex-1 text-center md:text-left">
@@ -159,10 +270,10 @@ const SeniorPlanReview = ({ data }) => {
                        PED Waiting Reduction
                        {pedCoverActive && <span className="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Active</span>}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">Reduce waiting for chronic illnesses from 3 years to 30 days.</p>
+                    <p className="text-xs text-gray-500 mt-1">Reduce waiting for pre-existing diseases from 3 years to 1 year.</p>
                  </div>
                  <button onClick={() => setPedCoverActive(!pedCoverActive)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${pedCoverActive ? 'bg-amber-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>
-                    {pedCoverActive ? 'Remove' : 'Add (+₹4,500)'}
+                    {pedCoverActive ? 'Remove' : `Add (+₹${VARISHTHA_RIDER_COSTS.pedReduction.toLocaleString('en-IN')})`}
                  </button>
               </div>
 
@@ -176,7 +287,7 @@ const SeniorPlanReview = ({ data }) => {
                     <p className="text-xs text-gray-500 mt-1">Reduce waiting for Cataract/Joints from 2 years to 1 year.</p>
                  </div>
                  <button onClick={() => setSpecificIllnessRider(!specificIllnessRider)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${specificIllnessRider ? 'bg-amber-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>
-                    {specificIllnessRider ? 'Remove' : 'Add (+₹2,200)'}
+                    {specificIllnessRider ? 'Remove' : `Add (+₹${VARISHTHA_RIDER_COSTS.specificIllnessReduction.toLocaleString('en-IN')})`}
                  </button>
               </div>
 
@@ -195,8 +306,8 @@ const SeniorPlanReview = ({ data }) => {
                    className="text-xs font-bold border border-amber-300 rounded-lg p-2 bg-white text-amber-900 focus:outline-none"
                  >
                    <option value="standard">Standard (10%)</option>
-                   <option value="5%">Reduce to 5% (+₹2,500)</option>
-                   <option value="0%">Reduce to 0% (+₹5,500)</option>
+                   <option value="5%">Reduce to 5% (+₹{VARISHTHA_RIDER_COSTS.copayWaiver['5%'].toLocaleString('en-IN')})</option>
+                   <option value="0%">Reduce to 0% (+₹{VARISHTHA_RIDER_COSTS.copayWaiver['0%'].toLocaleString('en-IN')})</option>
                  </select>
               </div>
 
@@ -210,7 +321,7 @@ const SeniorPlanReview = ({ data }) => {
                     <p className="text-xs text-gray-500 mt-1">Cover 60+ items like gloves/masks usually excluded.</p>
                  </div>
                  <button onClick={() => setConsumablesRider(!consumablesRider)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${consumablesRider ? 'bg-amber-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>
-                    {consumablesRider ? 'Remove' : 'Add (+₹1,500)'}
+                    {consumablesRider ? 'Remove' : `Add (+₹${VARISHTHA_RIDER_COSTS.consumables.toLocaleString('en-IN')})`}
                  </button>
               </div>
 
@@ -225,10 +336,14 @@ const SeniorPlanReview = ({ data }) => {
                  </div>
                  <div className="flex items-center gap-2">
                    {roomRiderActive && (
-                     <select value={selectedRoom} onChange={(e) => setSelectedRoom(e.target.value)} className="text-xs font-bold border rounded-lg p-2">
-                       <option value="Single Private AC Room">Single Private AC</option>
-                       <option value="Deluxe Room">Deluxe Room</option>
-                       <option value="Any Room">Any Room Category</option>
+                     <select 
+                       value={selectedRoom} 
+                       onChange={(e) => setSelectedRoom(e.target.value)} 
+                       className="text-xs font-bold border rounded-lg p-2"
+                     >
+                       <option value="Single Private AC Room">Single Private AC (+₹{VARISHTHA_RIDER_COSTS.roomRent['Single Private AC Room']})</option>
+                       <option value="Deluxe Room">Deluxe Room (+₹{VARISHTHA_RIDER_COSTS.roomRent['Deluxe Room']})</option>
+                       <option value="Any Room">Any Room (+₹{VARISHTHA_RIDER_COSTS.roomRent['Any Room'].toLocaleString('en-IN')})</option>
                      </select>
                    )}
                    <button onClick={() => setRoomRiderActive(!roomRiderActive)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${roomRiderActive ? 'bg-amber-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>
@@ -249,10 +364,10 @@ const SeniorPlanReview = ({ data }) => {
                    className="text-xs font-bold border border-gray-300 rounded-lg p-2 bg-white"
                  >
                    <option value="None">None</option>
-                   <option value="10k">₹10,000 (-₹1,000)</option>
-                   <option value="25k">₹25,000 (-₹2,500)</option>
-                   <option value="50k">₹50,000 (-₹5,000)</option>
-                   <option value="1L">₹1,00,000 (-₹8,000)</option>
+                   <option value="10k">₹10,000 (-₹{VARISHTHA_RIDER_COSTS.deductible['10k'].toLocaleString('en-IN')})</option>
+                   <option value="25k">₹25,000 (-₹{VARISHTHA_RIDER_COSTS.deductible['25k'].toLocaleString('en-IN')})</option>
+                   <option value="50k">₹50,000 (-₹{VARISHTHA_RIDER_COSTS.deductible['50k'].toLocaleString('en-IN')})</option>
+                   <option value="1L">₹1,00,000 (-₹{VARISHTHA_RIDER_COSTS.deductible['1L'].toLocaleString('en-IN')})</option>
                  </select>
               </div>
            </div>
