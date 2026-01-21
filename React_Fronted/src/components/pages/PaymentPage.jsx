@@ -1,11 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
 
 const PaymentPage = () => {
   const location = useLocation();
-  const planData = location.state || {};
   const navigate = useNavigate();
+  
+  // Get planData from navigation state OR sessionStorage fallback
+  const planData = useMemo(() => {
+    if (location.state && Object.keys(location.state).length > 0) {
+      return location.state;
+    }
+    // Fallback to paymentData in sessionStorage
+    const paymentData = sessionStorage.getItem('paymentData');
+    if (paymentData) {
+      return JSON.parse(paymentData);
+    }
+    // Fallback to orderData
+    const orderData = sessionStorage.getItem('orderData');
+    if (orderData) {
+      return JSON.parse(orderData);
+    }
+    return {};
+  }, [location.state]);
 
   const [method, setMethod] = useState('');
   const [processing, setProcessing] = useState(false);
@@ -66,15 +83,16 @@ const PaymentPage = () => {
       <CheckoutStepper currentStep={8} />
 
       {/* Header */}
-      <div className="relative bg-gradient-to-br from-emerald-600 via-teal-500 to-emerald-700 text-white pt-12 pb-24 px-4 rounded-b-[4rem] shadow-2xl overflow-hidden">
+      <div className="relative bg-linear-to-br from-emerald-600 via-teal-500 to-emerald-700 text-white pt-12 pb-24 px-4 rounded-b-[4rem] shadow-2xl overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
           <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full mix-blend-overlay blur-3xl"></div>
           <div className="absolute bottom-10 right-10 w-80 h-80 bg-green-400 rounded-full mix-blend-overlay blur-3xl"></div>
         </div>
 
         <div className="relative max-w-4xl mx-auto text-center space-y-4 animate-fade-in-up">
-          <div className="inline-flex items-center justify-center text-4xl p-4 bg-white/20 backdrop-blur-md rounded-full mb-4 ring-1 ring-white/30 shadow-lg">
-            💸
+          <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full mb-2">
+            <span className="text-2xl">💸</span>
+            <span className="text-sm font-medium">Step 8 of 8</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Secure Payment</h1>
           <p className="text-emerald-100 text-lg max-w-2xl mx-auto font-light">
@@ -94,7 +112,7 @@ const PaymentPage = () => {
 
         {/* Method Selection */}
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-          <div className="p-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+          <div className="p-1 bg-linear-to-r from-emerald-400 to-teal-500"></div>
           <div className="p-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
               <span className="bg-emerald-100 rounded-xl w-10 h-10 flex items-center justify-center text-xl shadow-sm">
@@ -256,16 +274,13 @@ const PaymentPage = () => {
             }`}
           >
             {!processing && (
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
+              <div className="absolute inset-0 w-full h-full bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
             )}
             
             <span className="relative flex items-center justify-center gap-3">
               {processing ? (
                 <>
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
+                  <span className="animate-spin text-xl">⏳</span>
                   Processing...
                 </>
               ) : (

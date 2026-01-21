@@ -200,8 +200,9 @@ const PlanDetails = () => {
         </div>
 
         <div className="relative max-w-4xl mx-auto text-center space-y-4 animate-fade-in-up">
-          <div className="inline-flex items-center justify-center text-4xl p-4 bg-white/20 backdrop-blur-md rounded-full mb-4 ring-1 ring-white/30 shadow-lg">
-            🛡️
+          <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full mb-2">
+            <span className="text-2xl">🛡️</span>
+            <span className="text-sm font-medium">Step 1 of 8</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Who would you like to insure?</h1>
           <p className="text-blue-100 text-lg max-w-2xl mx-auto font-light">

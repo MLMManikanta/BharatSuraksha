@@ -1067,7 +1067,12 @@ const PaymentSummary = ({ data }) => {
 
       <div className="pt-2">
         <button 
-          onClick={() => navigate('/kyc', { state: { ...data, paymentDetails: calculations } })}
+          onClick={() => {
+            // Store calculations in sessionStorage as backup
+            sessionStorage.setItem('premiumCalculations', JSON.stringify(calculations));
+            sessionStorage.setItem('planData', JSON.stringify({ ...data, paymentDetails: calculations }));
+            navigate('/kyc', { state: { ...data, paymentDetails: calculations } });
+          }}
           className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-bold uppercase tracking-wider transition-all shadow-lg shadow-blue-900/40 transform active:scale-[0.98]"
         >
           Proceed to KYC &rarr;

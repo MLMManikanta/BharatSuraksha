@@ -290,6 +290,10 @@ const PlanPreExistingSelection = () => {
       
       <div className="bg-[#1A5EDB] text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl relative mb-8">
         <div className="max-w-5xl mx-auto text-center space-y-4">
+          <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full mb-2">
+            <span className="text-2xl">📋</span>
+            <span className="text-sm font-medium">Step 2 of 8</span>
+          </div>
           <h1 className="text-3xl md:text-4xl font-bold italic tracking-tight">
             {customizationData ? `Customize Vajra Suraksha` : 'Select Your Suraksha'}
           </h1>

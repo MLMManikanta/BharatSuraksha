@@ -6,7 +6,15 @@ import { submitMedicalInfo } from '../../utils/api';
 const MedicalInformationPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const planData = location.state || {};
+  
+  // Get planData from navigation state OR sessionStorage fallback
+  const planData = useMemo(() => {
+    if (location.state && Object.keys(location.state).length > 0) {
+      return location.state;
+    }
+    const stored = sessionStorage.getItem('planData');
+    return stored ? JSON.parse(stored) : {};
+  }, [location.state]);
 
   const membersList = useMemo(() => {
     if (!planData.kycData || !planData.kycData.members) return [];
@@ -140,14 +148,18 @@ const MedicalInformationPage = () => {
       });
 
       if (response.success) {
+        // Build bank page data
+        const bankPageData = {
+          ...planData,
+          medicalData: medicalSubmitData,
+          medicalInfoId: response.data?.medicalInfoId
+        };
+        
+        // Store in sessionStorage as backup
+        sessionStorage.setItem('planData', JSON.stringify(bankPageData));
+        
         // Navigate to bank info page with all data
-        navigate('/bankinfo', {
-          state: {
-            ...planData,
-            medicalData: medicalSubmitData,
-            medicalInfoId: response.data?.medicalInfoId
-          }
-        });
+        navigate('/bankinfo', { state: bankPageData });
       } else {
         setSubmitError(response.message || 'Failed to submit medical information. Please try again.');
       }
@@ -191,8 +203,9 @@ const MedicalInformationPage = () => {
         </div>
 
         <div className="relative max-w-4xl mx-auto text-center space-y-4 animate-fade-in-up">
-          <div className="inline-flex items-center justify-center text-4xl p-4 bg-white/20 backdrop-blur-md rounded-full mb-4 ring-1 ring-white/30 shadow-lg">
-            🩺
+          <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full mb-2">
+            <span className="text-2xl">🩺</span>
+            <span className="text-sm font-medium">Step 5 of 8</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Medical Information</h1>
           <p className="text-emerald-100 text-lg max-w-2xl mx-auto font-light">

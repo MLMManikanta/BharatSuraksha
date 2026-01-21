@@ -179,3 +179,52 @@ export const updateMedicalInfo = async (medicalInfoId, updateData) => {
   return api.patch(`/api/medical/${medicalInfoId}`, updateData, { auth: true });
 };
 
+// ====================================================================
+// Bank Details API Functions
+// ====================================================================
+
+/**
+ * Submit Bank Details
+ * @param {Object} bankData - Bank details data object
+ * @returns {Promise<Object>} Submission result
+ */
+export const submitBankDetails = async (bankData) => {
+  return api.post('/api/bank', bankData);
+};
+
+/**
+ * Get Bank Details for logged-in user
+ * @returns {Promise<Object>} Bank details data
+ */
+export const getBankDetails = async () => {
+  return api.get('/api/bank', { auth: true });
+};
+
+/**
+ * Get Bank Details by ID
+ * @param {string} bankDetailsId - Bank details document ID
+ * @returns {Promise<Object>} Bank details data
+ */
+export const getBankDetailsById = async (bankDetailsId) => {
+  return api.get(`/api/bank/${bankDetailsId}`);
+};
+
+/**
+ * Get Bank Details by KYC ID
+ * @param {string} kycId - KYC document ID
+ * @returns {Promise<Object>} Bank details data
+ */
+export const getBankDetailsByKycId = async (kycId) => {
+  return api.get(`/api/bank/kyc/${kycId}`);
+};
+
+/**
+ * Update Bank Details
+ * @param {string} bankDetailsId - Bank details document ID
+ * @param {Object} updateData - Data to update
+ * @returns {Promise<Object>} Updated bank details data
+ */
+export const updateBankDetails = async (bankDetailsId, updateData) => {
+  return api.patch(`/api/bank/${bankDetailsId}`, updateData, { auth: true });
+};
+

@@ -6,7 +6,15 @@ import { submitKYC } from '../../utils/api';
 const KYCPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const planData = location.state || {};
+  
+  // Get planData from navigation state OR sessionStorage fallback
+  const planData = useMemo(() => {
+    if (location.state && Object.keys(location.state).length > 0) {
+      return location.state;
+    }
+    const stored = sessionStorage.getItem('planData');
+    return stored ? JSON.parse(stored) : {};
+  }, [location.state]);
 
   const [proposerData, setProposerData] = useState({
     fullName: '',
@@ -218,15 +226,19 @@ const KYCPage = () => {
       });
 
       if (response.success) {
+        // Build medical page data
+        const medicalPageData = {
+          ...planData,
+          kycData: kycData,
+          kycId: response.data?.kycId,
+          ageMismatchDetected: validateAgeChanges.hasMismatch
+        };
+        
+        // Store in sessionStorage as backup
+        sessionStorage.setItem('planData', JSON.stringify(medicalPageData));
+        
         // Navigate to medical page with KYC data and kycId
-        navigate('/medical', {
-          state: {
-            ...planData,
-            kycData: kycData,
-            kycId: response.data?.kycId,
-            ageMismatchDetected: validateAgeChanges.hasMismatch
-          }
-        });
+        navigate('/medical', { state: medicalPageData });
       } else {
         setSubmitError(response.message || 'Failed to submit KYC details. Please try again.');
       }
@@ -254,8 +266,9 @@ const KYCPage = () => {
         </div>
 
         <div className="relative max-w-4xl mx-auto text-center space-y-4 animate-fade-in-up">
-          <div className="inline-flex items-center justify-center text-4xl p-4 bg-white/20 backdrop-blur-md rounded-full mb-4 ring-1 ring-white/30 shadow-lg">
-            🆔
+          <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full mb-2">
+            <span className="text-2xl">🆔</span>
+            <span className="text-sm font-medium">Step 4 of 8</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Know Your Customer</h1>
           <p className="text-blue-100 text-lg max-w-2xl mx-auto font-light">
