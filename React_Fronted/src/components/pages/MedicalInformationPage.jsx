@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
+import { submitMedicalInfo } from '../../utils/api';
 
 const MedicalInformationPage = () => {
   const navigate = useNavigate();
@@ -28,6 +29,8 @@ const MedicalInformationPage = () => {
   });
 
   const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   useEffect(() => {
     if (membersList.length > 0) {
@@ -110,21 +113,54 @@ const MedicalInformationPage = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    navigate('/bankinfo', {
-      state: {
-        ...planData,
-        medicalData: {
-          ...medicalData,
-          submittedAt: new Date().toISOString()
-        }
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    const medicalSubmitData = {
+      ...medicalData,
+      kycId: planData.kycId || null,
+      planData: planData,
+      submittedAt: new Date().toISOString()
+    };
+
+    try {
+      // Get userId from localStorage if available (optional for new users)
+      const userId = localStorage.getItem('userId');
+
+      // Submit Medical Info to backend
+      const response = await submitMedicalInfo({
+        ...medicalSubmitData,
+        ...(userId && { userId })
+      });
+
+      if (response.success) {
+        // Navigate to bank info page with all data
+        navigate('/bankinfo', {
+          state: {
+            ...planData,
+            medicalData: medicalSubmitData,
+            medicalInfoId: response.data?.medicalInfoId
+          }
+        });
+      } else {
+        setSubmitError(response.message || 'Failed to submit medical information. Please try again.');
       }
-    });
+    } catch (error) {
+      console.error('Medical info submission error:', error);
+      setSubmitError(
+        error.data?.message || 
+        error.message || 
+        'An error occurred while submitting medical information. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const MemberCard = ({ member, isSelected, onToggle }) => (
@@ -422,13 +458,34 @@ const MedicalInformationPage = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-4 pb-8">
+          {submitError && (
+            <div className="md:col-span-2 bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+              <p className="text-red-600 text-sm font-medium">{submitError}</p>
+            </div>
+          )}
           <button onClick={() => navigate(-1)} className="group flex items-center justify-center gap-2 py-4 px-6 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm hover:shadow-md order-2 md:order-1">
             ⬅️ Go Back
           </button>
-          <button onClick={handleSubmit} className="group relative flex items-center justify-center gap-2 py-4 px-6 bg-emerald-600 text-white rounded-xl font-bold overflow-hidden shadow-lg shadow-emerald-500/30 transition-all hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] order-1 md:order-2">
+          <button 
+            onClick={handleSubmit} 
+            disabled={isSubmitting}
+            className={`group relative flex items-center justify-center gap-2 py-4 px-6 bg-emerald-600 text-white rounded-xl font-bold overflow-hidden shadow-lg shadow-emerald-500/30 transition-all hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] order-1 md:order-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
-            <span>Proceed to Payment</span>
-            ➡️
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Submitting...</span>
+              </>
+            ) : (
+              <>
+                <span>Proceed to Payment</span>
+                ➡️
+              </>
+            )}
           </button>
         </div>
       </div>

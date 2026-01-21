@@ -7,6 +7,8 @@ const userPlanRoutes = require("./routes/userPlanRoutes");
 const uiRoutes = require("./routes/uiRoutes");
 const claimRoutes = require("./routes/claimRoutes");
 const vajraPremiumRoutes = require("./routes/vajraPremiumRoutes");
+const kycRoutes = require("./routes/kycRoutes");
+const medicalInfoRoutes = require("./routes/medicalInfoRoutes");
 const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
@@ -26,6 +28,8 @@ app.use("/api/user-plans", userPlanRoutes);
 app.use("/api/ui", uiRoutes);
 app.use("/api/claims", claimRoutes);
 app.use("/api/vajra", vajraPremiumRoutes);
+app.use("/api/kyc", kycRoutes);
+app.use("/api/medical", medicalInfoRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });

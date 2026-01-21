@@ -89,3 +89,93 @@ export const getVajraChronicCosts = async (coverage = '10L', age = 30) => {
 export const getVajraPricing = async (coverage = '10L', age = 30, tenure = 1) => {
   return api.get(`/api/vajra/pricing?coverage=${coverage}&age=${age}&tenure=${tenure}`);
 };
+
+// ====================================================================
+// KYC API Functions
+// ====================================================================
+
+/**
+ * Submit KYC details
+ * @param {Object} kycData - KYC data object
+ * @returns {Promise<Object>} Submission result
+ */
+export const submitKYC = async (kycData) => {
+  return api.post('/api/kyc', kycData, { auth: true });
+};
+
+/**
+ * Get KYC details for logged-in user
+ * @returns {Promise<Object>} KYC data
+ */
+export const getKYC = async () => {
+  return api.get('/api/kyc', { auth: true });
+};
+
+/**
+ * Get KYC by ID
+ * @param {string} kycId - KYC document ID
+ * @returns {Promise<Object>} KYC data
+ */
+export const getKYCById = async (kycId) => {
+  return api.get(`/api/kyc/${kycId}`, { auth: true });
+};
+
+/**
+ * Update KYC details
+ * @param {string} kycId - KYC document ID
+ * @param {Object} updateData - Data to update
+ * @returns {Promise<Object>} Updated KYC data
+ */
+export const updateKYC = async (kycId, updateData) => {
+  return api.patch(`/api/kyc/${kycId}`, updateData, { auth: true });
+};
+
+// ====================================================================
+// Medical Information API Functions
+// ====================================================================
+
+/**
+ * Submit Medical Information
+ * @param {Object} medicalData - Medical information data object
+ * @returns {Promise<Object>} Submission result
+ */
+export const submitMedicalInfo = async (medicalData) => {
+  return api.post('/api/medical', medicalData);
+};
+
+/**
+ * Get Medical Info for logged-in user
+ * @returns {Promise<Object>} Medical info data
+ */
+export const getMedicalInfo = async () => {
+  return api.get('/api/medical', { auth: true });
+};
+
+/**
+ * Get Medical Info by ID
+ * @param {string} medicalInfoId - Medical info document ID
+ * @returns {Promise<Object>} Medical info data
+ */
+export const getMedicalInfoById = async (medicalInfoId) => {
+  return api.get(`/api/medical/${medicalInfoId}`);
+};
+
+/**
+ * Get Medical Info by KYC ID
+ * @param {string} kycId - KYC document ID
+ * @returns {Promise<Object>} Medical info data
+ */
+export const getMedicalInfoByKycId = async (kycId) => {
+  return api.get(`/api/medical/kyc/${kycId}`);
+};
+
+/**
+ * Update Medical Info
+ * @param {string} medicalInfoId - Medical info document ID
+ * @param {Object} updateData - Data to update
+ * @returns {Promise<Object>} Updated medical info data
+ */
+export const updateMedicalInfo = async (medicalInfoId, updateData) => {
+  return api.patch(`/api/medical/${medicalInfoId}`, updateData, { auth: true });
+};
+
