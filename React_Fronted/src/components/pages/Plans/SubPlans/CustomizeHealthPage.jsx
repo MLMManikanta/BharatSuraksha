@@ -96,15 +96,22 @@ const CustomizeHealthPage = ({ initialData, onProceed, onChange }) => {
 
   // Auto-enable/disable smart_agg rider based on tenure using useMemo
   // This avoids the cascading render issue from setState in useEffect
-  const processedRiders = useMemo(() => {
-    return riders.map(r => {
-      if (r.id === 'smart_agg') {
-        // Disable smart_agg if tenure is 1
-        return { ...r, active: tenure > 1 ? r.active : false };
-      }
-      return r;
-    });
-  }, [riders, tenure]);
+ const processedRiders = useMemo(() => {
+  // Ensure riders is always an array
+  if (!Array.isArray(riders)) return [];
+
+  return riders.map(r => {
+    if (r.id === 'smart_agg') {
+      // Disable smart_agg if tenure is 1
+      return {
+        ...r,
+        active: tenure > 1 ? r.active : false
+      };
+    }
+    return r;
+  });
+}, [riders, tenure]);
+
 
   // Calculate estimated premium using VAJRA pricing model
   const estimatedPremium = useMemo(() => {
