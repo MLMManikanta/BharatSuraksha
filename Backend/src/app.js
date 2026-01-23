@@ -21,6 +21,25 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+// Temporary debug route to test saving directly
+app.get("/test-save", async (req, res) => {
+  const User = require("./models/User");
+  try {
+    const timestamp = Date.now();
+    const user = await User.create({
+      fullName: "Debug User",
+      email: `debug${timestamp}@test.com`,
+      mobileNumber: "+911234567891",
+      password: "Test@123",
+      policyNumber: `DEBUG-${timestamp}`,
+    });
+    return res.json({ saved: true, id: user._id, email: user.email });
+  } catch (error) {
+    console.error("/test-save error:", error);
+    return res.status(500).json({ saved: false, error: error.message });
+  }
+});
+
 app.use("/", authRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/plans", planRoutes);

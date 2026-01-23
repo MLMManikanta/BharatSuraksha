@@ -3,6 +3,41 @@ const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
   {
+    policyNumber: {
+      type: String,
+      required: true,
+      unique: true,
+      uppercase: true,
+      trim: true,
+      immutable: true,
+    },
+
+    password: {
+      type: String,
+      required: true,
+      minlength: 8,
+      select: false,
+    },
+
+    plan: {
+      type: String,
+      required: true,
+      enum: ["Neev", "Parivar", "Vishwa", "Vajra"],
+    },
+
+    isProfileComplete: {
+      type: Boolean,
+      default: false,
+    },
+
+    transactionId: {
+      type: String,
+      required: false,
+      unique: true,
+      immutable: true,
+    },
+
+    // Keep optional fields for backward compatibility
     fullName: {
       type: String,
       trim: true,
@@ -11,36 +46,14 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: true,
-      unique: true,
       lowercase: true,
       trim: true,
       match: [/^\S+@\S+\.\S+$/, "Invalid email address"],
     },
     mobileNumber: {
       type: String,
-      required: true,
       trim: true,
       match: [/^[+]?\d{10,15}$/, "Invalid mobile number"],
-    },
-      policyNumber: {
-        type: String,
-        required: true,
-        unique: true,
-        uppercase: true,
-        trim: true,
-        minlength: 6,
-      },
-    password: {
-      type: String,
-      required: true,
-      minlength: 8,
-      select: false,
-    },
-    role: {
-      type: String,
-      enum: ["user", "admin"],
-      default: "user",
     },
   },
   { timestamps: true }

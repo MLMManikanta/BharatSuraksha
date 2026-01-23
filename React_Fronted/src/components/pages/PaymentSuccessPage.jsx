@@ -12,7 +12,13 @@ const PaymentSuccessPage = () => {
   const method = planData.paymentDetails?.method || 'Card';
   const paidAt = planData.paymentDetails?.paidAt ? new Date(planData.paymentDetails.paidAt).toLocaleString() : new Date().toLocaleString();
   const amount = planData.finalPayableAmount || planData.price || 0;
-  const planName = planData.selectedPlan?.name || "Health Insurance Policy";
+  const planName =
+    planData.planName ||
+    planData.plan ||
+    planData.selectedPlan?.planName ||
+    planData.selectedPlan?.name ||
+    localStorage.getItem('latestPlanName') ||
+    "Health Insurance Policy";
 
   const generatePolicyNumber = (name) => {
     const year = new Date().getFullYear();
@@ -39,6 +45,13 @@ const PaymentSuccessPage = () => {
     setShowConfetti(true);
     if (policyNumber) {
       localStorage.setItem("latestPolicyNumber", policyNumber);
+    }
+    try {
+      if (planName) localStorage.setItem('latestPlanName', planName);
+      const txn = planData.paymentDetails?.transactionId;
+      if (txn) localStorage.setItem('latestTransactionId', txn);
+    } catch (e) {
+      console.warn('Failed to persist latest plan/txn to localStorage', e);
     }
   }, [policyNumber]);
 
@@ -151,7 +164,7 @@ const PaymentSuccessPage = () => {
           </button>
 
           <button
-            onClick={() => navigate('/register', { state: { policyNumber } })}
+            onClick={() => navigate('/register', { state: { policyNumber, planName } })}
             className="flex-1 py-4 px-6 bg-white border border-emerald-200 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-50 hover:border-emerald-300 transition-all shadow-sm"
           >
             Create Account

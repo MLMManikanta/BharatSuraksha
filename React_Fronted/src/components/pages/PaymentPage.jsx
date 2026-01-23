@@ -74,6 +74,16 @@ const PaymentPage = () => {
         paidAt: new Date().toISOString(),
       };
       setProcessing(false);
+      // Persist latest plan name and transaction id so downstream pages can read them
+      try {
+        const latestPlan = planData.planName || planData.selectedPlan?.name || planData.plan || '';
+        if (latestPlan) localStorage.setItem('latestPlanName', latestPlan);
+        localStorage.setItem('latestTransactionId', txnId);
+      } catch (e) {
+        console.warn('Failed to persist latest plan/txn to localStorage', e);
+      }
+
+      console.log('Navigating to /payment-success with planData:', planData, 'paymentDetails:', paymentDetails);
       navigate('/payment-success', { state: { ...planData, paymentDetails } });
     }, 1500);
   };

@@ -1,115 +1,115 @@
 const jwt = require("jsonwebtoken");
 const userService = require("../services/userService");
 
+const { generatePolicyNumberSync, generateTransactionIdSync } = require("../utils/policyNumberGenerator");
+
 const register = async (req, res) => {
   try {
-    const {
-      fullName,
-      email,
-      mobileNumber,
-      phoneNumber,
-      password,
-      policyNumber,
-      role,
-    } = req.body;
+    // Accept either: { policyNumber, password, plan, transactionId? } OR { plan, password }
+    const { policyNumber, plan, password, fullName, email, mobileNumber, transactionId } = req.body;
 
-    const normalizedEmail = (email || "").toLowerCase().trim();
-    const normalizedMobileNumber = (mobileNumber || phoneNumber || "").trim();
-    const normalizedPolicyNumber = (policyNumber || "").toUpperCase().trim();
+    if (!password) return res.status(400).json({ message: "Password is required" });
 
-    if (!normalizedEmail || !password || !normalizedMobileNumber || !normalizedPolicyNumber) {
-      return res.status(400).json({
-        message: "Policy number, email, mobile number, and password are required",
+    let user;
+
+    if (policyNumber) {
+      // If caller provided a policyNumber, require plan as well (to set the required field)
+      if (!plan) return res.status(400).json({ message: "Plan is required when providing policyNumber" });
+
+      // Ensure policyNumber is uppercased and trimmed
+      const normalizedPolicy = String(policyNumber).toUpperCase().trim();
+
+      // Check collision
+      const existing = await userService.findUserByPolicyNumber(normalizedPolicy);
+      if (existing) return res.status(409).json({ message: "Policy number already exists" });
+
+      user = await userService.createUser({
+        fullName,
+        email,
+        mobileNumber,
+        password,
+        policyNumber: normalizedPolicy,
+        planName: plan,
+        transactionId,
+      });
+    } else {
+      // Plan must be provided to generate a policy number
+      if (!plan) return res.status(400).json({ message: "Plan is required" });
+
+      user = await userService.createUser({
+        fullName,
+        email,
+        mobileNumber,
+        password,
+        planName: plan,
       });
     }
 
-    const existingUser = await userService.findUserByEmail(normalizedEmail);
-    if (existingUser) {
-      return res.status(409).json({ error_msg: "User with Email ID already Exists..!!" });
-    }
-
-    const existingPolicy = await userService.findUserByPolicyNumber(
-      normalizedPolicyNumber
-    );
-    if (existingPolicy) {
-      return res.status(409).json({ error_msg: "Policy number already registered..!!" });
-    }
-
-    const user = await userService.createUser({
-      fullName,
-      email: normalizedEmail,
-      mobileNumber: normalizedMobileNumber,
-      password,
-      role,
-      policyNumber: normalizedPolicyNumber,
-    });
-
     return res.status(201).json({
-      yourId: user._id,
-      message: "User Registered Successfully..!!",
-      email: user.email,
+      message: "Registration successful",
       policyNumber: user.policyNumber,
+      plan: user.plan,
+      transactionId: user.transactionId,
     });
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({ error_msg: `Internal server error: ${error.message}` });
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "Policy number already exists" });
+    }
+    return res.status(500).json({ message: `Registration failed: ${error.message}` });
+  }
+};
+
+const generate = async (req, res) => {
+  try {
+    const plan = req.query.plan;
+    if (!plan) return res.status(400).json({ message: "plan query param is required" });
+
+    // synchronous generation for preview
+    const policyNumber = generatePolicyNumberSync(plan);
+    const transactionId = generateTransactionIdSync();
+
+    return res.json({ policyNumber, transactionId });
+  } catch (error) {
+    console.error("/generate error", error);
+    return res.status(400).json({ message: error.message });
   }
 };
 
 const login = async (req, res) => {
   try {
-    const { email, identifier, password } = req.body;
-    const loginIdentifier = (identifier || email || "").trim();
-
-    if (!loginIdentifier || !password) {
-      return res
-        .status(400)
-        .json({ error_msg: "Email or mobile number and password are required" });
+    const { policyNumber, password } = req.body;
+    if (!policyNumber || !password) {
+      return res.status(400).json({ message: "Policy number and password are required" });
     }
 
-    const user = await userService.findUserByIdentifier(loginIdentifier, true);
-    if (!user) {
-      return res.status(401).json({ error_msg: "Email ID doesn't Exists..!!" });
-    }
+    const user = await userService.findUserByPolicyNumber(policyNumber);
+    if (!user) return res.status(401).json({ message: "Invalid policy number or password" });
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ error_msg: "Incorrect Password" });
-    }
+    // need password selected
+    const userWithPassword = await userService.findUserByPolicyNumber(policyNumber, true);
+    if (!userWithPassword) return res.status(401).json({ message: "Invalid policy number or password" });
 
-    if (!process.env.JWT_SECRET) {
-      return res.status(500).json({ error_msg: "JWT secret not configured" });
-    }
+    const isMatch = await userWithPassword.comparePassword(password);
+    if (!isMatch) return res.status(401).json({ message: "Invalid policy number or password" });
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+    const token = process.env.JWT_SECRET ? jwt.sign({ userId: user._id }, process.env.JWT_SECRET) : null;
 
-    return res.status(200).json({
+    return res.json({
+      message: "Login successful",
+      policyNumber: user.policyNumber,
+      plan: user.plan,
+      isProfileComplete: user.isProfileComplete,
       jwtToken: token,
-      userId: user._id,
-      email: user.email,
-      role: user.role,
-      userData: {
-        email: user.email,
-        mobileNumber: user.mobileNumber,
-        policyNumber: user.policyNumber,
-        fullName: user.fullName,
-      },
-      isUserExists: {
-        id: user._id,
-        email: user.email,
-      },
     });
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({ error_msg: `Internal Server Error: ${error.message}` });
+    return res.status(500).json({ message: `Login failed: ${error.message}` });
   }
 };
 
 module.exports = {
   register,
   login,
+  generate,
 };
