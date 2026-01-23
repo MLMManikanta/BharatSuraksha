@@ -7,7 +7,6 @@ const NAV_LINKS = [
   { name: "🏠 Home", path: "/" },
   { name: "🛡️ Plans", path: "/plans" },
   { name: "🧾 Claims", path: "/claims" },
-  { name: "🧰 Utilities", path: "/utilities/e-card" },
   { name: "🛈 About Us", path: "/about" },
   { name: "✉️ Contact Us", path: "/contact" },
 ];
