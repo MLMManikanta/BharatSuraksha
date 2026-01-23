@@ -30,27 +30,36 @@ function EntitlementDependents() {
           }
           return;
         }
-
+        // Fetch claims and entitlement from backend. Only set entitlement if backend returns it.
         const apiClaims = await api.get("/api/claims", { auth: true });
+        // Entitlement API may not be available yet; try to fetch if present.
+        let apiEntitlement = null;
+        try {
+          apiEntitlement = await api.get("/api/entitlement", { auth: true });
+        } catch (e) {
+          // entitlement endpoint not available or returned no data — leave as null
+          apiEntitlement = null;
+        }
         if (!isMounted) return;
-        setEntitlement({
-          policyNumber: "",
-          coverageLimit: 0,
-          validityFrom: null,
-          validityTo: null,
-        });
         setClaims(apiClaims || []);
-        // Do not populate mocked dependents here. Dependents will be loaded from backend when available.
-        setDependents([]);
+        // Only set entitlement when backend provides meaningful fields.
+        if (
+          apiEntitlement &&
+          (apiEntitlement.policyNumber || apiEntitlement.coverageLimit != null || apiEntitlement.availableBalance != null || apiEntitlement.utilizedAmount != null)
+        ) {
+          setEntitlement(apiEntitlement);
+          setDependents(apiEntitlement.dependents || []);
+        } else {
+          // Do not assume any financial values on the frontend.
+          setEntitlement(null);
+          setDependents([]);
+        }
       } catch (error) {
         if (!isMounted) return;
+        // On error, do not expose mocked entitlement data; show no-data state.
         setClaims([]);
-        setEntitlement({
-          policyNumber: "POL-VAJRA-2026-0001",
-          coverageLimit: 1_000_000,
-          validityFrom: "2026-01-01",
-          validityTo: "2026-12-31",
-        });
+        setEntitlement(null);
+        setDependents([]);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -62,19 +71,20 @@ function EntitlementDependents() {
     };
   }, [hasActivePolicy]);
 
-  const totalDeducted = useMemo(() => {
-    return claims
-      .filter((c) => CLAIMS_DEDUCTIBLE_STATUSES.includes(c.status))
-      .reduce((sum, c) => sum + c.claimedAmount, 0);
-  }, [claims]);
-
-  const remainingBalance = useMemo(() => {
-    if (!entitlement) return 0;
-    return Math.max(entitlement.coverageLimit - totalDeducted, 0);
-  }, [entitlement, totalDeducted]);
+  // Frontend must not perform entitlement calculations. Use values provided by backend only.
+  const displayedCoverageLimit = entitlement?.coverageLimit ?? null;
+  const displayedAvailableBalance = entitlement?.availableBalance ?? null;
+  const displayedUtilizedAmount = entitlement?.utilizedAmount ?? null;
 
   const isActive = (path) => location.pathname === path;
-  const formatINR = (val) => `₹${val.toLocaleString("en-IN")}`;
+  const formatINR = (val) => {
+    if (val === null || val === undefined) return "—";
+    try {
+      return `₹${Number(val).toLocaleString("en-IN")}`;
+    } catch (e) {
+      return "—";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -117,7 +127,7 @@ function EntitlementDependents() {
 
         {loading ? (
           <div className="bg-white rounded-xl shadow-sm p-6 text-center text-slate-600">Loading entitlement and dependents…</div>
-        ) : !entitlement ? (
+        ) : !hasActivePolicy ? (
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100 text-center">
             <div className="text-4xl mb-3">🔒</div>
             <h2 className="text-lg font-semibold">No active policy</h2>
@@ -125,6 +135,12 @@ function EntitlementDependents() {
             <div className="mt-4 flex items-center justify-center gap-3">
               <Link to="/plans" className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold">Get a Quote</Link>
             </div>
+          </div>
+        ) : !entitlement ? (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100 text-center">
+            <div className="text-3xl mb-2">⏳</div>
+            <h2 className="text-lg font-semibold">Data not available</h2>
+            <p className="text-sm text-slate-600 mt-2">Entitlement details are not available yet. They will appear here once the policy service is connected.</p>
           </div>
         ) : (
           <>
