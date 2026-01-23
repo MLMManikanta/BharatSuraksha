@@ -37,6 +37,21 @@ const userSchema = new mongoose.Schema(
       immutable: true,
     },
 
+    policyStatus: {
+      type: String,
+      enum: ["ACTIVE", "INACTIVE"],
+      default: "INACTIVE",
+    },
+    hasActivePolicy: {
+      type: Boolean,
+      default: false,
+    },
+
+    policyDetails: {
+      type: Object,
+      default: null,
+    },
+
     // Keep optional fields for backward compatibility
     fullName: {
       type: String,

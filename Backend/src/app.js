@@ -10,6 +10,7 @@ const vajraPremiumRoutes = require("./routes/vajraPremiumRoutes");
 const kycRoutes = require("./routes/kycRoutes");
 const medicalInfoRoutes = require("./routes/medicalInfoRoutes");
 const bankDetailsRoutes = require("./routes/bankDetailsRoutes");
+const policyRoutes = require("./routes/policyRoutes");
 const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
@@ -51,6 +52,7 @@ app.use("/api/vajra", vajraPremiumRoutes);
 app.use("/api/kyc", kycRoutes);
 app.use("/api/medical", medicalInfoRoutes);
 app.use("/api/bank", bankDetailsRoutes);
+app.use("/api/policies", policyRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });

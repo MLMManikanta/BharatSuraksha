@@ -26,13 +26,28 @@ export const AuthProvider = ({ children }) => {
 
 	const login = async ({ identifier, password }) => {
 		const data = await api.post("/api/auth/login", { identifier, password });
-		const authUser = { id: data.userId, role: data.role, email: data.email };
+		const authUser = {
+			id: data.userId,
+			role: data.role,
+			email: data.email,
+			policyNumber: data.policyNumber,
+			hasActivePolicy: Boolean(data.hasActivePolicy),
+			policyDetails: data.policyDetails || null,
+			isProfileComplete: data.isProfileComplete,
+		};
 
 		localStorage.setItem("authToken", data.jwtToken);
 		localStorage.setItem("authUser", JSON.stringify(authUser));
 		setToken(data.jwtToken);
 		setUser(authUser);
 		return authUser;
+	};
+
+	const updateUser = (updated) => {
+		const merged = { ...(user || {}), ...(updated || {}) };
+		setUser(merged);
+		localStorage.setItem('authUser', JSON.stringify(merged));
+		return merged;
 	};
 
 	const logout = () => {
@@ -50,6 +65,7 @@ export const AuthProvider = ({ children }) => {
 			isAuthenticated: Boolean(token),
 			login,
 			logout,
+			updateUser,
 		}),
 		[user, token, loading]
 	);

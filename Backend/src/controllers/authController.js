@@ -46,6 +46,8 @@ const register = async (req, res) => {
       plan: user.plan,
       transactionId: user.transactionId,
       email: user.email,
+      hasActivePolicy: Boolean(user.hasActivePolicy),
+      policyDetails: user.policyDetails || null,
     });
   } catch (error) {
     console.error(error);
@@ -100,6 +102,8 @@ const login = async (req, res) => {
       role: userWithPassword.role || 'user',
       email: userWithPassword.email,
       policyNumber: userWithPassword.policyNumber,
+      hasActivePolicy: Boolean(userWithPassword.hasActivePolicy),
+      policyDetails: userWithPassword.policyDetails || null,
       isProfileComplete: userWithPassword.isProfileComplete,
       jwtToken: token,
     });

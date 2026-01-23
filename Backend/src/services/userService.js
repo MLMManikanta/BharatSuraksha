@@ -45,6 +45,53 @@ const createUser = async ({
   return user;
 };
 
+const attachPolicyToUser = async (userId, { policyNumber, planName, transactionId }) => {
+  if (!userId) throw new Error('userId is required');
+
+  const updates = {};
+  if (policyNumber) updates.policyNumber = String(policyNumber).toUpperCase().trim();
+  if (planName) updates.plan = planName;
+  if (transactionId) updates.transactionId = transactionId;
+  updates.policyStatus = 'ACTIVE';
+  updates.isProfileComplete = true;
+  updates.hasActivePolicy = true;
+
+  // derive basic policyDetails (coverage and validity) from planName — defaults used
+  const coverageMap = {
+    Neev: 200000,
+    Parivar: 500000,
+    Vishwa: 1000000,
+    Vajra: 1500000,
+  };
+  const coverageLimit = coverageMap[planName] || 500000;
+  const now = new Date();
+  const validityFrom = now.toISOString().slice(0, 10);
+  const nextYear = new Date(now);
+  nextYear.setFullYear(now.getFullYear() + 1);
+  const validityTo = nextYear.toISOString().slice(0, 10);
+
+  updates.policyDetails = {
+    policyNumber: updates.policyNumber || null,
+    planName: planName || null,
+    coverageLimit,
+    validityFrom,
+    validityTo,
+  };
+
+  // Check policyNumber uniqueness
+  if (updates.policyNumber) {
+    const existing = await User.findOne({ policyNumber: updates.policyNumber });
+    if (existing && existing._id.toString() !== userId.toString()) {
+      const err = new Error('Policy number already exists');
+      err.code = 11000;
+      throw err;
+    }
+  }
+
+  const user = await User.findByIdAndUpdate(userId, { $set: updates }, { new: true, runValidators: true }).lean();
+  return user;
+};
+
 const findUserByEmail = async (email, includePassword = false) => {
   const query = User.findOne({ email });
   if (includePassword) {

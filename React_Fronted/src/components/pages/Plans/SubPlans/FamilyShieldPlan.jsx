@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import LockedSelect from '../../../common/LockedSelect';
+import { useAuth } from '../../../../context/AuthContext';
 
 const FamilyShieldPlan = ({ onSelectPlan, memberCounts = {} }) => {
   const [view, setView] = useState('covered');
-  const [selectedSumInsured, setSelectedSumInsured] = useState('10L');
+  const [selectedSumInsured, setSelectedSumInsured] = useState('');
+  const { isAuthenticated } = useAuth();
 
   // Check maternity eligibility - requires both Self AND Spouse
   const hasSelf = Number(memberCounts.self || 0) > 0;
@@ -91,30 +94,31 @@ const FamilyShieldPlan = ({ onSelectPlan, memberCounts = {} }) => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto bg-gray-50 p-2 rounded-2xl border border-gray-100 mt-4 md:mt-0">
-               <div className="relative">
-                 <select
-                    value={selectedSumInsured}
-                    onChange={(e) => setSelectedSumInsured(e.target.value)}
-                    className="w-full sm:w-auto pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer shadow-sm hover:border-purple-300 transition-colors"
-                 >
-                    <option value="10L">₹10 Lakhs</option>
-                    <option value="15L">₹15 Lakhs</option>
-                    <option value="20L">₹20 Lakhs</option>
-                    <option value="25L">₹25 Lakhs</option>
-                    <option value="50L">₹50 Lakhs</option>
-                    <option value="1Cr">₹1 Crore</option>
-                 </select>
-                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                 </div>
+               <div className="relative w-full sm:w-auto">
+                 <LockedSelect
+                   label={null}
+                   value={selectedSumInsured}
+                   onChange={setSelectedSumInsured}
+                   placeholder="Choose sum insured"
+                   requiresAuth={true}
+                   options={[
+                     { value: '10L', label: '₹10 Lakhs' },
+                     { value: '15L', label: '₹15 Lakhs' },
+                     { value: '20L', label: '₹20 Lakhs' },
+                     { value: '25L', label: '₹25 Lakhs' },
+                     { value: '50L', label: '₹50 Lakhs' },
+                     { value: '1Cr', label: '₹1 Crore' },
+                   ]}
+                 />
                </div>
                
                <button
                 onClick={handleSelect}
-                className="relative overflow-hidden bg-purple-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all group w-full sm:w-auto"
+                disabled={!selectedSumInsured || !isAuthenticated}
+                className={`relative overflow-hidden px-8 py-3 rounded-xl font-bold shadow-lg transition-all group w-full sm:w-auto ${!selectedSumInsured || !isAuthenticated ? 'bg-gray-300 cursor-not-allowed text-gray-600' : 'bg-purple-600 text-white shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98]'}`}
                >
                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
-                 <span>Select Plan</span>
+                 <span>{!isAuthenticated ? 'Login to select' : 'Select Plan'}</span>
                </button>
             </div>
           </div>

@@ -23,11 +23,8 @@ const RaiseClaim = () => {
     'Follow-up / Continuation',
   ], []);
 
-  const dependents = useMemo(() => [
-    { id: 'DEP001', name: 'Priya Sharma', label: 'Priya Sharma (32)' },
-    { id: 'DEP002', name: 'Aarav Sharma', label: 'Aarav Sharma (7)' },
-    { id: 'DEP003', name: 'Meera Sharma', label: 'Meera Sharma (58)' },
-  ], []);
+  // Dependents will be loaded from backend when available. Keep empty by default.
+  const dependents = useMemo(() => [], []);
 
   const [claimType, setClaimType] = useState('');
   const [form, setForm] = useState({
@@ -370,7 +367,7 @@ const RaiseClaim = () => {
                     updateField('dependentName', match?.name || '');
                   }}
                 >
-                  <option value="">Select dependent</option>
+                  <option value="">{`Select dependent ${dependents.length === 0 ? '(0)' : ''}`}</option>
                   {dependents.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
                 </select>
                 {errors.dependentId && <p className="text-sm text-red-600 mt-1">{errors.dependentId}</p>}

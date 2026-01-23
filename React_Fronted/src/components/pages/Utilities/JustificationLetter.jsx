@@ -7,7 +7,7 @@ const CLAIMS = [
 ];
 
 function JustificationLetter() {
-  const [selectedClaim, setSelectedClaim] = useState(CLAIMS[0].id);
+  const [selectedClaim, setSelectedClaim] = useState('');
 
   const currentClaim = useMemo(
     () => CLAIMS.find((claim) => claim.id === selectedClaim),
@@ -15,7 +15,8 @@ function JustificationLetter() {
   );
 
   const letterBody = useMemo(() => {
-    return `This letter certifies that claim ${currentClaim?.id} filed on ${currentClaim?.date} for ${currentClaim?.amount} is under review. Please use this document as justification for employer or insurer communications.`;
+    if (!currentClaim) return '';
+    return `This letter certifies that claim ${currentClaim.id} filed on ${currentClaim.date} for ${currentClaim.amount} is under review. Please use this document as justification for employer or insurer communications.`;
   }, [currentClaim]);
 
   const handleDownload = () => {
@@ -63,6 +64,7 @@ function JustificationLetter() {
               onChange={(e) => setSelectedClaim(e.target.value)}
               className="rounded-lg border border-slate-200 px-4 py-3 shadow-inner bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
             >
+              <option value="" disabled>Select claim to view</option>
               {CLAIMS.map((claim) => (
                 <option key={claim.id} value={claim.id}>
                   {claim.id} — {claim.summary} ({claim.date})
@@ -75,15 +77,15 @@ function JustificationLetter() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="text-xs uppercase text-slate-500 font-semibold">Claim</p>
-                <p className="text-base font-bold text-slate-900">{currentClaim?.id}</p>
+                <p className="text-base font-bold text-slate-900">{currentClaim?.id || 'No claim selected'}</p>
               </div>
               <div className="text-right">
                 <p className="text-xs uppercase text-slate-500 font-semibold">Filed on</p>
-                <p className="text-sm font-semibold text-slate-800">{currentClaim?.date}</p>
+                <p className="text-sm font-semibold text-slate-800">{currentClaim?.date || '-'}</p>
               </div>
             </div>
-            <p className="text-sm text-slate-700">Amount: <span className="font-semibold">{currentClaim?.amount}</span></p>
-            <p className="text-sm text-slate-700">Summary: {currentClaim?.summary}</p>
+            <p className="text-sm text-slate-700">Amount: <span className="font-semibold">{currentClaim?.amount || '-'}</span></p>
+            <p className="text-sm text-slate-700">Summary: {currentClaim?.summary || '—'}</p>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-xl shadow-inner p-6 space-y-4">
@@ -92,7 +94,7 @@ function JustificationLetter() {
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">Read-only</span>
             </div>
             <div className="prose prose-sm max-w-none text-slate-800">
-              <p>{letterBody}</p>
+              {letterBody ? <p>{letterBody}</p> : <p className="text-sm text-slate-600">Please select a claim from the dropdown to preview the justification letter.</p>}
               <p>
                 Please present this letter to the concerned authority as evidence that your claim is being
                 processed. For any clarification, contact us at <strong>care@bharatsuraksha.in</strong> or call

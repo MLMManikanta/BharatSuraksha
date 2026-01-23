@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
+import { useAuth } from '../../context/AuthContext';
+import { api } from '../../utils/api';
 
 const PaymentSuccessPage = () => {
   const location = useLocation();
@@ -39,6 +41,7 @@ const PaymentSuccessPage = () => {
   }, [planData.policyNumber, planName]);
 
   const [showConfetti, setShowConfetti] = useState(false);
+  const { user, updateUser } = useAuth();
 
   useEffect(() => {
     // Trigger entrance animation
@@ -54,6 +57,32 @@ const PaymentSuccessPage = () => {
       console.warn('Failed to persist latest plan/txn to localStorage', e);
     }
   }, [policyNumber]);
+
+  useEffect(() => {
+    let mounted = true;
+    const tryActivate = async () => {
+      // If user is logged in but doesn't yet have policy attached, call backend to attach
+      if (!user || user.policyNumber) return;
+      try {
+        const payload = { policyNumber, planName, transactionId: planData.paymentDetails?.transactionId };
+        const res = await api.post('/api/policies/activate', payload, { auth: true });
+        if (mounted && res && res.user) {
+          updateUser({
+            policyNumber: res.user.policyNumber,
+            policyStatus: res.user.policyStatus,
+            plan: res.user.plan,
+            isProfileComplete: res.user.isProfileComplete,
+          });
+        }
+      } catch (e) {
+        // ignore activation failures here — user can retry from account
+        console.warn('Policy activation failed:', e.message || e);
+      }
+    };
+
+    tryActivate();
+    return () => { mounted = false; };
+  }, [user, policyNumber, planName, transactionId, updateUser, planData.paymentDetails]);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans">
@@ -168,6 +197,12 @@ const PaymentSuccessPage = () => {
             className="flex-1 py-4 px-6 bg-white border border-emerald-200 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-50 hover:border-emerald-300 transition-all shadow-sm"
           >
             Create Account
+          </button>
+          <button
+            onClick={() => navigate('/claims/entitlement-dependents', { state: { policyNumber, planName, fromPayment: true } })}
+            className="flex-1 py-4 px-6 bg-white border border-emerald-200 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-50 hover:border-emerald-300 transition-all shadow-sm"
+          >
+            Manage Dependents
           </button>
           
           <button 

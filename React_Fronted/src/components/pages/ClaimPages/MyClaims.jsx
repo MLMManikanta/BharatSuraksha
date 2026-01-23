@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext";
 import { api } from "../../../utils/api";
 
 const getDateOnly = (value) => {
@@ -46,6 +47,9 @@ const CANCELLABLE_STATUSES = ["Pending", "In Progress"];
 const MyClaims = () => {
   const navigate = useNavigate();
 
+  const { user } = useAuth();
+  const hasActivePolicy = Boolean(user && user.hasActivePolicy) || Boolean(localStorage.getItem("latestPolicyNumber"));
+
   const [claimId, setClaimId] = useState("");
   const [raisedOn, setRaisedOn] = useState("");
   const [status, setStatus] = useState("");
@@ -60,6 +64,12 @@ const MyClaims = () => {
     let isMounted = true;
     const loadClaims = async () => {
       try {
+        // If there's no active policy yet, don't call claims API — keep empty state
+        if (!hasActivePolicy) {
+          if (isMounted) setClaims([]);
+          return;
+        }
+
         const claims = await api.get("/api/claims", { auth: true });
         const formattedClaims = claims.map(formatClaim);
         const dedupedClaims = Object.values(
@@ -95,7 +105,7 @@ const MyClaims = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [hasActivePolicy]);
 
   const filteredClaims = useMemo(() => {
     return baseClaims.filter((claim) => {
@@ -174,6 +184,18 @@ const MyClaims = () => {
           <h1 className="text-3xl font-bold text-slate-900">🧾 My Claims</h1>
           <p className="mt-2 text-slate-600">View, filter, track, and manage all submitted insurance claims.</p>
         </div>
+
+        {!hasActivePolicy && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100 text-center">
+            <div className="text-4xl mb-3">🔒</div>
+            <h2 className="text-lg font-semibold">No active policy</h2>
+            <p className="text-sm text-slate-600 mt-2">Claims will appear here once you purchase a policy.</p>
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <button onClick={() => navigate('/plans')} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold">Get a Quote</button>
+              <Link to="/claims/raise-claim" className="px-4 py-2 border border-slate-200 rounded-xl text-slate-700">Raise Claim (Policy holder)</Link>
+            </div>
+          </div>
+        )}
 
         <div className="bg-white rounded-xl shadow-sm mb-6">
           <nav className="flex border-b border-slate-200" aria-label="Claims Navigation">
