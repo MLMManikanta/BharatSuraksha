@@ -83,7 +83,7 @@ function Login() {
               )}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Policy Number <span className="text-red-500">*</span>
+                  Policy Number / Email / Mobile <span className="text-red-500">*</span>
                 </label>
                 <input 
                   type="text" 

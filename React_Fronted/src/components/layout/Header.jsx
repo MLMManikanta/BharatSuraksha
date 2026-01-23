@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 /* ---------------- NAV LINKS ---------------- */
@@ -14,6 +14,7 @@ const NAV_LINKS = [
 
 function Header() {
   const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -161,7 +162,9 @@ function Header() {
               )}
 
               {!isAuthenticated && (
-                <button className="px-6 py-2 rounded-xl bg-[#1A5EDB]
+                <button
+                  onClick={() => navigate('/register', { state: { from: '/plans' } })}
+                  className="px-6 py-2 rounded-xl bg-[#1A5EDB]
                                    text-white font-semibold
                                    hover:bg-[#0F4BA8] shadow-md transition">
                   Get Quote
@@ -227,7 +230,9 @@ function Header() {
                 )}
 
                 {!isAuthenticated && (
-                  <button className="w-full py-3 rounded-xl
+                  <button
+                    onClick={() => { setMenuOpen(false); navigate('/register', { state: { from: '/plans' } }); }}
+                    className="w-full py-3 rounded-xl
                                      bg-[#1A5EDB] text-white font-semibold">
                     Get Quote
                   </button>

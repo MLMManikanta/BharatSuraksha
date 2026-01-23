@@ -53,11 +53,13 @@ const findUserByEmail = async (email, includePassword = false) => {
   return query;
 };
 
-const findUserByPolicyNumber = async (policyNumber) => {
+const findUserByPolicyNumber = async (policyNumber, includePassword = false) => {
   if (!policyNumber) {
     return null;
   }
-  return User.findOne({ policyNumber: policyNumber.toUpperCase().trim() });
+  const query = User.findOne({ policyNumber: policyNumber.toUpperCase().trim() });
+  if (includePassword) query.select('+password');
+  return query;
 };
 
 const findUserByIdentifier = async (identifier, includePassword = false) => {

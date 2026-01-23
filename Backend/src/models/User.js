@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
   {
     policyNumber: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
       uppercase: true,
       trim: true,
@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema(
 
     plan: {
       type: String,
-      required: true,
+      required: false,
       enum: ["Neev", "Parivar", "Vishwa", "Vajra"],
     },
 
