@@ -25,35 +25,30 @@ function Register() {
   };
 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
-    try {
-      // Prepare payload depending on whether policyNumber was supplied/generated
-      const payload = { password: formData.password };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+  setSuccess("");
 
-      // If user came from a plan selection, preserve that plan so backend can generate a policy
-      const planFromState = location.state?.planName || localStorage.getItem('latestPlanName');
-      if (planFromState) payload.plan = planFromState;
+  try {
+    const payload = {
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password,
+      mobile: formData.mobileNumber.trim(),
+    };
 
-      const txn = localStorage.getItem('latestTransactionId');
-      if (txn) payload.transactionId = txn;
+    const res = await api.post("/register", payload);
 
-      // Optional fields
-      if (formData.email) payload.email = formData.email.trim().toLowerCase();
-      if (formData.mobileNumber) payload.mobileNumber = formData.mobileNumber.trim();
+    setSuccess("Registration successful.");
+  } catch (err) {
+    console.error("REGISTER ERROR:", err.response?.data || err.message);
+    setError(err.response?.data?.error || "Registration failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
-      const res = await api.post("/api/auth/register", payload);
-
-      setSuccess("Registration successful.");
-    } catch (err) {
-      setError(err.message || "Registration failed");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-[#E8F1FF] via-[#F0F6FF] to-[#E8F1FF] font-sans">
