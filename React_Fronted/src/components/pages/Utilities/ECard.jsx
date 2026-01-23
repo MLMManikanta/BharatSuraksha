@@ -1,29 +1,42 @@
 import React from "react";
-
-const policyholder = {
-  name: "Aarav Mehta",
-  policyNumber: "BS-PLN-9087-2211",
-  planName: "Family Shield Plus",
-  validity: "Valid through 31 Dec 2026",
-  email: "aarav.mehta@email.com",
-  phone: "+91 98765 43210",
-  dob: "12 Jan 1988",
-  address: "402, Palm Residency, Sector 15, Pune",
-};
+import { useAuth } from "../../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 function ECard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const policyNumber = (user && user.policyNumber) || localStorage.getItem("latestPolicyNumber");
+
   const handleDownload = () => {
-    const cardText = `Bharat Suraksha E-Card\nName: ${policyholder.name}\nPolicy: ${policyholder.policyNumber}\nPlan: ${policyholder.planName}\n${policyholder.validity}`;
-    const blob = new Blob([cardText], { type: "application/pdf" });
+    // simple placeholder download when active
+    const cardText = `Bharat Suraksha E-Card\nPolicy: ${policyNumber || "N/A"}`;
+    const blob = new Blob([cardText], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "Bharat-Suraksha-E-Card.pdf";
+    link.download = "Bharat-Suraksha-E-Card.txt";
     link.click();
     URL.revokeObjectURL(url);
   };
 
   const handlePrint = () => window.print();
+
+  if (!policyNumber) {
+    return (
+      <main className="min-h-screen py-10 px-4 sm:px-6 lg:px-10">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+            <div className="text-5xl mb-4">📭</div>
+            <h2 className="text-xl font-bold">No active policy</h2>
+            <p className="mt-2 text-sm text-slate-600">Your e-card will appear here after you purchase a policy.</p>
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <button onClick={() => navigate('/plans')} className="px-4 py-2 bg-blue-600 text-white rounded-xl">Get a Quote</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main id="main-content" className="bg-linear-to-b from-slate-50 to-white min-h-screen py-10 px-4 sm:px-6 lg:px-10">
@@ -55,8 +68,8 @@ function ECard() {
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Policyholder</p>
-                <h2 className="text-xl font-bold text-slate-900">{policyholder.name}</h2>
-                <p className="text-sm text-slate-500">Policy #{policyholder.policyNumber}</p>
+                <h2 className="text-xl font-bold text-slate-900">Policyholder</h2>
+                <p className="text-sm text-slate-500">Policy #{policyNumber}</p>
               </div>
               <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold">Active</span>
             </div>
@@ -64,27 +77,19 @@ function ECard() {
             <div className="p-6 grid gap-4 sm:grid-cols-2">
               <div>
                 <p className="text-xs uppercase text-slate-500 font-semibold">Plan</p>
-                <p className="text-base font-semibold text-slate-900">{policyholder.planName}</p>
+                <p className="text-base font-semibold text-slate-900">{localStorage.getItem('latestPlanName') || '—'}</p>
               </div>
               <div>
                 <p className="text-xs uppercase text-slate-500 font-semibold">Validity</p>
-                <p className="text-base font-semibold text-slate-900">{policyholder.validity}</p>
+                <p className="text-base font-semibold text-slate-900">{localStorage.getItem('latestPolicyValidity') || '—'}</p>
               </div>
               <div>
                 <p className="text-xs uppercase text-slate-500 font-semibold">Email</p>
-                <p className="text-base text-slate-900">{policyholder.email}</p>
+                <p className="text-base text-slate-900">{(user && user.email) || '—'}</p>
               </div>
               <div>
                 <p className="text-xs uppercase text-slate-500 font-semibold">Phone</p>
-                <p className="text-base text-slate-900">{policyholder.phone}</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase text-slate-500 font-semibold">Date of Birth</p>
-                <p className="text-base text-slate-900">{policyholder.dob}</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase text-slate-500 font-semibold">Address</p>
-                <p className="text-base text-slate-900 leading-relaxed">{policyholder.address}</p>
+                <p className="text-base text-slate-900">{(user && user.mobileNumber) || '—'}</p>
               </div>
             </div>
           </div>
@@ -104,20 +109,16 @@ function ECard() {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-xs uppercase tracking-[0.2em] font-semibold">Bharat Suraksha</p>
-                    <h4 className="text-xl font-bold mt-1">{policyholder.planName}</h4>
+                    <h4 className="text-xl font-bold mt-1">{localStorage.getItem('latestPlanName') || '—'}</h4>
                   </div>
                   <div className="text-right text-xs">
-                    <p className="font-semibold">Policy #{policyholder.policyNumber}</p>
-                    <p className="text-blue-100">{policyholder.validity}</p>
+                    <p className="font-semibold">Policy #{policyNumber}</p>
+                    <p className="text-blue-100">{localStorage.getItem('latestPolicyValidity') || ''}</p>
                   </div>
                 </div>
                 <div>
                   <p className="text-sm text-blue-100">Policyholder</p>
-                  <h5 className="text-2xl font-extrabold">{policyholder.name}</h5>
-                  <div className="mt-4 flex flex-wrap items-center gap-3">
-                    <span className="px-3 py-1 rounded-lg bg-white/15 text-sm font-semibold">+91 98765 43210</span>
-                    <span className="px-3 py-1 rounded-lg bg-white/15 text-sm font-semibold">DOB: {policyholder.dob}</span>
-                  </div>
+                  <h5 className="text-2xl font-extrabold">{(user && user.email) || 'Policyholder'}</h5>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <div className="space-y-1 text-blue-100">

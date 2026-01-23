@@ -1,13 +1,38 @@
 import React, { useState } from 'react';
+import LockedSelect from '../../../common/LockedSelect';
+import { useAuth } from '../../../../context/AuthContext';
 
-const FamilyShieldPlan = ({ onSelectPlan }) => {
+const FamilyShieldPlan = ({ onSelectPlan, memberCounts = {} }) => {
   const [view, setView] = useState('covered');
-  const [selectedSumInsured, setSelectedSumInsured] = useState('10L');
+  const [selectedSumInsured, setSelectedSumInsured] = useState('');
+  const { isAuthenticated } = useAuth();
 
+  // Check maternity eligibility - requires both Self AND Spouse
+  const hasSelf = Number(memberCounts.self || 0) > 0;
+  const hasSpouse = Number(memberCounts.spouse || 0) > 0;
+  const isMaternityEligible = hasSelf && hasSpouse;
+
+  // Maternity Cover limits based on sum insured for Parivar Suraksha (from CSV)
+  // ₹75k for 10L & 15L, ₹1L for 20L & 25L, ₹2L for 50L & 1Cr
+  const MATERNITY_LIMITS = {
+    '10L': '₹75,000',
+    '15L': '₹75,000',
+    '20L': '₹1,00,000',
+    '25L': '₹1,00,000',
+    '50L': '₹2,00,000',
+    '1Cr': '₹2,00,000'
+  };
+
+  const getMaternityLimit = () => MATERNITY_LIMITS[selectedSumInsured] || '₹75,000';
+
+  // Features - Maternity & Newborn only shown when eligible (Self + Spouse)
   const features = [
     { title: "Any Room Category", icon: "🛏️" },
-    { title: "Maternity Coverage (Up to ₹2L)", icon: "🤰" },
-    { title: "Newborn Baby Cover", icon: "👶" },
+    // Conditionally include maternity & newborn features
+    ...(isMaternityEligible ? [
+      { title: `Maternity Coverage (Up to ${getMaternityLimit()})`, icon: "🤰", isDynamic: true },
+      { title: "Newborn Baby Cover", icon: "👶" }
+    ] : []),
     { title: "100% Restoration of Cover", icon: "🔄" },
     { title: "Free Annual Health Checkup", icon: "🩺" },
     { title: "Sum Insured: ₹10L - 1Cr", icon: "💰" },
@@ -22,6 +47,11 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
   ];
 
   const exclusions = [
+    // Conditionally include maternity & newborn in exclusions when spouse not selected
+    ...(!isMaternityEligible ? [
+      { title: "Maternity Cover (Requires Self + Spouse)", icon: "🤰", isConditional: true },
+      { title: "Newborn Baby Cover (Requires Self + Spouse)", icon: "👶", isConditional: true }
+    ] : []),
     { title: "Infertility / IVF Treatments", icon: "🧬" },
     { title: "Cosmetic & Plastic Surgery", icon: "💄" },
     { title: "Self-Inflicted Injuries", icon: "🤕" },
@@ -64,29 +94,31 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto bg-gray-50 p-2 rounded-2xl border border-gray-100 mt-4 md:mt-0">
-               <div className="relative">
-                 <select
-                    value={selectedSumInsured}
-                    onChange={(e) => setSelectedSumInsured(e.target.value)}
-                    className="w-full sm:w-auto pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer shadow-sm hover:border-purple-300 transition-colors"
-                 >
-                    <option value="10L">₹10 Lakhs</option>
-                    <option value="15L">₹15 Lakhs</option>
-                    <option value="25L">₹25 Lakhs</option>
-                    <option value="50L">₹50 Lakhs</option>
-                    <option value="1Cr">₹1 Crore</option>
-                 </select>
-                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                 </div>
+               <div className="relative w-full sm:w-auto">
+                 <LockedSelect
+                   label={null}
+                   value={selectedSumInsured}
+                   onChange={setSelectedSumInsured}
+                   placeholder="Choose sum insured"
+                   requiresAuth={true}
+                   options={[
+                     { value: '10L', label: '₹10 Lakhs' },
+                     { value: '15L', label: '₹15 Lakhs' },
+                     { value: '20L', label: '₹20 Lakhs' },
+                     { value: '25L', label: '₹25 Lakhs' },
+                     { value: '50L', label: '₹50 Lakhs' },
+                     { value: '1Cr', label: '₹1 Crore' },
+                   ]}
+                 />
                </div>
                
                <button
                 onClick={handleSelect}
-                className="relative overflow-hidden bg-purple-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all group w-full sm:w-auto"
+                disabled={!selectedSumInsured || !isAuthenticated}
+                className={`relative overflow-hidden px-8 py-3 rounded-xl font-bold shadow-lg transition-all group w-full sm:w-auto ${!selectedSumInsured || !isAuthenticated ? 'bg-gray-300 cursor-not-allowed text-gray-600' : 'bg-purple-600 text-white shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98]'}`}
                >
                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
-                 <span>Select Plan</span>
+                 <span>{!isAuthenticated ? 'Login to select' : 'Select Plan'}</span>
                </button>
             </div>
           </div>
@@ -131,7 +163,9 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
                 <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
                   {item.icon}
                 </div>
-                <p className="text-sm font-bold text-gray-700 leading-snug group-hover:text-purple-700 transition-colors">{item.title}</p>
+                <p className="text-sm font-bold text-gray-700 leading-snug group-hover:text-purple-700 transition-colors">
+                  {item.isDynamic ? `Maternity Coverage (Up to ${getMaternityLimit()})` : item.title}
+                </p>
               </div>
             ))}
           </div>
@@ -140,12 +174,25 @@ const FamilyShieldPlan = ({ onSelectPlan }) => {
             {exclusions.map((item, idx) => (
               <div
                 key={idx}
-                className="group bg-red-50/30 p-5 rounded-2xl border border-red-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center h-full opacity-80 hover:opacity-100"
+                className={`group p-5 rounded-2xl border shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center text-center h-full opacity-80 hover:opacity-100 ${
+                  item.isConditional 
+                    ? 'bg-orange-50/50 border-orange-200' 
+                    : 'bg-red-50/30 border-red-100'
+                }`}
               >
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl mb-4 grayscale group-hover:grayscale-0 transition-all border border-red-50">
+                <div className={`w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl mb-4 transition-all border ${
+                  item.isConditional 
+                    ? 'border-orange-100 grayscale-0' 
+                    : 'border-red-50 grayscale group-hover:grayscale-0'
+                }`}>
                   {item.icon}
                 </div>
-                <p className="text-sm font-bold text-gray-700 leading-snug">{item.title}</p>
+                <p className={`text-sm font-bold leading-snug ${
+                  item.isConditional ? 'text-orange-700' : 'text-gray-700'
+                }`}>{item.title}</p>
+                {item.isConditional && (
+                  <p className="text-[9px] text-orange-500 mt-1">Add spouse to enable</p>
+                )}
               </div>
             ))}
           </div>

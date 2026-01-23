@@ -83,14 +83,15 @@ function Login() {
               )}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Email or Mobile <span className="text-red-500">*</span>
+                  Email / Mobile <span className="text-red-500">*</span>
                 </label>
                 <input 
                   type="text" 
                   name="identifier"
                   value={formData.identifier}
                   onChange={handleChange}
-                  placeholder="name@example.com" 
+                  placeholder="Enter email or mobile number" 
+                  autoComplete="username" 
                   className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                   required 
                 />
@@ -107,6 +108,7 @@ function Login() {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Enter password" 
+                    autoComplete="current-password"
                     className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium pr-14 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                     required
                   />

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
+import { useAuth } from '../../context/AuthContext';
+import { api } from '../../utils/api';
 
 const PaymentSuccessPage = () => {
   const location = useLocation();
@@ -12,7 +14,13 @@ const PaymentSuccessPage = () => {
   const method = planData.paymentDetails?.method || 'Card';
   const paidAt = planData.paymentDetails?.paidAt ? new Date(planData.paymentDetails.paidAt).toLocaleString() : new Date().toLocaleString();
   const amount = planData.finalPayableAmount || planData.price || 0;
-  const planName = planData.selectedPlan?.name || "Health Insurance Policy";
+  const planName =
+    planData.planName ||
+    planData.plan ||
+    planData.selectedPlan?.planName ||
+    planData.selectedPlan?.name ||
+    localStorage.getItem('latestPlanName') ||
+    "Health Insurance Policy";
 
   const generatePolicyNumber = (name) => {
     const year = new Date().getFullYear();
@@ -33,6 +41,7 @@ const PaymentSuccessPage = () => {
   }, [planData.policyNumber, planName]);
 
   const [showConfetti, setShowConfetti] = useState(false);
+  const { user, updateUser } = useAuth();
 
   useEffect(() => {
     // Trigger entrance animation
@@ -40,7 +49,40 @@ const PaymentSuccessPage = () => {
     if (policyNumber) {
       localStorage.setItem("latestPolicyNumber", policyNumber);
     }
+    try {
+      if (planName) localStorage.setItem('latestPlanName', planName);
+      const txn = planData.paymentDetails?.transactionId;
+      if (txn) localStorage.setItem('latestTransactionId', txn);
+    } catch (e) {
+      console.warn('Failed to persist latest plan/txn to localStorage', e);
+    }
   }, [policyNumber]);
+
+  useEffect(() => {
+    let mounted = true;
+    const tryActivate = async () => {
+      // If user is logged in but doesn't yet have policy attached, call backend to attach
+      if (!user || user.policyNumber) return;
+      try {
+        const payload = { policyNumber, planName, transactionId: planData.paymentDetails?.transactionId };
+        const res = await api.post('/api/policies/activate', payload, { auth: true });
+        if (mounted && res && res.user) {
+          updateUser({
+            policyNumber: res.user.policyNumber,
+            policyStatus: res.user.policyStatus,
+            plan: res.user.plan,
+            isProfileComplete: res.user.isProfileComplete,
+          });
+        }
+      } catch (e) {
+        // ignore activation failures here — user can retry from account
+        console.warn('Policy activation failed:', e.message || e);
+      }
+    };
+
+    tryActivate();
+    return () => { mounted = false; };
+  }, [user, policyNumber, planName, transactionId, updateUser, planData.paymentDetails]);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans">
@@ -151,10 +193,16 @@ const PaymentSuccessPage = () => {
           </button>
 
           <button
-            onClick={() => navigate('/register', { state: { policyNumber } })}
+            onClick={() => navigate('/register', { state: { policyNumber, planName } })}
             className="flex-1 py-4 px-6 bg-white border border-emerald-200 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-50 hover:border-emerald-300 transition-all shadow-sm"
           >
             Create Account
+          </button>
+          <button
+            onClick={() => navigate('/claims/entitlement-dependents', { state: { policyNumber, planName, fromPayment: true } })}
+            className="flex-1 py-4 px-6 bg-white border border-emerald-200 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-50 hover:border-emerald-300 transition-all shadow-sm"
+          >
+            Manage Dependents
           </button>
           
           <button 

@@ -1,10 +1,12 @@
-import React, { useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../../../utils/api';
 
 const RaiseClaim = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { dependentId } = useParams();
+  const [searchParams] = useSearchParams();
 
   const isActive = (path) => location.pathname === path;
 
@@ -21,16 +23,14 @@ const RaiseClaim = () => {
     'Follow-up / Continuation',
   ], []);
 
-  const dependents = useMemo(() => [
-    { id: 'DEP001', label: 'Priya Sharma (32)' },
-    { id: 'DEP002', label: 'Aarav Sharma (7)' },
-    { id: 'DEP003', label: 'Meera Sharma (58)' },
-  ], []);
+  // Dependents will be loaded from backend when available. Keep empty by default.
+  const dependents = useMemo(() => [], []);
 
   const [claimType, setClaimType] = useState('');
   const [form, setForm] = useState({
     claimCycle: '',
     dependentId: '',
+    dependentName: '',
     dayCare: '',
     admissionDate: '',
     dischargeDate: '',
@@ -48,11 +48,83 @@ const RaiseClaim = () => {
   const [draftSaved, setDraftSaved] = useState(false);
   const [stepReady, setStepReady] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [editClaimId, setEditClaimId] = useState(null);
+  const todayString = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const updateField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
+  useEffect(() => {
+    const editClaim = location.state?.claim;
+    if (!editClaim) return;
+    setEditClaimId(editClaim._id);
+    setClaimType(editClaim.claimType || '');
+    setForm((prev) => ({
+      ...prev,
+      claimCycle: editClaim.claimCycle || '',
+      dependentId: editClaim.dependentId || '',
+      dependentName: editClaim.dependentName || prev.dependentName,
+      dayCare: editClaim.dayCare || '',
+      admissionDate: editClaim.admissionDate ? editClaim.admissionDate.slice(0, 10) : '',
+      dischargeDate: editClaim.dischargeDate ? editClaim.dischargeDate.slice(0, 10) : '',
+      mobile: editClaim.mobile || '',
+      hospitalAddress: editClaim.hospitalAddress || '',
+      diagnosis: editClaim.diagnosis || '',
+      dropboxLocation: editClaim.dropboxLocation || '',
+      claimedAmount: editClaim.claimedAmount || '',
+      remarks: editClaim.remarks || '',
+      consentSummary: Boolean(editClaim.consentSummary),
+      consentTerms: Boolean(editClaim.consentTerms),
+      hospitalizationType: editClaim.hospitalizationType || '',
+    }));
+    setStepReady(true);
+  }, [location.state]);
+
+  useEffect(() => {
+    const claimId = searchParams.get("id");
+    if (!claimId || location.state?.claim) return;
+    let isMounted = true;
+    const loadClaim = async () => {
+      try {
+        const editClaim = await api.get(`/api/claims/${claimId}`, { auth: true });
+        if (!isMounted) return;
+        setEditClaimId(editClaim._id);
+        setClaimType(editClaim.claimType || '');
+        setForm((prev) => ({
+          ...prev,
+          claimCycle: editClaim.claimCycle || '',
+          dependentId: editClaim.dependentId || dependentId || '',
+          dependentName: editClaim.dependentName || prev.dependentName,
+          dayCare: editClaim.dayCare || '',
+          admissionDate: editClaim.admissionDate ? editClaim.admissionDate.slice(0, 10) : '',
+          dischargeDate: editClaim.dischargeDate ? editClaim.dischargeDate.slice(0, 10) : '',
+          mobile: editClaim.mobile || '',
+          hospitalAddress: editClaim.hospitalAddress || '',
+          diagnosis: editClaim.diagnosis || '',
+          dropboxLocation: editClaim.dropboxLocation || '',
+          claimedAmount: editClaim.claimedAmount || '',
+          remarks: editClaim.remarks || '',
+          consentSummary: Boolean(editClaim.consentSummary),
+          consentTerms: Boolean(editClaim.consentTerms),
+          hospitalizationType: editClaim.hospitalizationType || '',
+        }));
+        setStepReady(true);
+      } catch (error) {
+        // ignore
+      }
+    };
+
+    loadClaim();
+    return () => {
+      isMounted = false;
+    };
+  }, [dependentId, location.state, searchParams]);
+
   const validate = () => {
     const next = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const admission = form.admissionDate ? new Date(form.admissionDate) : null;
+    const discharge = form.dischargeDate ? new Date(form.dischargeDate) : null;
     if (!claimType) next.claimType = 'Select claim type to proceed';
     if (!form.claimCycle) next.claimCycle = 'Claim cycle is required';
     if (claimType === 'Pre-Post Hospitalization' && !form.hospitalizationType) next.hospitalizationType = 'Select type of hospitalization';
@@ -60,6 +132,9 @@ const RaiseClaim = () => {
     if (!form.dayCare) next.dayCare = 'Please choose Yes or No';
     if (!form.admissionDate) next.admissionDate = 'Admission date is required';
     if (!form.dischargeDate) next.dischargeDate = 'Discharge date is required';
+    if (admission && admission > today) next.admissionDate = 'Admission date cannot be in the future';
+    if (discharge && discharge > today) next.dischargeDate = 'Discharge date cannot be in the future';
+    if (admission && discharge && discharge < admission) next.dischargeDate = 'Discharge date must be on or after admission date';
     if (!form.mobile || form.mobile.trim().length < 10) next.mobile = 'Enter a valid mobile number';
     if (!form.hospitalAddress.trim()) next.hospitalAddress = 'Hospital name & address is required';
     if (!form.diagnosis.trim()) next.diagnosis = 'Diagnosis is required';
@@ -83,14 +158,25 @@ const RaiseClaim = () => {
     setSubmitting(true);
     setSubmitError('');
     try {
-      await api.post(
-        '/api/claims',
-        {
-          claimType,
-          ...form,
-        },
-        { auth: true }
-      );
+      if (editClaimId) {
+        await api.patch(
+          `/api/claims/${editClaimId}`,
+          {
+            claimType,
+            ...form,
+          },
+          { auth: true }
+        );
+      } else {
+        await api.post(
+          '/api/claims',
+          {
+            claimType,
+            ...form,
+          },
+          { auth: true }
+        );
+      }
       navigate('/claims/my-claims', { replace: true, state: { toast: 'Claim submitted successfully' } });
     } catch (error) {
       setSubmitError(error.message || 'Failed to submit claim');
@@ -274,9 +360,14 @@ const RaiseClaim = () => {
                 <select
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   value={form.dependentId}
-                  onChange={(e) => updateField('dependentId', e.target.value)}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    const match = dependents.find((d) => d.id === id);
+                    updateField('dependentId', id);
+                    updateField('dependentName', match?.name || '');
+                  }}
                 >
-                  <option value="">Select dependent</option>
+                  <option value="">{`Select dependent ${dependents.length === 0 ? '(0)' : ''}`}</option>
                   {dependents.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
                 </select>
                 {errors.dependentId && <p className="text-sm text-red-600 mt-1">{errors.dependentId}</p>}
@@ -316,6 +407,7 @@ const RaiseClaim = () => {
                 <input
                   type="date"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  max={todayString}
                   value={form.admissionDate}
                   onChange={(e) => updateField('admissionDate', e.target.value)}
                 />
@@ -326,6 +418,7 @@ const RaiseClaim = () => {
                 <input
                   type="date"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  max={todayString}
                   value={form.dischargeDate}
                   onChange={(e) => updateField('dischargeDate', e.target.value)}
                 />

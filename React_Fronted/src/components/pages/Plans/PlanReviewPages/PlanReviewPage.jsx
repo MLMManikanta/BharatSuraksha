@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../../../common/LoadingSpinner';
 import PaymentSummary from './paymentSummary';
@@ -39,7 +39,7 @@ const PlanReviewPage = () => {
    * the parent state in real-time. This ensures the PaymentSummary sidebar
    * reflects changes (e.g., adding a rider) immediately.
    */
-  const handleLiveUpdate = (updatedConfig) => {
+  const handleLiveUpdate = useCallback((updatedConfig) => {
     setData((prev) => ({
       ...prev,
       ...updatedConfig, // Merge new sliders, riders, features
@@ -48,7 +48,7 @@ const PlanReviewPage = () => {
       counts: prev.counts,
       user: prev.user
     }));
-  };
+  }, []);
 
   /**
    * 2. PROCEED HANDLER (Builder -> Review Custom)
@@ -141,10 +141,10 @@ const PlanReviewPage = () => {
     }
 
     // SCENARIO B: Standard Plans
-    if (planName.includes('neev')) return <BasicPlanReview data={data} />;
-    if (planName.includes('parivar')) return <FamilyPlanReview data={data} />;
-    if (planName.includes('varishtha')) return <SeniorPlanReview data={data} />;
-    if (planName.includes('vishwa')) return <UniversalPlanReview data={data} />;
+    if (planName.includes('neev')) return <BasicPlanReview data={data} onChange={handleLiveUpdate} />;
+    if (planName.includes('parivar')) return <FamilyPlanReview data={data} onChange={handleLiveUpdate} />;
+    if (planName.includes('varishtha')) return <SeniorPlanReview data={data} onChange={handleLiveUpdate} />;
+    if (planName.includes('vishwa')) return <UniversalPlanReview data={data} onChange={handleLiveUpdate} />;
 
     return (
       <div className="p-10 text-center text-red-500 font-bold bg-red-50 rounded-3xl">

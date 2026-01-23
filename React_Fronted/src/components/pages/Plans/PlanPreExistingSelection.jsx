@@ -18,6 +18,7 @@ const PlanPreExistingSelection = () => {
   const prevData = location.state || {}; 
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'parivar');
   const [customizationData, setCustomizationData] = useState(location.state?.customizationData || null); 
+  const [skipRedirect, setSkipRedirect] = useState(false);
 
   // Sync tab if navigation state updates externally
   useEffect(() => {
@@ -30,40 +31,131 @@ const PlanPreExistingSelection = () => {
     }
   }, [location.state]);
 
+  const normalizeAges = (value) => {
+    if (Array.isArray(value)) return value;
+    if (value !== undefined && value !== null && value !== '') return [value];
+    return [];
+  };
+
+  const coerceAgesByCount = (counts = {}, memberAges = {}) => {
+    const normalized = {};
+    Object.keys(counts).forEach((key) => {
+      const count = Number(counts[key] || 0);
+      if (count === 0) {
+        normalized[key] = [];
+      } else {
+        const rawAges = memberAges[key];
+        const ages = normalizeAges(rawAges);
+        // Ensure we have exactly 'count' entries, preserving existing values
+        const result = [];
+        for (let i = 0; i < count; i++) {
+          const age = ages[i];
+          result.push(age !== undefined && age !== null ? age : '');
+        }
+        normalized[key] = result;
+      }
+    });
+    // Also include non-multi member ages
+    Object.keys(memberAges).forEach((key) => {
+      if (!(key in normalized)) {
+        normalized[key] = memberAges[key];
+      }
+    });
+    return normalized;
+  };
+
+  const hasRequiredAges = (counts = {}, memberAges = {}, keys = []) => {
+    for (const key of keys) {
+      const count = Number(counts[key] || 0);
+      if (count === 0) continue;
+      
+      const ages = normalizeAges(memberAges[key]);
+      
+      // Check if we have enough ages
+      if (ages.length < count) {
+        console.log(`❌ hasRequiredAges: ${key} has ${ages.length} ages but needs ${count}`);
+        return false;
+      }
+      
+      // Check if all ages up to count are valid (non-empty)
+      for (let i = 0; i < count; i++) {
+        const age = ages[i];
+        if (age === undefined || age === null || String(age).trim() === '') {
+          console.log(`❌ hasRequiredAges: ${key}[${i}] is empty or invalid:`, age);
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  const hasMemberData = (data) => {
+    const counts = data?.counts || {};
+    const members = data?.members || [];
+    const memberAges = data?.memberAges || {};
+    const hasCounts = Object.values(counts).some((v) => Number(v) > 0);
+    const hasMembers = Array.isArray(members) && members.length > 0;
+
+    const ageKeys = ['son', 'daughter'];
+    const normalizedMemberAges = coerceAgesByCount(counts, memberAges);
+    const hasValidAges = hasRequiredAges(counts, normalizedMemberAges, ageKeys);
+
+    return (hasCounts || hasMembers) && hasValidAges;
+  };
+
+  const parseSumInsuredValue = (label) => {
+    const clean = String(label || '').replace(/[₹,\s]/g, '');
+    if (clean.includes('Cr')) return Math.round(parseFloat(clean.replace('Cr', '')) * 10000000);
+    if (clean.includes('L')) return Math.round(parseFloat(clean.replace('L', '')) * 100000);
+    const parsed = parseInt(clean, 10);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  };
+
   // Redirect safety
   useEffect(() => {
-    if (!prevData.counts && !prevData.members) { 
-      navigate('/plans');
-    }
-  }, [prevData, navigate]);
+  // ✅ Prevent redirect when closing customization
+  if (skipRedirect) return;
+
+  if (!hasMemberData(prevData)) { 
+    navigate('/plans');
+  }
+}, [prevData, navigate, skipRedirect]);
+
 
   // --- HANDLERS ---
 
   const handlePlanSelection = (planDetails) => {
-    const siLabel = planDetails.sumInsured || "5L";
-    const siValue = parseInt(siLabel.replace('L', '00000').replace('Cr', '0000000'));
-
-    // Varishtha eligibility: restrict to members aged 60+
-    if (planDetails.name === 'Varishtha Suraksha') {
-      const memberAges = prevData.memberAges || {};
-      const memberCounts = prevData.counts || {};
-      const hasUnder60 = Object.keys(memberCounts).some(memberId => {
-        if (memberCounts[memberId] > 0) {
-          const ages = Array.isArray(memberAges[memberId]) ? memberAges[memberId] : [memberAges[memberId]];
-          return ages.some(age => {
-            const ageNum = parseInt(age);
-            return !Number.isNaN(ageNum) && ageNum < 60;
-          });
-        }
-        return false;
-      });
-
-      if (hasUnder60) {
-        window.alert('Varishtha Suraksha is available only for members aged 60 and above.');
-        return;
-      }
-    }
+    console.log('🔍 handlePlanSelection called with:', planDetails);
+    console.log('📊 prevData:', prevData);
+    console.log('📊 prevData.counts:', prevData.counts);
+    console.log('📊 prevData.memberAges:', prevData.memberAges);
     
+    const siLabel = planDetails.sumInsured || "5L";
+    const siValue = parseSumInsuredValue(siLabel);
+
+    const memberCounts = prevData.counts || {};
+    const memberAgesRaw = prevData.memberAges || {};
+    const normalizedMemberAges = coerceAgesByCount(memberCounts, memberAgesRaw);
+
+    console.log('📊 normalizedMemberAges:', normalizedMemberAges);
+
+    // Validate ages for son and daughter
+    const sonCount = Number(memberCounts.son || 0);
+    const daughterCount = Number(memberCounts.daughter || 0);
+    const sonAges = normalizedMemberAges.son || [];
+    const daughterAges = normalizedMemberAges.daughter || [];
+
+    console.log(`👦 Sons: count=${sonCount}, ages=`, sonAges);
+    console.log(`👧 Daughters: count=${daughterCount}, ages=`, daughterAges);
+
+    if (!hasRequiredAges(memberCounts, normalizedMemberAges, ['son', 'daughter'])) {
+      console.error('❌ Age validation failed - blocking navigation');
+      window.alert('Please enter age for all selected sons/daughters');
+      return;
+    }
+
+    console.log('✅ Age validation passed - proceeding with navigation');
+
     // Standard Plan Premium Rates (per person per annum)
     // Structure: planName -> { sumInsured -> { ageGroup -> premium } }
     const STANDARD_PLAN_RATES = {
@@ -73,16 +165,17 @@ const PlanPreExistingSelection = () => {
         '5L': { '18-25': 2760, '26-35': 2932, '36-40': 3685, '41-45': 4335, '46-50': 5450, '51-55': 7420, '56-60': 9170, '61-65': 12935, '66-70': 16650, '71-75': 21395, '76-100': 26310 }
       },
       'Parivar Suraksha': {
-        '5L': { '18-25': 3261, '26-35': 3444, '36-40': 4365, '41-45': 5120, '46-50': 6445, '51-55': 8775, '56-60': 10845, '61-65': 15270, '66-70': 19755, '71-75': 25275, '76-100': 31145 },
-        '10L': { '18-25': 4230, '26-35': 4485, '36-40': 5670, '41-45': 6650, '46-50': 8370, '51-55': 11385, '56-60': 14065, '61-65': 19805, '66-70': 25590, '71-75': 32755, '76-100': 40345 },
-        '15L': { '18-25': 5710, '26-35': 6065, '36-40': 7655, '41-45': 8978, '46-50': 11299, '51-55': 15370, '56-60': 18988, '61-65': 26737, '66-70': 34547, '71-75': 44219, '76-100': 54466 },
-        '25L': { '18-25': 8030, '26-35': 8522, '36-40': 10773, '41-45': 12667, '46-50': 15903, '51-55': 21632, '56-60': 26724, '61-65': 37630, '66-70': 48621, '71-75': 62235, '76-100': 76656 },
-        '50L': { '18-25': 11420, '26-35': 12110, '36-40': 15309, '41-45': 17955, '46-50': 22599, '51-55': 30740, '56-60': 37976, '61-65': 53474, '66-70': 69093, '71-75': 88539, '76-100': 108932 },
-        '1Cr': { '18-25': 15230, '26-35': 16146, '36-40': 20412, '41-45': 23940, '46-50': 30132, '51-55': 40986, '56-60': 50634, '61-65': 71298, '66-70': 92124, '71-75': 117918, '76-100': 145242 }
+        // Premium rates from Parivar_Suraksha_Premium_Model.csv
+        '10L': { '18-25': 8500, '26-35': 10662, '36-40': 13374, '41-45': 14979, '46-50': 16777, '51-55': 18790, '56-60': 21045, '61-65': 23571, '66-70': 26399, '71-75': 29567, '76-100': 34002 },
+        '15L': { '18-25': 10625, '26-35': 13327, '36-40': 16717, '41-45': 18723, '46-50': 20971, '51-55': 23487, '56-60': 26306, '61-65': 29463, '66-70': 32998, '71-75': 36958, '76-100': 42502 },
+        '20L': { '18-25': 12750, '26-35': 15993, '36-40': 20061, '41-45': 22468, '46-50': 25165, '51-55': 28185, '56-60': 31567, '61-65': 35356, '66-70': 39598, '71-75': 44350, '76-100': 51003 },
+        '25L': { '18-25': 14875, '26-35': 18658, '36-40': 23404, '41-45': 26213, '46-50': 29359, '51-55': 32882, '56-60': 36828, '61-65': 41249, '66-70': 46198, '71-75': 51742, '76-100': 59503 },
+        '50L': { '18-25': 21250, '26-35': 26655, '36-40': 33435, '41-45': 37447, '46-50': 41942, '51-55': 46975, '56-60': 52612, '61-65': 58927, '66-70': 65997, '71-75': 73917, '76-100': 85005 },
+        '1Cr': { '18-25': 29750, '26-35': 37317, '36-40': 46809, '41-45': 52426, '46-50': 58719, '51-55': 65765, '56-60': 73657, '61-65': 82498, '66-70': 92396, '71-75': 103484, '76-100': 119007 }
       },
       'Varishtha Suraksha': {
-        '5L': { '18-25': 3024, '26-35': 3188, '36-40': 4044, '41-45': 4740, '46-50': 5968, '51-55': 8120, '56-60': 10032, '61-65': 14136, '66-70': 18296, '71-75': 23396, '76-100': 28836 },
-        '10L': { '18-25': 3916, '26-35': 4152, '36-40': 5248, '41-45': 6156, '46-50': 7748, '51-55': 10532, '56-60': 13024, '61-65': 18344, '66-70': 23696, '71-75': 30320, '76-100': 37360 }
+        '5L': {  '60-65': 14136, '66-70': 18296, '71-75': 23396, '76-100': 28836 },
+        '10L': {  '60-65': 18344, '66-70': 23696, '71-75': 30320, '76-100': 37360 }
       },
       'Vishwa Suraksha': {
         '5L': { '18-25': 4570, '26-35': 4820, '36-40': 6110, '41-45': 7165, '46-50': 9020, '51-55': 12280, '56-60': 15165, '61-65': 21380, '66-70': 27645, '71-75': 35360, '76-100': 43590 },
@@ -100,37 +193,32 @@ const PlanPreExistingSelection = () => {
     const planRates = STANDARD_PLAN_RATES[planDetails.name];
     
     if (planRates) {
-      // Use rates for selected sum insured
       const ratesByAge = planRates[siLabel];
-      if (ratesByAge && prevData.memberAges) {
-        // Calculate based on actual member ages
-        const memberAges = prevData.memberAges || {};
-        const memberCounts = prevData.counts || {};
-        
+      if (ratesByAge) {
         Object.keys(memberCounts).forEach(memberId => {
-          const count = memberCounts[memberId];
-          if (count > 0) {
-            const ages = Array.isArray(memberAges[memberId]) ? memberAges[memberId] : [memberAges[memberId]];
-            ages.forEach(age => {
-              if (age) {
-                const ageNum = parseInt(age);
-                let ageGroup = '18-25';
-                if (ageNum >= 26 && ageNum <= 35) ageGroup = '26-35';
-                else if (ageNum >= 36 && ageNum <= 40) ageGroup = '36-40';
-                else if (ageNum >= 41 && ageNum <= 45) ageGroup = '41-45';
-                else if (ageNum >= 46 && ageNum <= 50) ageGroup = '46-50';
-                else if (ageNum >= 51 && ageNum <= 55) ageGroup = '51-55';
-                else if (ageNum >= 56 && ageNum <= 60) ageGroup = '56-60';
-                else if (ageNum >= 61 && ageNum <= 65) ageGroup = '61-65';
-                else if (ageNum >= 66 && ageNum <= 70) ageGroup = '66-70';
-                else if (ageNum >= 71 && ageNum <= 75) ageGroup = '71-75';
-                else if (ageNum >= 76) ageGroup = '76-100';
-                
-                if (ratesByAge[ageGroup]) {
-                  calculatedPremium += ratesByAge[ageGroup];
-                }
+          const count = Number(memberCounts[memberId] || 0);
+          const ages = normalizeAges(normalizedMemberAges[memberId]);
+          if (count > 0 && ages.length > 0) {
+            for (let i = 0; i < count; i += 1) {
+              const age = ages[i];
+              if (!age) continue;
+              const ageNum = parseInt(age);
+              let ageGroup = '18-25';
+              if (ageNum >= 26 && ageNum <= 35) ageGroup = '26-35';
+              else if (ageNum >= 36 && ageNum <= 40) ageGroup = '36-40';
+              else if (ageNum >= 41 && ageNum <= 45) ageGroup = '41-45';
+              else if (ageNum >= 46 && ageNum <= 50) ageGroup = '46-50';
+              else if (ageNum >= 51 && ageNum <= 55) ageGroup = '51-55';
+              else if (ageNum >= 56 && ageNum <= 60) ageGroup = '56-60';
+              else if (ageNum >= 61 && ageNum <= 65) ageGroup = '61-65';
+              else if (ageNum >= 66 && ageNum <= 70) ageGroup = '66-70';
+              else if (ageNum >= 71 && ageNum <= 75) ageGroup = '71-75';
+              else if (ageNum >= 76) ageGroup = '76-100';
+              
+              if (ratesByAge[ageGroup]) {
+                calculatedPremium += ratesByAge[ageGroup];
               }
-            });
+            }
           }
         });
       }
@@ -160,7 +248,10 @@ const PlanPreExistingSelection = () => {
         basePremium
     };
 
-    navigate('/plan-review', { state: { ...prevData, ...payload } });
+    const navigationState = { ...prevData, memberAges: normalizedMemberAges, ...payload };
+    console.log('🚀 Navigating to /plan-review with state:', navigationState);
+    
+    navigate('/plan-review', { state: navigationState });
   };
 
   const handleActivateVajra = () => {
@@ -185,11 +276,13 @@ const PlanPreExistingSelection = () => {
     });
   };
 
-  const handleCloseCustomization = () => {
-    setCustomizationData(null); 
-    setActiveTab('parivar');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+ const handleCloseCustomization = () => {
+  setSkipRedirect(true);       
+  setCustomizationData(null); 
+  setActiveTab('parivar');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -197,6 +290,10 @@ const PlanPreExistingSelection = () => {
       
       <div className="bg-[#1A5EDB] text-white pt-10 pb-24 px-4 rounded-b-[3rem] shadow-xl relative mb-8">
         <div className="max-w-5xl mx-auto text-center space-y-4">
+          <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full mb-2">
+            <span className="text-2xl">📋</span>
+            <span className="text-sm font-medium">Step 2 of 8</span>
+          </div>
           <h1 className="text-3xl md:text-4xl font-bold italic tracking-tight">
             {customizationData ? `Customize Vajra Suraksha` : 'Select Your Suraksha'}
           </h1>
@@ -237,7 +334,14 @@ const PlanPreExistingSelection = () => {
           }).map((tab) => (
             <button
               key={tab.id}
-              onClick={() => tab.isSpecial ? handleActivateVajra() : (setCustomizationData(null), setActiveTab(tab.id))}
+              onClick={() => {
+                if (tab.isSpecial) {
+                  handleActivateVajra();
+                } else {
+                  setCustomizationData(null);
+                  setActiveTab(tab.id);
+                }
+              }}
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-2 md:px-4 rounded-xl font-bold text-xs md:text-sm transition-all ${
                 activeTab === tab.id
                     ? 'bg-[#1A5EDB] text-white shadow-md transform scale-[1.02]'
@@ -254,7 +358,7 @@ const PlanPreExistingSelection = () => {
           {!customizationData ? (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {activeTab === 'neev' && <BasicPlan onSelectPlan={handlePlanSelection} />}
-              {activeTab === 'parivar' && <FamilyShieldPlan onSelectPlan={handlePlanSelection} />}
+              {activeTab === 'parivar' && <FamilyShieldPlan onSelectPlan={handlePlanSelection} memberCounts={prevData.counts} />}
               {activeTab === 'varishtha' && <SeniorProtectPlan onSelectPlan={handlePlanSelection} />}
               {activeTab === 'vishwa' && <UniversalCoverage onSelectPlan={handlePlanSelection} />}
             </div>

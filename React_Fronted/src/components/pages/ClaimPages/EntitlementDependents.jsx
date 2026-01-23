@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { api } from "../../../utils/api";
+import { useAuth } from "../../../context/AuthContext";
 
 const CLAIMS_DEDUCTIBLE_STATUSES = ["Completed", "Approved", "Pending", "In Progress"];
 
@@ -11,48 +13,78 @@ function EntitlementDependents() {
   const [dependents, setDependents] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const { user } = useAuth();
+  const hasActivePolicy = Boolean(user && user.hasActivePolicy) || Boolean(localStorage.getItem("latestPolicyNumber"));
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setEntitlement({
-        policyNumber: "POL-VAJRA-2026-0001",
-        coverageLimit: 1_000_000,
-        validityFrom: "2026-01-01",
-        validityTo: "2026-12-31",
-      });
+    let isMounted = true;
+    const loadEntitlement = async () => {
+      try {
+        // If no active policy, don't call API — show empty/inactive state
+        if (!hasActivePolicy) {
+          if (isMounted) {
+            setEntitlement(null);
+            setClaims([]);
+            setDependents([]);
+            setLoading(false);
+          }
+          return;
+        }
+        // Fetch claims and entitlement from backend. Only set entitlement if backend returns it.
+        const apiClaims = await api.get("/api/claims", { auth: true });
+        // Entitlement API may not be available yet; try to fetch if present.
+        let apiEntitlement = null;
+        try {
+          apiEntitlement = await api.get("/api/entitlement", { auth: true });
+        } catch (e) {
+          // entitlement endpoint not available or returned no data — leave as null
+          apiEntitlement = null;
+        }
+        if (!isMounted) return;
+        setClaims(apiClaims || []);
+        // Only set entitlement when backend provides meaningful fields.
+        if (
+          apiEntitlement &&
+          (apiEntitlement.policyNumber || apiEntitlement.coverageLimit != null || apiEntitlement.availableBalance != null || apiEntitlement.utilizedAmount != null)
+        ) {
+          setEntitlement(apiEntitlement);
+          setDependents(apiEntitlement.dependents || []);
+        } else {
+          // Do not assume any financial values on the frontend.
+          setEntitlement(null);
+          setDependents([]);
+        }
+      } catch (error) {
+        if (!isMounted) return;
+        // On error, do not expose mocked entitlement data; show no-data state.
+        setClaims([]);
+        setEntitlement(null);
+        setDependents([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
 
-      setClaims([
-        { id: "CLM001", claimedAmount: 50_000, status: "Completed" },
-        { id: "CLM002", claimedAmount: 30_000, status: "Pending" },
-        { id: "CLM003", claimedAmount: 75_000, status: "In Progress" },
-        { id: "CLM004", claimedAmount: 20_000, status: "Cancelled" },
-        { id: "CLM005", claimedAmount: 100_000, status: "Completed" },
-      ]);
+    loadEntitlement();
+    return () => {
+      isMounted = false;
+    };
+  }, [hasActivePolicy]);
 
-      setDependents([
-        { id: "DEP001", name: "Priya Sharma", relationship: "Spouse", age: 34, status: "Active" },
-        { id: "DEP002", name: "Aarav Sharma", relationship: "Son", age: 8, status: "Active" },
-        { id: "DEP003", name: "Meera Sharma", relationship: "Mother", age: 62, status: "Inactive" },
-      ]);
-
-      setLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const totalDeducted = useMemo(() => {
-    return claims
-      .filter((c) => CLAIMS_DEDUCTIBLE_STATUSES.includes(c.status))
-      .reduce((sum, c) => sum + c.claimedAmount, 0);
-  }, [claims]);
-
-  const remainingBalance = useMemo(() => {
-    if (!entitlement) return 0;
-    return Math.max(entitlement.coverageLimit - totalDeducted, 0);
-  }, [entitlement, totalDeducted]);
+  // Frontend must not perform entitlement calculations. Use values provided by backend only.
+  const displayedCoverageLimit = entitlement?.coverageLimit ?? null;
+  const displayedAvailableBalance = entitlement?.availableBalance ?? null;
+  const displayedUtilizedAmount = entitlement?.utilizedAmount ?? null;
 
   const isActive = (path) => location.pathname === path;
-  const formatINR = (val) => `₹${val.toLocaleString("en-IN")}`;
+  const formatINR = (val) => {
+    if (val === null || val === undefined) return "—";
+    try {
+      return `₹${Number(val).toLocaleString("en-IN")}`;
+    } catch (e) {
+      return "—";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -95,6 +127,21 @@ function EntitlementDependents() {
 
         {loading ? (
           <div className="bg-white rounded-xl shadow-sm p-6 text-center text-slate-600">Loading entitlement and dependents…</div>
+        ) : !hasActivePolicy ? (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100 text-center">
+            <div className="text-4xl mb-3">🔒</div>
+            <h2 className="text-lg font-semibold">No active policy</h2>
+            <p className="text-sm text-slate-600 mt-2">Your entitlement and dependents will appear here after purchasing a policy.</p>
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <Link to="/plans" className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold">Get a Quote</Link>
+            </div>
+          </div>
+        ) : !entitlement ? (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100 text-center">
+            <div className="text-3xl mb-2">⏳</div>
+            <h2 className="text-lg font-semibold">Data not available</h2>
+            <p className="text-sm text-slate-600 mt-2">Entitlement details are not available yet. They will appear here once the policy service is connected.</p>
+          </div>
         ) : (
           <>
             <section className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100" aria-labelledby="entitlement-heading">
@@ -123,9 +170,15 @@ function EntitlementDependents() {
                 <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
                   <p className="text-sm text-slate-600">Validity</p>
                   <p className="mt-1 text-base font-semibold text-slate-900">
-                    {new Date(entitlement.validityFrom).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                    <span className="text-slate-500"> — </span>
-                    {new Date(entitlement.validityTo).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                    {entitlement.validityFrom && entitlement.validityTo ? (
+                      <>
+                        {new Date(entitlement.validityFrom).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                        <span className="text-slate-500"> — </span>
+                        {new Date(entitlement.validityTo).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      </>
+                    ) : (
+                      "—"
+                    )}
                   </p>
                 </div>
               </div>
@@ -154,60 +207,70 @@ function EntitlementDependents() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 bg-white" role="rowgroup">
-                    {dependents.map((d) => (
-                      <tr key={d.id} className="hover:bg-slate-50" role="row">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">{d.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">{d.relationship}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">{d.age}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                            d.status === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"
-                          }`}>
-                            {d.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <div className="flex items-center gap-2">
-                            <button
-                              className="px-3 py-2 rounded-lg text-blue-700 hover:bg-blue-50"
-                              aria-label={`View details for ${d.name}`}
-                            >
-                              View details
-                            </button>
-                            <button
-                              className="px-3 py-2 rounded-lg text-emerald-700 hover:bg-emerald-50"
-                              aria-label={`Download summary for ${d.name}`}
-                            >
-                              Download
-                            </button>
-                          </div>
-                        </td>
+                    {dependents.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-4 text-sm text-slate-600 text-center">No dependents added.</td>
                       </tr>
-                    ))}
+                    ) : (
+                      dependents.map((d) => (
+                        <tr key={d.id} className="hover:bg-slate-50" role="row">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">{d.name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">{d.relationship}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">{d.age}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
+                              d.status === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"
+                            }`}>
+                              {d.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <div className="flex items-center gap-2">
+                              <button
+                                className="px-3 py-2 rounded-lg text-blue-700 hover:bg-blue-50"
+                                aria-label={`View details for ${d.name}`}
+                              >
+                                View details
+                              </button>
+                              <button
+                                className="px-3 py-2 rounded-lg text-emerald-700 hover:bg-emerald-50"
+                                aria-label={`Download summary for ${d.name}`}
+                              >
+                                Download
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
 
               <div className="md:hidden p-4 space-y-3 bg-white" role="list">
-                {dependents.map((d) => (
-                  <div key={d.id} role="listitem" className="border border-slate-200 rounded-xl p-4 shadow-sm bg-slate-50">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-base font-bold text-slate-900">{d.name}</p>
-                        <p className="text-sm text-slate-700">{d.relationship} · {d.age} yrs</p>
+                {dependents.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-slate-600">No dependents added.</div>
+                ) : (
+                  dependents.map((d) => (
+                    <div key={d.id} role="listitem" className="border border-slate-200 rounded-xl p-4 shadow-sm bg-slate-50">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-base font-bold text-slate-900">{d.name}</p>
+                          <p className="text-sm text-slate-700">{d.relationship} · {d.age} yrs</p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          d.status === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"
+                        }`}>
+                          {d.status}
+                        </span>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        d.status === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"
-                      }`}>
-                        {d.status}
-                      </span>
+                      <div className="mt-3 flex items-center gap-2">
+                        <button className="px-3 py-2 rounded-lg text-blue-700 bg-blue-50">View</button>
+                        <button className="px-3 py-2 rounded-lg text-emerald-700 bg-emerald-50">Download</button>
+                      </div>
                     </div>
-                    <div className="mt-3 flex items-center gap-2">
-                      <button className="px-3 py-2 rounded-lg text-blue-700 bg-blue-50">View</button>
-                      <button className="px-3 py-2 rounded-lg text-emerald-700 bg-emerald-50">Download</button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </section>
 

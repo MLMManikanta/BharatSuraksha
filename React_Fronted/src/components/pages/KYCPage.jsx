@@ -1,11 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
+import { submitKYC } from '../../utils/api';
 
 const KYCPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const planData = location.state || {};
+  
+  // Get planData from navigation state OR sessionStorage fallback
+  const planData = useMemo(() => {
+    if (location.state && Object.keys(location.state).length > 0) {
+      return location.state;
+    }
+    const stored = sessionStorage.getItem('planData');
+    return stored ? JSON.parse(stored) : {};
+  }, [location.state]);
 
   const [proposerData, setProposerData] = useState({
     fullName: '',
@@ -33,6 +42,8 @@ const KYCPage = () => {
   });
 
   const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   // Initialize Members based on Plan Selection
   useEffect(() => {
@@ -183,11 +194,14 @@ const KYCPage = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
 
     const kycData = {
       proposer: proposerData,
@@ -197,16 +211,47 @@ const KYCPage = () => {
       ageValidation: {
         hasMismatch: validateAgeChanges.hasMismatch,
         messages: validateAgeChanges.messages
-      }
+      },
+      planData: planData
     };
 
-    navigate('/medical', {
-      state: {
-        ...planData,
-        kycData: kycData,
-        ageMismatchDetected: validateAgeChanges.hasMismatch
+    try {
+      // Get userId from localStorage if available (optional for new users)
+      const userId = localStorage.getItem('userId');
+
+      // Submit KYC to backend
+      const response = await submitKYC({
+        ...kycData,
+        ...(userId && { userId })
+      });
+
+      if (response.success) {
+        // Build medical page data
+        const medicalPageData = {
+          ...planData,
+          kycData: kycData,
+          kycId: response.data?.kycId,
+          ageMismatchDetected: validateAgeChanges.hasMismatch
+        };
+        
+        // Store in sessionStorage as backup
+        sessionStorage.setItem('planData', JSON.stringify(medicalPageData));
+        
+        // Navigate to medical page with KYC data and kycId
+        navigate('/medical', { state: medicalPageData });
+      } else {
+        setSubmitError(response.message || 'Failed to submit KYC details. Please try again.');
       }
-    });
+    } catch (error) {
+      console.error('KYC submission error:', error);
+      setSubmitError(
+        error.data?.message || 
+        error.message || 
+        'An error occurred while submitting KYC details. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -221,8 +266,9 @@ const KYCPage = () => {
         </div>
 
         <div className="relative max-w-4xl mx-auto text-center space-y-4 animate-fade-in-up">
-          <div className="inline-flex items-center justify-center text-4xl p-4 bg-white/20 backdrop-blur-md rounded-full mb-4 ring-1 ring-white/30 shadow-lg">
-            🆔
+          <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full mb-2">
+            <span className="text-2xl">🆔</span>
+            <span className="text-sm font-medium">Step 4 of 8</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Know Your Customer</h1>
           <p className="text-blue-100 text-lg max-w-2xl mx-auto font-light">
@@ -276,7 +322,7 @@ const KYCPage = () => {
             
             <SelectField label="Marital Status" value={proposerData.maritalStatus} onChange={(val) => handleProposerChange('maritalStatus', val)} error={formErrors.maritalStatus} options={['Single', 'Married', 'Divorced', 'Widowed']} />
             
-            <InputField label="Occupation" value={proposerData.occupation} onChange={(val) => handleProposerChange('occupation', val)} error={formErrors.occupation} placeholder="e.g. Salaried, Business" />
+            <InputField label="Occupation" value={proposerData.occupation} onChange={(val) => handleProposerChange('occupation', val)} error={formErrors.occupation} placeholder="e.g. Software engineer, Business" />
             
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">PAN Card Number</label>
@@ -383,14 +429,33 @@ const KYCPage = () => {
         </div>
 
         {/* Actions */}
-        <div className="space-y-4 pb-8">
+        <div className="space-y-4 pb-8 w-auto mx-auto max-w-md">
+          {submitError && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+              <p className="text-red-600 text-sm font-medium">{submitError}</p>
+            </div>
+          )}
+          
           <button 
-            onClick={handleSubmit} 
-            className="group w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-black uppercase tracking-widest shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all relative overflow-hidden"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className={`group w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-black uppercase tracking-widest shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all relative overflow-hidden ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
             <span className="relative flex items-center justify-center gap-3">
-              Continue to Medical <span className="group-hover:translate-x-1 transition-transform">→</span>
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  Continue to Medical <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </>
+              )}
             </span>
           </button>
           

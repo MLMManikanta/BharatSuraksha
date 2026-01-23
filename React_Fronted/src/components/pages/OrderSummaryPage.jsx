@@ -1,263 +1,413 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { 
-  CreditCard, 
-  Building2, 
-  User, 
-  CheckCircle2, 
-  ArrowRight, 
-  ArrowLeft,
-  CalendarClock,
-  Wallet,
-  Percent
-} from 'lucide-react';
 import CheckoutStepper from '../layout/CheckoutStepper';
+
+/**
+ * ORDER SUMMARY / REVIEW PAGE
+ * ═════════════════════════════════════════════════════════════
+ * 
+ * Displays complete order summary including:
+ * 1. Plan details and coverage
+ * 2. Price breakdown with discount
+ * 3. Amount to pay
+ * 
+ * ═════════════════════════════════════════════════════════════
+ */
 
 const OrderSummaryPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Safe access to data
-  const planData = location.state || {};
-  
-  // 1. EXTRACT DATA & NORMALIZE
-  const rawPremium = planData.finalPremium || planData.price || 0; // Get total form previous step
-  const paymentFrequency = planData.paymentFrequency || 'Yearly';
-  const bankName = planData.bankData?.bankName || 'Not provided';
-  const accountHolder = planData.bankData?.accountHolderName || 'Not provided';
-
-  // 2. CALCULATION ENGINE
-  const pricingDetails = useMemo(() => {
-    const freqKey = paymentFrequency.toLowerCase().replace(/[^a-z]/g, ''); // normalize 'Half-Yearly' -> 'halfyearly'
-    
-    let discountPercent = 0;
-    let divisor = 1;
-    let label = 'Annual';
-
-    switch (freqKey) {
-      case 'monthly':
-        discountPercent = 0; // 0%
-        divisor = 12;
-        label = '/ Month';
-        break;
-      case 'quarterly':
-        discountPercent = 0.02; // 2%
-        divisor = 4;
-        label = '/ Quarter';
-        break;
-      case 'halfyearly':
-        discountPercent = 0.05; // 5%
-        divisor = 2;
-        label = '/ 6 Months';
-        break;
-      case 'yearly':
-        discountPercent = 0.10; // 10%
-        divisor = 1;
-        label = '/ Year';
-        break;
-      default:
-        discountPercent = 0;
-        divisor = 1;
+  // Get data from navigation state OR sessionStorage fallback
+  const planData = useMemo(() => {
+    // First try navigation state
+    if (location.state && Object.keys(location.state).length > 0) {
+      console.log('OrderSummaryPage: Using navigation state');
+      return location.state;
     }
+    // Fallback to orderData in sessionStorage
+    const orderData = sessionStorage.getItem('orderData');
+    if (orderData) {
+      console.log('OrderSummaryPage: Using orderData from sessionStorage');
+      return JSON.parse(orderData);
+    }
+    // Fallback to planData in sessionStorage
+    const stored = sessionStorage.getItem('planData');
+    if (stored) {
+      console.log('OrderSummaryPage: Using planData from sessionStorage');
+      return JSON.parse(stored);
+    }
+    return {};
+  }, [location.state]);
 
-    // Math Logic
-    const discountAmount = Math.round(rawPremium * discountPercent);
-    const discountedTotal = rawPremium - discountAmount;
-    const installmentAmount = Math.round(discountedTotal / divisor);
+  // Get premium calculations from sessionStorage as additional backup
+  const storedCalculations = useMemo(() => {
+    const stored = sessionStorage.getItem('premiumCalculations');
+    return stored ? JSON.parse(stored) : null;
+  }, []);
+  
+  // Extract payment details (from BankInformationPage or sessionStorage)
+  const paymentDetails = useMemo(() => {
+    return planData.paymentDetails || storedCalculations || {};
+  }, [planData.paymentDetails, storedCalculations]);
+  
+  // Helper function to safely extract string value from potentially object values
+  const safeString = (value) => {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'object') {
+      // Handle {label, value} objects from select fields
+      return value.label || value.value || value.name || String(value);
+    }
+    return String(value);
+  };
 
-    return {
-      originalAmount: rawPremium,
-      discountPercent: (discountPercent * 100).toFixed(0),
-      discountAmount,
-      totalPayable: discountedTotal,
-      installmentAmount,
-      label
+  // Plan information - ensure we get strings, not objects
+  const planName = safeString(
+    planData.planName || 
+    planData.selectedPlan?.planName || 
+    planData.selectedPlan?.name || 
+    'Health Insurance Plan'
+  );
+  const coverageAmount = safeString(
+    planData.coverage || 
+    planData.selectedPlan?.coverage || 
+    planData.sumInsured || 
+    ''
+  );
+  
+  // Payment frequency
+  const paymentFrequency = planData.paymentFrequency || 'yearly';
+
+  // DEBUG: Log all received data to console
+  useEffect(() => {
+    console.log('═══════════════════════════════════════════════════');
+    console.log('OrderSummaryPage - RECEIVED DATA:');
+    console.log('Full planData:', planData);
+    console.log('paymentDetails:', paymentDetails);
+    console.log('storedCalculations:', storedCalculations);
+    console.log('paymentFrequency:', paymentFrequency);
+    console.log('═══════════════════════════════════════════════════');
+  }, [planData, paymentDetails, storedCalculations, paymentFrequency]);
+
+  // Calculate all pricing based on available data
+  const pricingData = useMemo(() => {
+    // Try to get base premium from multiple sources (in order of priority)
+    // Priority: totalPayable from PaymentSummary > finalAnnualPremium > other values
+    const rawPremium = 
+      paymentDetails.basePremium ||                // Pre-calculated basePremium from BankInformationPage
+      paymentDetails.totalPayable ||               // Total from PaymentSummary (includes GST, tenure)
+      paymentDetails.finalAnnualPremium ||         // Annual premium with GST
+      storedCalculations?.totalPayable ||          // From sessionStorage
+      storedCalculations?.finalAnnualPremium ||    // From sessionStorage
+      planData.originalPremiumCalculations?.totalPayable ||  // Original PaymentSummary values
+      planData.originalPremiumCalculations?.finalAnnualPremium ||
+      planData.totalPremium || 
+      planData.premium || 
+      planData.finalPremium || 
+      planData.price || 
+      planData.selectedPlan?.premium ||
+      planData.selectedPlan?.price ||
+      0;
+    
+    console.log('pricingData calculation:');
+    console.log('  rawPremium:', rawPremium);
+    console.log('  paymentDetails.basePremium:', paymentDetails.basePremium);
+    console.log('  paymentDetails.totalPayable:', paymentDetails.totalPayable);
+    console.log('  storedCalculations?.totalPayable:', storedCalculations?.totalPayable);
+    
+    // Discount rates by frequency
+    const discountRates = {
+      monthly: 0,
+      quarterly: 2,
+      halfyearly: 5,
+      yearly: 10
     };
-  }, [rawPremium, paymentFrequency]);
+    
+    // Payments per year by frequency
+    const paymentsConfig = {
+      monthly: { count: 12, label: 'month', description: '12 monthly installments' },
+      quarterly: { count: 4, label: 'quarter', description: '4 quarterly installments' },
+      halfyearly: { count: 2, label: '6 months', description: '2 half-yearly installments' },
+      yearly: { count: 1, label: 'year', description: 'Single annual payment' }
+    };
+    
+    const freq = paymentFrequency.toLowerCase().replace(/[^a-z]/g, '');
+    const config = paymentsConfig[freq] || paymentsConfig.yearly;
+    const discountRate = discountRates[freq] || 0;
+    
+    // If paymentDetails has pre-calculated values from BankInformationPage, use them
+    if (paymentDetails.perPaymentAmount && paymentDetails.perPaymentAmount > 0) {
+      console.log('Using pre-calculated paymentDetails from BankInformationPage');
+      return {
+        basePremium: paymentDetails.basePremium || rawPremium,
+        discountRate: paymentDetails.discountRate ?? discountRate,
+        discountAmount: paymentDetails.discountAmount ?? 0,
+        discountedTotal: paymentDetails.discountedTotal ?? rawPremium,
+        perPaymentAmount: paymentDetails.perPaymentAmount,
+        paymentsPerYear: paymentDetails.paymentsPerYear ?? config.count,
+        paymentLabel: paymentDetails.paymentLabel || config.label,
+        frequencyLabel: paymentDetails.frequencyLabel || freq.charAt(0).toUpperCase() + freq.slice(1),
+        description: config.description,
+        // Include GST info from original calculations
+        gstAmount: paymentDetails.gstAmount || storedCalculations?.gstAmount || 0,
+        netPremium: paymentDetails.netPremium || storedCalculations?.netPremium || rawPremium
+      };
+    }
+    
+    // Calculate from scratch if no paymentDetails
+    console.log('Calculating pricing from scratch with rawPremium:', rawPremium);
+    const discountAmount = Math.round(rawPremium * (discountRate / 100));
+    const discountedTotal = rawPremium - discountAmount;
+    const perPaymentAmount = Math.round(discountedTotal / config.count);
+    
+    return {
+      basePremium: rawPremium,
+      discountRate,
+      discountAmount,
+      discountedTotal,
+      perPaymentAmount,
+      paymentsPerYear: config.count,
+      paymentLabel: config.label,
+      frequencyLabel: freq.charAt(0).toUpperCase() + freq.slice(1),
+      description: config.description,
+      gstAmount: storedCalculations?.gstAmount || 0,
+      netPremium: storedCalculations?.netPremium || rawPremium
+    };
+  }, [planData, paymentDetails, storedCalculations, paymentFrequency]);
 
-  // Animation Variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } }
-  };
+  // Destructure for easier access and ensure string values
+  const {
+    basePremium,
+    discountRate,
+    discountAmount,
+    discountedTotal,
+    perPaymentAmount,
+    paymentsPerYear
+    // gstAmount and netPremium available in pricingData if needed
+  } = pricingData;
+  
+  // Ensure paymentLabel and frequencyLabel are strings (not objects)
+  const paymentLabel = safeString(pricingData.paymentLabel || 'year');
+  const frequencyLabel = safeString(pricingData.frequencyLabel || 'Annual');
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-indigo-50 to-purple-50 pb-20 font-sans">
       <CheckoutStepper currentStep={7} />
 
       {/* Hero Header */}
-      <div className="relative bg-gradient-to-br from-indigo-700 via-indigo-600 to-indigo-800 text-white pt-12 pb-24 px-4 rounded-b-[4rem] shadow-2xl overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
+      <div className="relative bg-linear-to-br from-indigo-700 via-indigo-600 to-purple-700 text-white pt-12 pb-28 px-4 rounded-b-[4rem] shadow-2xl overflow-hidden">
+        {/* Decorative Elements */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20">
           <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full mix-blend-overlay blur-3xl"></div>
           <div className="absolute bottom-10 right-10 w-80 h-80 bg-purple-400 rounded-full mix-blend-overlay blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-blue-300 rounded-full mix-blend-overlay blur-2xl"></div>
         </div>
 
         <div className="relative max-w-4xl mx-auto text-center space-y-4">
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center justify-center p-3 bg-white/20 backdrop-blur-md rounded-full mb-4 ring-1 ring-white/30"
-          >
-            <CheckCircle2 className="w-8 h-8 text-green-300" />
-          </motion.div>
+          <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full mb-2 animate-fade-in-up">
+            <span className="text-2xl">🧾</span>
+            <span className="text-sm font-medium">Step 7 of 8</span>
+          </div>
           
-          <motion.h1 
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="text-3xl md:text-5xl font-bold tracking-tight"
-          >
-            Review Order
-          </motion.h1>
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight animate-fade-in-up">
+            Review Your Order
+          </h1>
           <p className="text-indigo-100 text-lg max-w-xl mx-auto font-light">
-            Verify your payment plan and banking details before final authorization.
+            Please verify all details before proceeding to payment
           </p>
+
+          {/* Plan Badge */}
+          {planName && (
+            <div className="inline-flex items-center gap-3 bg-white/15 backdrop-blur-sm px-6 py-3 rounded-2xl mt-4 animate-fade-in-up">
+              <span className="text-2xl">🛡️</span>
+              <div className="text-left">
+                <p className="text-xs text-indigo-200">Selected Plan</p>
+                <p className="font-bold text-lg">{planName}</p>
+              </div>
+              {coverageAmount && (
+                <div className="ml-4 pl-4 border-l border-white/30">
+                  <p className="text-xs text-indigo-200">Coverage</p>
+                  <p className="font-bold">{coverageAmount}</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Main Content */}
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w-4xl mx-auto px-4 -mt-16 relative z-10 space-y-6"
-      >
-        
-        {/* Summary Card */}
-        <motion.div variants={itemVariants} className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-          <div className="p-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+      <div className="max-w-3xl mx-auto px-4 -mt-16 relative z-10 space-y-6 animate-slide-up">
+
+        {/* Order Summary Card */}
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="h-1.5 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
           <div className="p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <span className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
-                <CalendarClock size={24} />
+            <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+              <span className="bg-indigo-100 p-2.5 rounded-xl text-2xl">
+                💰
               </span>
-              Subscription Details
+              Order Summary
             </h2>
 
-            <div className="grid md:grid-cols-2 gap-8">
+            {/* Price Breakdown */}
+            <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
               
-              {/* Payment Frequency Column */}
-              <div className="space-y-4">
-                <div className="bg-indigo-50 p-5 rounded-2xl border border-indigo-100">
-                  <span className="text-sm font-semibold text-indigo-500 uppercase tracking-wider">Payment Schedule</span>
-                  <div className="mt-3 flex items-center justify-between">
-                    <span className="text-xl font-bold text-indigo-900">{paymentFrequency}</span>
-                    <CreditCard className="text-indigo-500" />
-                  </div>
-                  
-                  {pricingDetails.discountAmount > 0 && (
-                    <div className="mt-3 bg-white p-2 rounded-lg flex items-center gap-2 border border-indigo-100 shadow-sm">
-                      <Percent size={14} className="text-green-600" />
-                      <span className="text-xs font-bold text-green-700">
-                        {pricingDetails.discountPercent}% Discount Applied
-                      </span>
-                    </div>
+              {/* Plan Name */}
+              <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                <div>
+                  <p className="font-semibold text-gray-800">{planName}</p>
+                  {coverageAmount && (
+                    <p className="text-sm text-gray-500">Coverage: {coverageAmount}</p>
                   )}
                 </div>
+                <span className="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full font-medium">
+                  {frequencyLabel} Plan
+                </span>
               </div>
 
-              {/* Bank Details Column */}
-              <div className="space-y-4">
-                <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 hover:border-indigo-200 transition-colors space-y-4">
-                  <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Debit From</span>
-                  
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white rounded-full shadow-xs shrink-0">
-                      <User size={18} className="text-gray-600" />
-                    </div>
-                    <div className="overflow-hidden">
-                      <p className="text-xs text-gray-400">Account Holder</p>
-                      <p className="font-semibold text-gray-800 truncate">{accountHolder}</p>
-                    </div>
-                  </div>
+              {/* Base Premium */}
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600">Base Annual Premium</span>
+                <span className="font-semibold text-gray-800 text-lg">
+                  ₹{basePremium.toLocaleString('en-IN')}
+                </span>
+              </div>
 
-                  <div className="flex items-center gap-3 border-t border-gray-200 pt-3">
-                    <div className="p-2 bg-white rounded-full shadow-xs shrink-0">
-                      <Building2 size={18} className="text-gray-600" />
-                    </div>
-                    <div className="overflow-hidden">
-                      <p className="text-xs text-gray-400">Bank Name</p>
-                      <p className="font-semibold text-gray-800 truncate">{bankName}</p>
-                    </div>
-                  </div>
+              {/* Discount (if applicable) */}
+              {discountAmount > 0 && (
+                <div className="flex justify-between items-center py-2 text-green-600 bg-green-50 -mx-2 px-4 rounded-lg">
+                  <span className="flex items-center gap-2">
+                    <span>🏷️</span>
+                    {frequencyLabel} Discount ({discountRate}%)
+                  </span>
+                  <span className="font-semibold">- ₹{discountAmount.toLocaleString('en-IN')}</span>
                 </div>
+              )}
+
+              {/* Discounted Annual Total */}
+              <div className="flex justify-between items-center py-2">
+                <span className="text-gray-600">Annual Premium (After Discount)</span>
+                <span className="font-bold text-gray-800">₹{discountedTotal.toLocaleString('en-IN')}</span>
+              </div>
+
+              {/* Per Payment Amount (for installments) */}
+              {paymentsPerYear > 1 && (
+                <div className="flex justify-between items-center py-3 bg-indigo-50 -mx-2 px-4 rounded-lg">
+                  <div>
+                    <span className="text-indigo-800 font-medium">Per {paymentLabel.charAt(0).toUpperCase() + paymentLabel.slice(1)}</span>
+                    <p className="text-xs text-indigo-600">{paymentsPerYear} payments total</p>
+                  </div>
+                  <span className="font-bold text-indigo-700 text-xl">₹{perPaymentAmount.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+
+              {/* GST */}
+              <div className="flex justify-between items-center py-2 text-gray-500 text-sm border-t border-dashed border-gray-300">
+                <span>GST (Included)</span>
+                <span>₹0</span>
               </div>
             </div>
-            
-            {/* Calculation Breakdown Section */}
-            <div className="mt-8 pt-6 border-t border-dashed border-gray-200">
-              <div className="flex flex-col gap-2 mb-4">
-                <div className="flex justify-between text-sm text-gray-500">
-                  <span>Total Premium</span>
-                  <span>₹ {pricingDetails.originalAmount.toLocaleString('en-IN')}</span>
-                </div>
-                
-                {pricingDetails.discountAmount > 0 && (
-                  <div className="flex justify-between text-sm text-green-600 font-medium">
-                    <span>Frequency Discount ({paymentFrequency})</span>
-                    <span>- ₹ {pricingDetails.discountAmount.toLocaleString('en-IN')}</span>
-                  </div>
-                )}
-                
-                <div className="flex justify-between text-sm text-gray-500">
-                  <span>Taxes (Included)</span>
-                  <span>₹ 0</span>
-                </div>
-              </div>
 
-              <div className="flex justify-between items-end bg-slate-900 text-white p-6 rounded-2xl shadow-lg">
+            {/* Amount Due Today - Prominent Display */}
+            <div className="mt-6 bg-linear-to-br from-slate-800 via-slate-900 to-slate-800 p-6 rounded-2xl shadow-xl">
+              <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Amount Due Today</p>
-                  <p className="text-[10px] text-slate-500 italic mt-1">First Installment</p>
+                  <p className="text-slate-400 text-sm font-bold uppercase tracking-wider">Amount Due Today</p>
+                  <p className="text-slate-500 text-xs mt-1">
+                    {paymentsPerYear === 1 ? 'Full Annual Payment' : `First ${paymentLabel}ly installment`}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <div className="text-3xl font-black text-white flex items-center gap-1">
-                    ₹ {pricingDetails.installmentAmount.toLocaleString('en-IN')}
-                    <span className="text-lg font-medium text-slate-400">{pricingDetails.label}</span>
-                  </div>
-                  {pricingDetails.discountAmount > 0 && (
-                    <p className="text-xs text-green-400 font-bold mt-1">
-                      You saved ₹ {pricingDetails.discountAmount.toLocaleString('en-IN')}!
-                    </p>
+                  <p className="text-4xl font-black text-white">
+                    ₹{perPaymentAmount.toLocaleString('en-IN')}
+                  </p>
+                  {paymentsPerYear > 1 && (
+                    <p className="text-sm text-slate-400 mt-1">/ {paymentLabel}</p>
                   )}
                 </div>
               </div>
+              
+              {discountAmount > 0 && (
+                <div className="mt-4 pt-4 border-t border-slate-700 flex items-center justify-center gap-2">
+                  <span>✅</span>
+                  <span className="text-green-400 text-sm font-semibold">
+                    You're saving ₹{discountAmount.toLocaleString('en-IN')} annually!
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-        </motion.div>
+        </div>
+
+        {/* Warning/Notice */}
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-4">
+          <span className="text-2xl shrink-0">⚠️</span>
+          <div>
+            <p className="font-semibold text-amber-800">Before you proceed</p>
+            <p className="text-sm text-amber-700 mt-1">
+              By clicking "Confirm & Pay", you agree to our Terms of Service and authorize the payment. 
+              Your coverage will begin immediately after successful payment.
+            </p>
+          </div>
+        </div>
 
         {/* Action Buttons */}
-        <motion.div variants={itemVariants} className="grid md:grid-cols-2 gap-4 pt-4">
+        <div className="grid md:grid-cols-2 gap-4 pt-4">
           <button
             onClick={() => navigate('/bankinfo', { state: planData })}
-            className="group flex items-center justify-center gap-2 py-4 px-6 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm hover:shadow-md"
+            className="group flex items-center justify-center gap-3 py-5 px-6 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-50 hover:text-indigo-600 hover:border-indigo-300 transition-all shadow-sm hover:shadow-lg"
           >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            Go Back
+            <span className="group-hover:-translate-x-1 transition-transform">⬅️</span>
+            Go Back & Edit
           </button>
 
           <button
-            onClick={() => navigate('/payment', { state: { ...planData, finalPayableAmount: pricingDetails.installmentAmount } })}
-            className="group relative flex items-center justify-center gap-2 py-4 px-6 bg-indigo-600 text-white rounded-xl font-bold overflow-hidden shadow-lg shadow-indigo-500/30 transition-all hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => {
+              const paymentData = { 
+                ...planData, 
+                finalPayableAmount: perPaymentAmount,
+                paymentDetails: {
+                  ...planData.paymentDetails,
+                  basePremium,
+                  discountRate,
+                  discountAmount,
+                  discountedTotal,
+                  perPaymentAmount,
+                  paymentsPerYear,
+                  paymentLabel,
+                  frequencyLabel
+                }
+              };
+              // Store in sessionStorage as backup
+              sessionStorage.setItem('paymentData', JSON.stringify(paymentData));
+              navigate('/payment', { state: paymentData });
+            }}
+            className="group relative flex items-center justify-center gap-3 py-5 px-6 bg-linear-to-r from-indigo-600 via-indigo-600 to-purple-600 text-white rounded-2xl font-bold text-lg overflow-hidden shadow-xl shadow-indigo-500/30 transition-all hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-[0.98]"
           >
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
-            <span>Confirm & Pay</span>
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <div className="absolute inset-0 w-full h-full bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
+            <span>Confirm & Pay ₹{perPaymentAmount.toLocaleString('en-IN')}</span>
+            <span className="group-hover:translate-x-1 transition-transform">➡️</span>
           </button>
-        </motion.div>
+        </div>
 
-        {/* Security Note */}
-        <motion.p variants={itemVariants} className="text-center text-xs text-gray-400 mt-6 flex items-center justify-center gap-2">
-          <Wallet className="w-3 h-3" />
-          Payments are secure and encrypted via Razorpay/Stripe.
-        </motion.p>
-      </motion.div>
+        {/* Security Footer */}
+        <div className="text-center py-6 space-y-2">
+          <div className="flex items-center justify-center gap-4 text-gray-400">
+            <div className="flex items-center gap-1">
+              <span>🔒</span>
+              <span className="text-xs">SSL Secured</span>
+            </div>
+            <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+            <div className="flex items-center gap-1">
+              <span>✅</span>
+              <span className="text-xs">IRDAI Approved</span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400">
+            © 2026 Bharat Suraksha Insurance. All rights reserved.
+          </p>
+        </div>
+      </div>
       
       {/* Tailwind Custom Animation for Button Shimmer */}
       <style>{`
@@ -267,6 +417,10 @@ const OrderSummaryPage = () => {
         .animate-shimmer {
           animation: shimmer 1.5s infinite;
         }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+        @keyframes slide-up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-up { animation: slide-up 0.7s ease-out forwards; }
       `}</style>
     </div>
   );

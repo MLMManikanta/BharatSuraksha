@@ -1,6 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  VAJRA_FEATURE_COSTS_BASE,
+  VAJRA_RIDER_COSTS_BASE,
+  VAJRA_CHRONIC_COSTS_BASE,
+  VAJRA_AGE_MULTIPLIERS,
+  getVajraCoverageKey,
+  getVajraFeatureCost,
+  getVajraRiderCost,
+  getVajraChronicCost,
+  VAJRA_FEATURE_LABELS,
+  VAJRA_RIDER_LABELS
+} from '../../../../utils/vajraPremiumCalculator';
 
-const CustomizeHealthPage = ({ initialData, onProceed }) => {
+const CustomizeHealthPage = ({ initialData, onProceed, onChange }) => {
   const sumInsuredSteps = [
     { label: "10L", value: 1000000 },
     { label: "15L", value: 1500000 },
@@ -20,11 +32,13 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
   const defaultFeatures = [
     { id: 'global', label: 'Global Coverage', icon: '🌍', active: true },
     { id: 'claim_100', label: '100% Claim Coverage', icon: '💯', active: true, isLocked: true },
+     { id: 'AnyRoom', label: 'Any Room', icon: '🛏️', active: true, isLocked: true },
     { id: 'maternity_global', label: 'Maternity Cover', icon: '🤰', active: true },
     { id: 'non_deduct', label: 'Non-Deductible Items', icon: '📄', active: true },
     { id: 'health_check', label: 'Free Health Checkup', icon: '🩺', active: true },
-    { id: 'secure', label: 'Secure Benefit', icon: '🛡️', active: true },
+    { id: 'NCB', label: 'No Claim Bonus (10%)', icon: '📈', active: true },
     { id: 'restore', label: 'Auto Restore Benefit', icon: '🔄', active: true },
+     { id: 'ambulance', label: 'Ambulance Charges', icon: '🚑', active: true },
     { id: 'air_amb', label: 'Emergency Air Ambulance', icon: '🚁', active: false },
     { id: 'hosp_mandatory', label: 'Hospitalisation Cover', icon: '🏥', active: true, isLocked: true },
     { id: 'day_care', label: 'Day Care Procedures', icon: '💊', active: true },
@@ -74,6 +88,98 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
   const isBaseUnlimited = currentSI.value === 999999999;
   const isMaternityActive = features.find(f => f.id === 'maternity_global')?.active;
 
+  // Get member ages from initialData for premium calculations
+  const memberAges = initialData?.memberAges || {};
+  const allAges = Object.values(memberAges).flat().filter(a => a);
+  const eldestAge = allAges.length > 0 ? Math.max(...allAges.map(a => parseFloat(a) || 0)) : 30;
+  const coverageKey = getVajraCoverageKey(currentSI);
+
+  // Auto-enable/disable smart_agg rider based on tenure using useMemo
+  // This avoids the cascading render issue from setState in useEffect
+ const processedRiders = useMemo(() => {
+  // Ensure riders is always an array
+  if (!Array.isArray(riders)) return [];
+
+  return riders.map(r => {
+    if (r.id === 'smart_agg') {
+      // Disable smart_agg if tenure is 1
+      return {
+        ...r,
+        active: tenure > 1 ? r.active : false
+      };
+    }
+    return r;
+  });
+}, [riders, tenure]);
+
+
+  // Calculate estimated premium using VAJRA pricing model
+  const estimatedPremium = useMemo(() => {
+    let total = 0;
+    
+    // Base hospitalisation per member
+    const baseCost = allAges.length > 0
+      ? allAges.reduce((sum, age) => sum + getVajraFeatureCost('hosp_mandatory', coverageKey, age), 0)
+      : getVajraFeatureCost('hosp_mandatory', coverageKey, eldestAge);
+    total += baseCost;
+    
+    // Pre-hospitalization cost
+    const preHospKey = `pre_hosp_${preHosp}`;
+    total += getVajraFeatureCost(preHospKey, coverageKey, eldestAge);
+    
+    // Post-hospitalization cost
+    const postHospKey = `post_hosp_${postHosp}`;
+    total += getVajraFeatureCost(postHospKey, coverageKey, eldestAge);
+    
+    // Active features cost
+    features.forEach(f => {
+      if (f.active && f.id !== 'hosp_mandatory' && !f.id.startsWith('pre_hosp') && !f.id.startsWith('post_hosp')) {
+        total += getVajraFeatureCost(f.id, coverageKey, eldestAge);
+      }
+    });
+    
+    // Active riders cost (use processedRiders for correct smart_agg handling)
+    processedRiders.forEach(r => {
+      if (r.active) {
+        total += getVajraRiderCost(r.id, coverageKey, eldestAge, tenure);
+      }
+    });
+    
+    // Chronic conditions cost
+    if (chronicActive && selectedChronic.length > 0) {
+      selectedChronic.forEach(cond => {
+        total += getVajraChronicCost(cond, coverageKey, eldestAge);
+      });
+    }
+    
+    // Apply tenure discount
+    if (tenure === 2) total *= 0.95;
+    if (tenure === 3) total *= 0.90;
+    
+    return Math.round(total);
+  }, [tenure, preHosp, postHosp, features, processedRiders, chronicActive, selectedChronic, allAges, coverageKey, eldestAge]);
+
+  // Notify parent of changes for live PaymentSummary update
+  useEffect(() => {
+    if (onChange) {
+      onChange({
+        currentSI,
+        tenure,
+        preHosp,
+        postHosp,
+        features,
+        riders: {
+          features: features.filter(f => f.active),
+          selectedRiders: processedRiders.filter(r => r.active),
+          addons: processedRiders.filter(r => r.active),
+          chronicConditions: chronicActive ? selectedChronic : []
+        },
+        selectedChronic: chronicActive ? selectedChronic : [],
+        estimatedPremium
+      });
+    }
+  }, [onChange, currentSI, tenure, preHosp, postHosp, features, processedRiders, chronicActive, selectedChronic, estimatedPremium]);
+
   const handleProceed = () => {
     const customConfig = {
       ...(initialData || {}),
@@ -82,7 +188,12 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
       preHosp,
       postHosp,
       features,
-      riders,
+      riders: {
+        features: features.filter(f => f.active),
+        selectedRiders: processedRiders.filter(r => r.active),
+        addons: processedRiders.filter(r => r.active),
+        chronicConditions: chronicActive ? selectedChronic : []
+      },
       selectedChronic: chronicActive ? selectedChronic : []
     };
     
@@ -90,10 +201,6 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
       onProceed(customConfig);
     }
   };
-
-  useEffect(() => {
-    setRiders(prev => prev.map(r => r.id === 'smart_agg' ? { ...r, active: tenure > 1 } : r));
-  }, [tenure]);
 
   const toggleFeature = (id) => setFeatures(prev => prev.map(f => {
     if (f.id === id) {
@@ -238,7 +345,7 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
               <span className="bg-teal-100 text-teal-700 p-1.5 rounded-lg">🚀</span> Premium Riders
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {riders.map(r => {
+              {processedRiders.map(r => {
                 if (r.id === 'maternity_boost' && !isMaternityActive) return null;
                 const isDisabled = (r.id === 'unlimited_care' && isBaseUnlimited) || (r.id === 'smart_agg' && (tenure === 1 || isBaseUnlimited)) || (r.id === 'inflation_shield' && isBaseUnlimited);
                 
@@ -328,11 +435,11 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
                 </div>
               </div>
 
-              {riders.some(r => r.active) && (
+              {processedRiders.some(r => r.active) && (
                 <div className="space-y-2">
                   <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Riders</h3>
                   <div className="space-y-1.5">
-                    {riders.filter(r => r.active).map(r => (
+                    {processedRiders.filter(r => r.active).map(r => (
                       <div key={r.id} className="flex items-center gap-2 text-[11px] text-teal-800 bg-teal-50 p-2 rounded-lg border border-teal-100">
                         <span>{r.icon}</span>
                         <span className="font-semibold">{r.label}</span>
@@ -341,6 +448,23 @@ const CustomizeHealthPage = ({ initialData, onProceed }) => {
                   </div>
                 </div>
               )}
+
+              {/* Estimated Premium Display */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-2xl border border-blue-100">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">Estimated Premium</span>
+                  {tenure > 1 && (
+                    <span className="text-[9px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                      {tenure === 2 ? '5%' : '10%'} OFF
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-black text-blue-700">₹{estimatedPremium.toLocaleString('en-IN')}</span>
+                  <span className="text-[10px] text-gray-500 font-medium">/year</span>
+                </div>
+                <p className="text-[9px] text-gray-400 mt-1">*Excl. GST • Final premium in checkout</p>
+              </div>
             </div>
 
             <button 

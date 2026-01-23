@@ -30,6 +30,7 @@ import HospitalList from "./components/pages/Utilities/HospitalList";
 import JustificationLetter from "./components/pages/Utilities/JustificationLetter";
 import ClaimInstructions from "./components/pages/Utilities/ClaimInstructions";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import PurchaseProtectedRoute from "./components/common/PurchaseProtectedRoute";
 
 function App() {
   return (
@@ -48,30 +49,66 @@ function App() {
         <Route path="/plan-details" element={ <Layout> <PlanDetails /> </Layout> } />
 
         {/* Step 2: Choose the Base Plan (Neev, Parivar, Varishtha, Vishwa, Vajra) */}
-        <Route path="/select-plan" element={ <Layout> <PlanPreExistingSelection /> </Layout> } />
+        <Route path="/select-plan" element={
+          <PurchaseProtectedRoute>
+            <Layout> <PlanPreExistingSelection /> </Layout>
+          </PurchaseProtectedRoute>
+        } />
 
         {/* Step 3: Customize (The Vajra Builder interface) */}
-        <Route path="/customize" element={ <Layout> <CustomizeHealthPage /> </Layout> } />
+        <Route path="/customize" element={
+          <PurchaseProtectedRoute>
+            <Layout> <CustomizeHealthPage /> </Layout>
+          </PurchaseProtectedRoute>
+        } />
 
         {/* Step 4: Final Review (Summary and Payment Breakdown) */}
-        <Route path="/plan-review" element={ <Layout> <PlanReviewPage /> </Layout> } />
+        <Route path="/plan-review" element={
+          <PurchaseProtectedRoute>
+            <Layout> <PlanReviewPage /> </Layout>
+          </PurchaseProtectedRoute>
+        } />
 
         {/* Step 5: KYC (Know Your Customer) */}
-        <Route path="/kyc" element={ <Layout> <KYCPage /> </Layout> } />
+        <Route path="/kyc" element={
+          <PurchaseProtectedRoute>
+            <Layout> <KYCPage /> </Layout>
+          </PurchaseProtectedRoute>
+        } />
 
         {/* Step 6: Medical Information */}
-        <Route path="/medical" element={ <Layout> <MedicalInformationPage /> </Layout> } />
+        <Route path="/medical" element={
+          <PurchaseProtectedRoute>
+            <Layout> <MedicalInformationPage /> </Layout>
+          </PurchaseProtectedRoute>
+        } />
 
         {/* Step 6: Pay & Bank Details (Merged) */}
-        <Route path="/bankinfo" element={ <Layout> <BankInformationPage /> </Layout> } />
+        <Route path="/bankinfo" element={
+          <PurchaseProtectedRoute>
+            <Layout> <BankInformationPage /> </Layout>
+          </PurchaseProtectedRoute>
+        } />
 
-        <Route path="/payment-frequency" element={ <Layout> <PaymentFrequencyPage /> </Layout> } />
+        <Route path="/payment-frequency" element={
+          <PurchaseProtectedRoute>
+            <Layout> <PaymentFrequencyPage /> </Layout>
+          </PurchaseProtectedRoute>
+        } />
 
         {/* Step 7: Order Summary */}
-        <Route path="/order-summary" element={ <Layout> <OrderSummaryPage /> </Layout> } />
+        <Route path="/order-summary" element={
+          <PurchaseProtectedRoute>
+            <Layout> <OrderSummaryPage /> </Layout>
+          </PurchaseProtectedRoute>
+        } />
 
         {/* Step 8: Payment */}
-        <Route path="/payment" element={ <Layout> <PaymentPage /> </Layout> } />
+        <Route path="/payment" element={
+          <PurchaseProtectedRoute>
+            <Layout> <PaymentPage /> </Layout>
+          </PurchaseProtectedRoute>
+        } />
         <Route path="/payment-success" element={ <Layout> <PaymentSuccessPage /> </Layout> } />
 
         {/* --- ADDITIONAL PAGES --- */}
@@ -92,6 +129,11 @@ function App() {
         } />
         <Route path="/claims/entitlement" element={<Navigate to="/claims/entitlement-dependents" replace />} />
         <Route path="/claims/raise-claim" element={
+          /* <ProtectedRoute> */
+            <Layout> <RaiseClaim /> </Layout>
+          /* </ProtectedRoute> */
+        } />
+        <Route path="/claims/raise-claim/:dependentId" element={
           /* <ProtectedRoute> */
             <Layout> <RaiseClaim /> </Layout>
           /* </ProtectedRoute> */

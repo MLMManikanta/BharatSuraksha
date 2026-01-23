@@ -1,69 +1,54 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../../utils/api";
-
-const sanitizePolicyNumber = (value) => String(value || "").toUpperCase().trim();
 
 function Register() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const storedPolicyNumber = useMemo(() => {
-    const fromState = location.state?.policyNumber;
-    const fromStorage = localStorage.getItem("latestPolicyNumber");
-    return sanitizePolicyNumber(fromState || fromStorage || "");
-  }, [location.state]);
-
   const [formData, setFormData] = useState({
-    policyNumber: storedPolicyNumber,
     email: "",
     mobileNumber: "",
     password: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  useEffect(() => {
-    if (storedPolicyNumber) {
-      setFormData((prev) => ({ ...prev, policyNumber: storedPolicyNumber }));
-    }
-  }, [storedPolicyNumber]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "policyNumber" ? sanitizePolicyNumber(value) : value,
+      [name]: value,
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
 
-    try {
-      const payload = {
-        policyNumber: formData.policyNumber,
-        email: formData.email.trim().toLowerCase(),
-        mobileNumber: formData.mobileNumber.trim(),
-        password: formData.password,
-      };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+  setSuccess("");
 
-      await api.post("/api/auth/register", payload);
+  try {
+    const payload = {
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password,
+      mobile: formData.mobileNumber.trim(),
+    };
 
-      setSuccess("Registration successful. Please login to continue.");
-      setTimeout(() => {
-        navigate("/login", { replace: true });
-      }, 1200);
-    } catch (err) {
-      setError(err.message || "Registration failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const res = await api.post("/register", payload);
+
+    setSuccess("Registration successful.");
+  } catch (err) {
+    console.error("REGISTER ERROR:", err.response?.data || err.message);
+    setError(err.response?.data?.error || "Registration failed");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-[#E8F1FF] via-[#F0F6FF] to-[#E8F1FF] font-sans">
@@ -99,7 +84,7 @@ function Register() {
 
             <div className="mb-8">
               <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">Create your account ✅</h2>
-              <p className="text-slate-500 text-sm">Use your issued policy number to register.</p>
+              <p className="text-slate-500 text-sm">Create an account to continue with your policy journey.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -111,23 +96,19 @@ function Register() {
               {success && (
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                   {success}
+                  <div className="mt-2 flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/login', { state: { from: location.state?.from || '/plans' } })}
+                      className="px-3 py-1 bg-white border border-slate-200 text-slate-800 rounded-xl text-sm font-bold"
+                    >
+                      Proceed to Login
+                    </button>
+                  </div>
                 </div>
               )}
 
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Policy Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="policyNumber"
-                  value={formData.policyNumber}
-                  onChange={handleChange}
-                  placeholder="BS-PLAN-2026-1234"
-                  className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
-                  required
-                />
-              </div>
+              {/* Policy Number removed from registration so users can create an account without one */}
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -169,6 +150,7 @@ function Register() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Create a strong password"
+                  autoComplete="new-password"
                   className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                   required
                 />
@@ -196,6 +178,7 @@ function Register() {
               <p className="text-sm text-slate-500 mb-2">Already registered?</p>
               <Link
                 to="/login"
+                state={{ from: location.state?.from || '/plans' }}
                 className="inline-flex items-center gap-2 text-blue-600 font-black text-lg hover:text-blue-800 transition-colors group"
               >
                 Login <span className="group-hover:translate-x-1 transition-transform">→</span>
