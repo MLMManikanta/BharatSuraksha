@@ -106,6 +106,29 @@ app.post("/api/kyc", async (req, res) => {
   }
 });
 
+/* -------------------- MEDICAL INFO -------------------- */
+// Flexible schema for medical information submissions
+const medicalSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
+const Medical = mongoose.models.Medical || mongoose.model("Medical", medicalSchema);
+
+// Save incoming medical JSON to DB
+app.post("/api/medical", async (req, res) => {
+  try {
+    const payload = req.body;
+    if (!payload || Object.keys(payload).length === 0) {
+      return res.status(400).json({ error: "Empty payload" });
+    }
+
+    const saved = await Medical.create(payload);
+
+    // Return the shape expected by the frontend: { success: true, data: { medicalInfoId } }
+    res.status(200).json({ success: true, data: { medicalInfoId: saved._id } });
+  } catch (err) {
+    console.error("MEDICAL SAVE ERROR:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 /* -------------------- REGISTER -------------------- */
 app.post("/register", async (req, res) => {
   try {
