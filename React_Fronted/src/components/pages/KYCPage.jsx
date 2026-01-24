@@ -3,6 +3,16 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
 import { submitKYC } from '../../utils/api';
 
+// --- Constants & Options Data ---
+const STATES_INDIA = [
+  "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar",
+  "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa",
+  "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka",
+  "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
+  "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+].sort();
+
 const KYCPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -328,7 +338,7 @@ const KYCPage = () => {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField label="Full Name" value={proposerData.fullName} onChange={(val) => handleProposerChange('fullName', val)} error={formErrors.proposerName} placeholder="As per PAN Card" />
+            <InputField label="Full Name" value={proposerData.fullName} onChange={(val) => handleProposerChange('fullName', val)} error={formErrors.proposerName} placeholder="Enter the full name as per PAN card" />
             
             <CustomDatePicker label="Date of Birth" value={proposerData.dateOfBirth} onChange={(val) => handleProposerChange('dateOfBirth', val)} error={formErrors.proposerDOB} max={new Date().toISOString().split('T')[0]} />
             
@@ -442,7 +452,7 @@ const KYCPage = () => {
               <InputField label="Street / Area" value={addressData.street} onChange={(val) => handleAddressChange('street', val)} error={formErrors.street} />
             </div>
             <InputField label="City" value={addressData.city} onChange={(val) => handleAddressChange('city', val)} error={formErrors.city} />
-            <CustomSelect label="State" value={addressData.state} onChange={(val) => handleAddressChange('state', val)} error={formErrors.state} options={['Maharashtra', 'Karnataka', 'Tamil Nadu', 'Delhi', 'Uttar Pradesh', 'Rajasthan', 'Gujarat', 'West Bengal', 'Telangana', 'Andhra Pradesh']} />
+            <CustomSelect label="State" value={addressData.state} onChange={(val) => handleAddressChange('state', val)} error={formErrors.state} options={STATES_INDIA} />
             <InputField label="Pincode" value={addressData.pincode} onChange={(val) => handleAddressChange('pincode', val)} error={formErrors.pincode} maxLength={6} />
           </div>
         </div>
@@ -677,26 +687,25 @@ const CustomDatePicker = ({ label, value, onChange, error, placeholder = 'DD MMM
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 animate-fade-in-up left-0 overflow-hidden">
+        <div className="absolute z-50 mt-2 w-auto bg-white rounded-xl shadow-2xl border border-slate-200 p-4 animate-fade-in-up left-0 overflow-hidden">
           <div className="flex justify-between items-center mb-4 gap-2">
             <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
-              className="px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
+              className="h-10 w-12 flex items-center justify-center rounded-md text-blue-600 bg-white hover:bg-blue-50 active:bg-blue-100 transition-colors duration-150"
               aria-label="Previous month"
-            >&lsaquo;</button>
+            ><span className="text-2xl leading-none">⬅️</span></button>
 
-            <div className="flex-1 flex gap-2">
-              <div className="flex-1">
+            <div className="flex gap-2 items-center">
+              <div className="w-48">
                 <CustomSelect value={months[viewDate.getMonth()]} options={months} onChange={(m) => changeMonthDropdown(months.indexOf(m))} />
               </div>
               <div className="w-28">
                 <CustomSelect value={String(viewDate.getFullYear())} options={years.map(y => String(y))} onChange={(y) => changeYear(y)} />
               </div>
             </div>
-
             <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
-              className="px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
+              className="h-10 w-12 flex items-center justify-center rounded-md text-blue-600 bg-white hover:bg-blue-50 active:bg-blue-100 transition-colors duration-150"
               aria-label="Next month"
-            >&rsaquo;</button>
+            ><span className="text-2xl leading-none">➡️</span></button>
           </div>
           <div className="grid grid-cols-7 text-center mb-2">
             {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <span key={d} className="text-[10px] font-bold text-slate-400 uppercase">{d}</span>)}
