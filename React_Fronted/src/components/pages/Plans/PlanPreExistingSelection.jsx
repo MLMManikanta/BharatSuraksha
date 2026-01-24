@@ -394,44 +394,12 @@ const PlanPreExistingSelection = () => {
           {/* Loading */}
           <div
             aria-hidden={!isPlansLoading}
-            className={`absolute inset-0 transition-opacity transition-transform duration-300 ease-out flex items-center justify-center ${isPlansLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+            className={`absolute inset-0 transition-opacity transition-transform duration-300 ease-out flex items-start justify-center pt-8 ${isPlansLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
           >
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative w-16 h-16">
-                <div className="spinner-center absolute inset-0 flex items-center justify-center">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-                </div>
-                <div className="spinner-ring absolute inset-0">
-                  <div className="ring-dot dot-1" />
-                  <div className="ring-dot dot-2" />
-                  <div className="ring-dot dot-3" />
-                  <div className="ring-dot dot-4" />
-                  <div className="ring-dot dot-5" />
-                  <div className="ring-dot dot-6" />
-                  <div className="ring-dot dot-7" />
-                  <div className="ring-dot dot-8" />
-                </div>
-              </div>
+            <div className="flex flex-col items-center gap-4 -translate-y-6">
+              <div className="w-14 h-14 rounded-full border-4 border-gray-200 border-t-[#1A5EDB] animate-spin" />
               <div className="text-sm font-medium text-slate-600">Loading plans...</div>
             </div>
-
-            <style>{`
-              .spinner-ring { position: relative; width: 100%; height: 100%; transform-origin: center; animation: spin-rotate 900ms linear infinite; }
-              .ring-dot { position: absolute; width: 10%; height: 10%; background: transparent; }
-              .ring-dot::before { content: ''; display: block; width: 8px; height: 8px; background: #2563eb; border-radius: 50%; transform-origin: center; }
-              .ring-dot.dot-1 { left: 50%; top: 4%; transform: translate(-50%, 0); }
-              .ring-dot.dot-2 { right: 4%; top: 18%; }
-              .ring-dot.dot-3 { right: 4%; bottom: 18%; }
-              .ring-dot.dot-4 { left: 50%; bottom: 4%; transform: translate(-50%, 0); }
-              .ring-dot.dot-5 { left: 4%; bottom: 18%; }
-              .ring-dot.dot-6 { left: 4%; top: 18%; }
-              .ring-dot.dot-7 { left: 26%; top: 6%; }
-              .ring-dot.dot-8 { right: 26%; bottom: 6%; }
-
-              @keyframes spin-rotate { to { transform: rotate(360deg); } }
-              @keyframes pulse-scale { 0% { transform: scale(1); opacity: 1 } 50% { transform: scale(0.6); opacity: 0.5 } 100% { transform: scale(1); opacity: 1 } }
-              .spinner-center > div { animation: pulse-scale 900ms ease-in-out infinite; }
-            `}</style>
           </div>
         </div>
       </div>
