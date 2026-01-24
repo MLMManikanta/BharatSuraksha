@@ -542,6 +542,11 @@ const CustomSelect = ({ label, value, onChange, error, options, placeholder = "S
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
+  const handleSelect = (val) => {
+    if (onChange) onChange(val);
+    setIsOpen(false);
+  };
+
   useEffect(() => {
     const handleClickOutside = (e) => { 
       if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); 
@@ -579,7 +584,7 @@ const CustomSelect = ({ label, value, onChange, error, options, placeholder = "S
                           handleSelect(optValue);
                         }
                       }}
-                      className="text-[18px] cursor-pointer px-3 py-2 hover:bg-blue-800 hover:text-white focus:bg-blue-800 focus:text-white focus:outline-none hover:rounded-lg focus:rounded-lg"
+                      className="text-sm cursor-pointer px-3 py-2 hover:bg-slate-100 focus:bg-blue-50 focus:text-blue-700 focus:outline-none"
                     >
                       {optLabel}
                     </li>
@@ -674,12 +679,24 @@ const CustomDatePicker = ({ label, value, onChange, error, placeholder = 'DD MMM
       {isOpen && (
         <div className="absolute z-50 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 animate-fade-in-up left-0 md:left-auto">
           <div className="flex justify-between items-center mb-4 gap-2">
-             <div className="w-1/2">
-               <CustomSelect value={months[viewDate.getMonth()]} options={months} onChange={(m) => changeMonthDropdown(months.indexOf(m))} />
-             </div>
-             <div className="w-1/2">
-               <CustomSelect value={String(viewDate.getFullYear())} options={years.map(y => String(y))} onChange={(y) => changeYear(y)} />
-             </div>
+            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
+              className="px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
+              aria-label="Previous month"
+            >&lsaquo;</button>
+
+            <div className="flex-1 flex gap-2">
+              <div className="flex-1">
+                <CustomSelect value={months[viewDate.getMonth()]} options={months} onChange={(m) => changeMonthDropdown(months.indexOf(m))} />
+              </div>
+              <div className="w-28">
+                <CustomSelect value={String(viewDate.getFullYear())} options={years.map(y => String(y))} onChange={(y) => changeYear(y)} />
+              </div>
+            </div>
+
+            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
+              className="px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
+              aria-label="Next month"
+            >&rsaquo;</button>
           </div>
           <div className="grid grid-cols-7 text-center mb-2">
             {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <span key={d} className="text-[10px] font-bold text-slate-400 uppercase">{d}</span>)}
