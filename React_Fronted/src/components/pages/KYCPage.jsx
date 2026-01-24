@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useId } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
 import { submitKYC } from '../../utils/api';
@@ -77,7 +77,8 @@ const KYCPage = () => {
             calculatedAge: ageValue, 
             ageUnit: 'years',      
             ageInYears: ageValue,
-            originalAge: ageValue
+            originalAge: ageValue,
+            uniqueId: `${memberId}-${i}`
           });
         }
       });
@@ -365,46 +366,66 @@ const KYCPage = () => {
           </h2>
 
           <div className="space-y-6">
-            {membersData.map((member, idx) => (
-              <div key={idx} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 relative group hover:border-blue-300 transition-all">
-                <div className="absolute top-4 right-4 text-3xl opacity-10 group-hover:opacity-20 transition-opacity">
-                  {member.relationship === 'Self' ? '' : ''}
-                </div>
-                <h3 className="font-black text-slate-700 uppercase text-xs tracking-widest mb-4 border-b border-slate-200 pb-2">
-                  {member.memberId === 'self' ? 'Proposer (Self)' : `Member ${idx + 1}`}
-                </h3>
+  {membersData.map((member, idx) => (
+    <div key={member.uniqueId} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 relative">
+      <h3 className="font-black text-slate-700 uppercase text-xs tracking-widest mb-4 border-b border-slate-200 pb-2">
+        {member.memberId === 'self' ? 'Proposer (Self)' : `Member ${idx + 1}`}
+      </h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <InputField 
+           label="First Name" 
+           value={member.name} 
+           onChange={(v) => handleMemberChange(idx, 'name', v)} 
+           error={formErrors[`member_${idx}_name`]} 
+           placeholder="First Name" 
+        />
+        
+        {member.memberId !== 'self' && (
+          <InputField 
+             label="Last Name" 
+             value={member.lastName} 
+             onChange={(v) => handleMemberChange(idx, 'lastName', v)} 
+             placeholder="Last Name" 
+          />
+        )}
+        
+        <CustomDatePicker 
+          label="Date of Birth" 
+          value={member.dateOfBirth} 
+          onChange={(v) => handleMemberChange(idx, 'dateOfBirth', v)} 
+          error={formErrors[`member_${idx}_dob`]} 
+          placeholder="Select DOB"
+          max={new Date().toISOString().split("T")[0]}
+        />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InputField label="First Name" value={member.name} onChange={(val) => handleMemberChange(idx, 'name', val)} error={formErrors[`member_${idx}_name`]} />
-                  
-                  {member.memberId !== 'self' && (
-                    <InputField label="Last Name" value={member.lastName} onChange={(val) => handleMemberChange(idx, 'lastName', val)} />
-                  )}
-
-                  <CustomDatePicker label="Date of Birth" value={member.dateOfBirth} onChange={(val) => handleMemberChange(idx, 'dateOfBirth', val)} error={formErrors[`member_${idx}_dob`]} max={new Date().toISOString().split('T')[0]} />
-
-                  {/* Auto Calculated Age Display */}
-                  {member.calculatedAge !== null && (
-                    <div className="bg-white p-3 rounded-xl border border-slate-200">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Age Check</label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-slate-800">{member.calculatedAge} {member.ageUnit}</span>
-                        {member.calculatedAge != member.originalAge && member.originalAge !== null && (
-                          <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold">
-                            Changed (Was {member.originalAge})
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {member.memberId !== 'self' && (
-                    <CustomSelect label="Relationship" value={member.relationship} onChange={(val) => handleMemberChange(idx, 'relationship', val)} error={formErrors[`member_${idx}_rel`]} options={['Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Brother', 'Sister']} />
-                  )}
-                </div>
-              </div>
-            ))}
+        {member.calculatedAge !== null && (
+          <div className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+            <span className="text-sm font-bold text-slate-600 uppercase">Age</span>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-extrabold text-slate-800">{member.calculatedAge}</span>
+              <span className="text-sm font-semibold text-slate-600">{member.ageUnit}</span>
+              {Number(member.calculatedAge) !== Number(member.originalAge) && member.originalAge !== null && (
+                <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold">Changed</span>
+              )}
+            </div>
           </div>
+        )}
+
+        {member.memberId !== 'self' && (
+          <CustomSelect 
+             label="Relationship" 
+             value={member.relationship} 
+             onChange={(v) => handleMemberChange(idx, 'relationship', v)} 
+             error={formErrors[`member_${idx}_rel`]} 
+             options={RELATIONSHIP_OPTIONS} 
+             placeholder="Select Relationship" 
+          />
+        )}
+      </div>
+    </div>
+  ))}
+</div>
         </div>
 
         {/* 3. Address */}
@@ -498,21 +519,24 @@ const KYCPage = () => {
 
 // --- Reusable UI Components ---
 
-const InputField = ({ label, type = "text", value, onChange, error, placeholder, maxLength, disabled }) => (
-  <div className="space-y-1">
-    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{label}</label>
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
-      placeholder={placeholder}
-      maxLength={maxLength}
-      className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-slate-800 placeholder-slate-300 ${disabled ? 'bg-slate-100 text-slate-400' : error ? 'border-red-300 bg-red-50 focus:border-red-500' : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50'}`}
-    />
-    {error && <p className="text-red-500 text-[10px] font-bold mt-1 animate-pulse">{error}</p>}
-  </div>
-);
+const InputField = ({ label, type = "text", value, onChange, error, placeholder, maxLength, disabled, autoComplete, ...props }) => {
+  const uniqueId = useId();
+  return (
+    <div className="space-y-1">
+      <label htmlFor={uniqueId} className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">{label}</label>
+      <input
+        id={uniqueId} type={type} value={value} onChange={(e) => onChange(e.target.value)}
+        disabled={disabled} placeholder={placeholder} maxLength={maxLength} autoComplete={autoComplete}
+        className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-slate-900 placeholder-slate-400
+          ${disabled ? 'bg-slate-100 text-slate-500' : 
+            error ? 'border-red-600 bg-red-50 focus:border-red-600' : 
+            'border-slate-300 bg-slate-50 focus:bg-white focus:border-blue-600'}`}
+        {...props}
+      />
+      {error && <p className="text-red-600 text-xs font-bold mt-1">{error}</p>}
+    </div>
+  );
+};
 
 const CustomSelect = ({ label, value, onChange, error, options, placeholder = "Select..." }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -540,20 +564,35 @@ const CustomSelect = ({ label, value, onChange, error, options, placeholder = "S
 
       {isOpen && (
         <ul className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-auto py-1 animate-fade-in-up">
-          {options.map((opt) => (
-            <li key={opt} onClick={() => { onChange(opt); setIsOpen(false); }}
-              className={`px-4 py-2 cursor-pointer text-sm font-medium hover:bg-slate-100 
-                ${value === opt ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-700'}`}
-            >
-              {opt}
-            </li>
-          ))}
+                {options.map((op, i) => {
+                  const optValue = typeof op === 'string' ? op : op.value;
+                  const optLabel = typeof op === 'string' ? op : op.label;
+                  return (
+                    <li
+                      key={`${i}-${optValue}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleSelect(optValue)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleSelect(optValue);
+                        }
+                      }}
+                      className="text-sm cursor-pointer px-3 py-2 hover:bg-slate-100 focus:bg-blue-50 focus:text-blue-700 focus:outline-none"
+                    >
+                      {optLabel}
+                    </li>
+                  );
+                })}
         </ul>
       )}
       {error && <p className="text-red-600 text-xs font-bold mt-1">{error}</p>}
     </div>
   );
 };
+
+const RELATIONSHIP_OPTIONS = ['Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Brother', 'Sister'];
 
 const CustomDatePicker = ({ label, value, onChange, error, placeholder = 'DD MMM YYYY', max }) => {
   const [isOpen, setIsOpen] = useState(false);
