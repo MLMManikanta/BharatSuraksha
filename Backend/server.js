@@ -129,6 +129,47 @@ app.post("/api/medical", async (req, res) => {
   }
 });
 
+/* -------------------- BANK INFO -------------------- */
+// Flexible schema for bank information submissions
+const bankInfoSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
+const BankInfo = mongoose.models.BankInfo || mongoose.model("BankInfo", bankInfoSchema);
+
+// Save incoming bank info JSON to DB
+app.post("/api/bankinfo", async (req, res) => {
+  try {
+    const payload = req.body;
+    if (!payload || Object.keys(payload).length === 0) {
+      return res.status(400).json({ error: "Empty payload" });
+    }
+
+    const saved = await BankInfo.create(payload);
+
+    // Return the shape expected by the frontend
+    res.status(200).json({ success: true, data: { bankInfoId: saved._id } });
+  } catch (err) {
+    console.error("BANK INFO SAVE ERROR:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Also expose the legacy /api/bank route expected by frontend
+app.post('/api/bank', async (req, res) => {
+  try {
+    const payload = req.body;
+    if (!payload || Object.keys(payload).length === 0) {
+      return res.status(400).json({ error: 'Empty payload' });
+    }
+
+    const saved = await BankInfo.create(payload);
+
+    // Frontend expects `bankDetailsId` in data
+    res.status(200).json({ success: true, data: { bankDetailsId: saved._id } });
+  } catch (err) {
+    console.error('BANK SAVE ERROR:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 /* -------------------- REGISTER -------------------- */
 app.post("/register", async (req, res) => {
   try {
