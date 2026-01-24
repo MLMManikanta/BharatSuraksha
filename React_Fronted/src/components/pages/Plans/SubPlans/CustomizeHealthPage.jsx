@@ -112,14 +112,17 @@ const processedRiders = useMemo(() => {
 
 // Ensure smart_agg variant respects tenure changes (coerce/deselect invalid options)
 useEffect(() => {
-  setRiders(prev => prev.map(r => {
-    if (r.id !== 'smart_agg') return r;
-    // Disable entirely on tenure 1
-    if (tenure === 1) return { ...r, active: false, selectedVariant: r.selectedVariant === '3y' ? '2y' : r.selectedVariant };
-    // If tenure is 2 and variant was 3y, coerce to 2y
-    if (tenure === 2 && r.selectedVariant === '3y') return { ...r, selectedVariant: '2y' };
-    return r;
-  }));
+  setRiders(prev => {
+    const source = Array.isArray(prev) ? prev : (Array.isArray(initialData?.riders) ? initialData.riders : defaultRiders);
+    return source.map(r => {
+      if (r.id !== 'smart_agg') return r;
+      // Disable entirely on tenure 1
+      if (tenure === 1) return { ...r, active: false, selectedVariant: r.selectedVariant === '3y' ? '2y' : r.selectedVariant };
+      // If tenure is 2 and variant was 3y, coerce to 2y
+      if (tenure === 2 && r.selectedVariant === '3y') return { ...r, selectedVariant: '2y' };
+      return r;
+    });
+  });
 }, [tenure]);
 
 // PED reduction listbox options and presentational state
@@ -158,7 +161,10 @@ const handlePedKeyDown = (e) => {
   } else if (e.key === 'Enter' || e.key === ' ') {
     if (pedOpen && pedFocusIndex >= 0) {
       const val = opts[pedFocusIndex].value;
-      setRiders(prev => prev.map(x => x.id === 'ped_wait' ? { ...x, selectedVariant: val, active: val !== 'none' } : x));
+      setRiders(prev => {
+        const src = Array.isArray(prev) ? prev : (Array.isArray(initialData?.riders) ? initialData.riders : defaultRiders);
+        return src.map(x => x.id === 'ped_wait' ? { ...x, selectedVariant: val, active: val !== 'none' } : x);
+      });
       setPedOpen(false);
       setPedFocusIndex(-1);
     } else {
@@ -456,8 +462,14 @@ const handlePedKeyDown = (e) => {
                               </div>
                             </div>
                             <div className="mt-3 flex gap-2">
-                              <button onClick={() => setRiders(prev => prev.map(x => x.id === 'smart_agg' ? { ...x, selectedVariant: '2y', active: true } : x))} disabled={isDisabled || !r.active} className={`px-2 py-1 rounded-md text-xs ${r.selectedVariant === '2y' ? 'bg-blue-600 text-white' : 'bg-gray-50'}`}>2 Year</button>
-                              <button onClick={() => setRiders(prev => prev.map(x => x.id === 'smart_agg' ? { ...x, selectedVariant: '3y', active: true } : x))} disabled={isDisabled || !r.active || tenure === 2} className={`px-2 py-1 rounded-md text-xs ${r.selectedVariant === '3y' ? 'bg-blue-600 text-white' : 'bg-gray-50'} ${tenure === 2 ? 'opacity-50 cursor-not-allowed' : ''}`}>3 Year</button>
+                              <button onClick={() => setRiders(prev => {
+                                  const src = Array.isArray(prev) ? prev : (Array.isArray(initialData?.riders) ? initialData.riders : defaultRiders);
+                                  return src.map(x => x.id === 'smart_agg' ? { ...x, selectedVariant: '2y', active: true } : x);
+                                })} disabled={isDisabled || !r.active} className={`px-2 py-1 rounded-md text-xs ${r.selectedVariant === '2y' ? 'bg-blue-600 text-white' : 'bg-gray-50'}`}>2 Year</button>
+                              <button onClick={() => setRiders(prev => {
+                                  const src = Array.isArray(prev) ? prev : (Array.isArray(initialData?.riders) ? initialData.riders : defaultRiders);
+                                  return src.map(x => x.id === 'smart_agg' ? { ...x, selectedVariant: '3y', active: true } : x);
+                                })} disabled={isDisabled || !r.active || tenure === 2} className={`px-2 py-1 rounded-md text-xs ${r.selectedVariant === '3y' ? 'bg-blue-600 text-white' : 'bg-gray-50'} ${tenure === 2 ? 'opacity-50 cursor-not-allowed' : ''}`}>3 Year</button>
                             </div>
                           </div>
                         </div>
@@ -516,7 +528,10 @@ const handlePedKeyDown = (e) => {
                                         aria-selected={isSelected}
                                         onMouseEnter={() => setPedFocusIndex(idx)}
                                         onMouseLeave={() => setPedFocusIndex(-1)}
-                                        onClick={() => { setRiders(prev => prev.map(x => x.id === 'ped_wait' ? { ...x, selectedVariant: opt.value, active: opt.value !== 'none' } : x)); setPedOpen(false); setPedFocusIndex(-1); }}
+                                        onClick={() => { setRiders(prev => {
+                                            const src = Array.isArray(prev) ? prev : (Array.isArray(initialData?.riders) ? initialData.riders : defaultRiders);
+                                            return src.map(x => x.id === 'ped_wait' ? { ...x, selectedVariant: opt.value, active: opt.value !== 'none' } : x);
+                                          }); setPedOpen(false); setPedFocusIndex(-1); }}
                                         className={`flex items-center justify-between cursor-pointer px-3 py-2 text-sm transition-colors duration-150 ${isSelected ? 'bg-teal-50 text-teal-900 font-semibold' : 'text-gray-800 hover:bg-gray-50'} ${isFocused ? 'bg-gray-50' : ''}`}
                                       >
                                         <span className="truncate">{opt.label}</span>
