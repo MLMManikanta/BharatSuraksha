@@ -400,10 +400,10 @@ const KYCPage = () => {
         />
 
         {member.calculatedAge !== null && (
-          <div className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between">
-            <span className="text-sm font-bold text-slate-600 uppercase">Age</span>
+          <div className="bg-white p-3  w-50 rounded-xl border border-slate-200 flex items-center justify-between">
+            <span className="text-sm font-bold text-slate-600 uppercase">Age: </span>
             <div className="flex items-center gap-3">
-              <span className="text-2xl font-extrabold text-slate-800">{member.calculatedAge}</span>
+              <span className="text-xl font-bold text-slate-800">{member.calculatedAge}</span>
               <span className="text-sm font-semibold text-slate-600">{member.ageUnit}</span>
               {Number(member.calculatedAge) !== Number(member.originalAge) && member.originalAge !== null && (
                 <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold">Changed</span>
