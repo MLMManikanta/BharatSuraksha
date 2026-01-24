@@ -561,7 +561,7 @@ const CustomSelect = ({ label, value, onChange, error, options, placeholder = "S
       <button
         type="button" onClick={() => setIsOpen(!isOpen)}
         className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-left flex justify-between items-center
-          ${error ? 'border-red-600 bg-red-50' : isOpen ? 'border-blue-800 bg-blue-800 text-white' : 'border-slate-300 bg-slate-50 focus:border-blue-600 focus:bg-white'}`}
+          ${error ? 'border-red-600 bg-red-50' : isOpen ? 'border-blue-800  text-blue-700' : 'border-slate-300 bg-slate-50 focus:border-blue-600 focus:bg-white'}`}
       >
         <span className={!value ? 'text-slate-500' : 'text-slate-900'}>{value || placeholder}</span>
         <span className="text-slate-400 text-xs">▼</span>
