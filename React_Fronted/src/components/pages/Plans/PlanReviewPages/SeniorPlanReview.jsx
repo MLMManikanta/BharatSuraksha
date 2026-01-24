@@ -218,161 +218,216 @@ const SeniorPlanReview = ({ data, onChange }) => {
            </ul>
         </div>
 
-        {/* RIDER SECTION */}
-        <section aria-labelledby="riders-title" className="space-y-4">
-           <h2 id="riders-title" className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-              ✨ Available Riders
-           </h2>
-           
-           <div className="grid grid-cols-1 gap-4">
-              
-              {/* RIDER 0: CHRONIC CARE CONDITIONS */}
-              <div className={`flex flex-col gap-4 p-5 rounded-xl border transition-all ${selectedChronicConditions.length > 0 ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-100'}`}>
-                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-                    <div className="flex-1">
-                       <p className="text-sm font-bold text-gray-900 uppercase flex items-center gap-2">
-                          Chronic Care Conditions
-                          {selectedChronicConditions.length > 0 && (
-                            <span className="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">
-                              {selectedChronicConditions.length} Selected
-                            </span>
-                          )}
-                       </p>
-                       <p className="text-xs text-gray-500 mt-1">Cover chronic conditions from Day 31 (₹4,032 per condition)</p>
-                    </div>
-                    {selectedChronicConditions.length > 0 && (
-                      <span className="text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-lg">
-                        +₹{(selectedChronicConditions.length * VARISHTHA_RIDER_COSTS.chronicCare).toLocaleString('en-IN')}
-                      </span>
-                    )}
-                 </div>
-                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {CHRONIC_CONDITIONS.map(condition => (
-                      <button
-                        key={condition.id}
-                        onClick={() => toggleChronicCondition(condition.id)}
-                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                          selectedChronicConditions.includes(condition.id)
-                            ? 'bg-amber-600 text-white shadow-md'
-                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
-                        }`}
-                      >
-                        {condition.label}
-                      </button>
-                    ))}
-                 </div>
-              </div>
-              
-              {/* RIDER 1: PED COVER */}
-              <div className={`flex flex-col md:flex-row justify-between items-center gap-4 p-5 rounded-xl border transition-all ${pedCoverActive ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-100'}`}>
-                 <div className="flex-1 text-center md:text-left">
-                    <p className="text-sm font-bold text-gray-900 uppercase flex items-center gap-2 md:justify-start justify-center">
-                       PED Waiting Reduction
-                       {pedCoverActive && <span className="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Active</span>}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Reduce waiting for pre-existing diseases from 3 years to 1 year.</p>
-                 </div>
-                 <button onClick={() => setPedCoverActive(!pedCoverActive)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${pedCoverActive ? 'bg-amber-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>
-                    {pedCoverActive ? 'Remove' : `Add (+₹${VARISHTHA_RIDER_COSTS.pedReduction.toLocaleString('en-IN')})`}
-                 </button>
-              </div>
+    {/* RIDER SECTION */}
+<section aria-labelledby="riders-title" className="space-y-8 max-w-5xl mx-auto font-sans">
+  <div className="flex items-center gap-4">
+    <h2 id="riders-title" className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] whitespace-nowrap">
+      Available Riders
+    </h2>
+    <div className="h-px w-full bg-gray-200" aria-hidden="true"></div>
+  </div>
 
-              {/* RIDER 2: SPECIFIC ILLNESS */}
-              <div className={`flex flex-col md:flex-row justify-between items-center gap-4 p-5 rounded-xl border transition-all ${specificIllnessRider ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-100'}`}>
-                 <div className="flex-1 text-center md:text-left">
-                    <p className="text-sm font-bold text-gray-900 uppercase flex items-center gap-2 md:justify-start justify-center">
-                       Specific Illness Reduction
-                       {specificIllnessRider && <span className="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Active</span>}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Reduce waiting for Cataract/Joints from 2 years to 1 year.</p>
-                 </div>
-                 <button onClick={() => setSpecificIllnessRider(!specificIllnessRider)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${specificIllnessRider ? 'bg-amber-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>
-                    {specificIllnessRider ? 'Remove' : `Add (+₹${VARISHTHA_RIDER_COSTS.specificIllnessReduction.toLocaleString('en-IN')})`}
-                 </button>
-              </div>
+  <div className="grid grid-cols-1 gap-6">
+    
+    {/* 1. CHRONIC CARE CONDITIONS */}
+    <div className={`p-7 rounded-[2.5rem] border-2 transition-all duration-300 ${selectedChronicConditions.length > 0 ? 'bg-orange-50/30 border-[#ff7500]/30 shadow-sm' : 'bg-white border-gray-200'}`}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">Chronic Care Conditions</h3>
+            {selectedChronicConditions.length > 0 && (
+              <span className="text-[10px] bg-[#ff7500] text-white px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider" role="status">
+                {selectedChronicConditions.length} Active
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-gray-700 mt-1.5 font-medium leading-relaxed max-w-md">
+            Enable to cover pre-existing conditions like Diabetes or Hypertension from Day 31.
+          </p>
+        </div>
+        <button 
+          aria-pressed={selectedChronicConditions.length > 0}
+          onClick={() => selectedChronicConditions.length > 0 ? setSelectedChronicConditions([]) : setSelectedChronicConditions([CHRONIC_CONDITIONS[0].id])}
+          className={`min-h-[44px] px-6 py-2.5 rounded-full text-[11px] font-black transition-all outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+            selectedChronicConditions.length > 0 ? 'bg-red-50 text-red-700 border-2 border-red-100 hover:bg-red-100' : 'bg-[#ff7500] text-white shadow-lg shadow-orange-100 hover:brightness-110 active:scale-95'
+          }`}
+        >
+          {selectedChronicConditions.length > 0 ? 'REMOVE RIDER' : 'ENABLE RIDER'}
+        </button>
+      </div>
 
-              {/* RIDER 3: CO-PAY REDUCTION */}
-              <div className={`flex flex-col md:flex-row justify-between items-center gap-4 p-5 rounded-xl border transition-all ${copayLevel !== 'standard' ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-100'}`}>
-                 <div className="flex-1 text-center md:text-left">
-                    <p className="text-sm font-bold text-gray-900 uppercase flex items-center gap-2 md:justify-start justify-center">
-                       Co-pay Waiver
-                       {copayLevel !== 'standard' && <span className="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Active</span>}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Reduce standard 10% co-payment.</p>
-                 </div>
-                 <select 
-                   value={copayLevel} 
-                   onChange={(e) => setCopayLevel(e.target.value)}
-                   className="text-xs font-bold border border-amber-300 rounded-lg p-2 bg-white text-amber-900 focus:outline-none"
-                 >
-                   <option value="standard">Standard (10%)</option>
-                   <option value="5%">Reduce to 5% (+₹{VARISHTHA_RIDER_COSTS.copayWaiver['5%'].toLocaleString('en-IN')})</option>
-                   <option value="0%">Reduce to 0% (+₹{VARISHTHA_RIDER_COSTS.copayWaiver['0%'].toLocaleString('en-IN')})</option>
-                 </select>
-              </div>
+      {selectedChronicConditions.length > 0 && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div role="group" aria-label="Chronic condition selection" className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+            {CHRONIC_CONDITIONS.map(condition => {
+              const isSelected = selectedChronicConditions.includes(condition.id);
+              return (
+                <button
+                  key={condition.id}
+                  aria-pressed={isSelected}
+                  onClick={() => toggleChronicCondition(condition.id)}
+                  className={`min-h-[56px] px-4 py-3 rounded-2xl text-[11px] font-bold transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#ff7500] focus-visible:ring-offset-2 ${
+                    isSelected ? 'bg-[#ff7500] text-white shadow-md border-[#ff7500]' : 'bg-white text-gray-800 border-2 border-gray-100 hover:border-[#ff7500]/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-left leading-tight">{condition.label}</span>
+                    {isSelected && <span className="text-[14px] ml-2" aria-hidden="true">✓</span>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
 
-              {/* RIDER 4: CONSUMABLES */}
-              <div className={`flex flex-col md:flex-row justify-between items-center gap-4 p-5 rounded-xl border transition-all ${consumablesRider ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-100'}`}>
-                 <div className="flex-1 text-center md:text-left">
-                    <p className="text-sm font-bold text-gray-900 uppercase flex items-center gap-2 md:justify-start justify-center">
-                       Non-Medical Consumables
-                       {consumablesRider && <span className="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Active</span>}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Cover 60+ items like gloves/masks usually excluded.</p>
-                 </div>
-                 <button onClick={() => setConsumablesRider(!consumablesRider)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${consumablesRider ? 'bg-amber-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>
-                    {consumablesRider ? 'Remove' : `Add (+₹${VARISHTHA_RIDER_COSTS.consumables.toLocaleString('en-IN')})`}
-                 </button>
-              </div>
+    {/* 2. WAITING PERIOD REDUCTIONS */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {[
+        { active: pedCoverActive, setter: setPedCoverActive, title: 'PED Reduction', desc: '3 Years → 1 Year', cost: VARISHTHA_RIDER_COSTS.pedReduction },
+        { active: specificIllnessRider, setter: setSpecificIllnessRider, title: 'Specific Illness', desc: '2 Years → 1 Year', cost: VARISHTHA_RIDER_COSTS.specificIllnessReduction }
+      ].map((rider, idx) => (
+        <button 
+          key={idx}
+          aria-pressed={rider.active}
+          onClick={() => rider.setter(!rider.active)}
+          className={`group flex justify-between items-center p-6 rounded-[2.5rem] border-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+            rider.active ? 'bg-[#ff7500] border-[#e66a00] shadow-lg text-white' : 'bg-white border-gray-100 text-gray-900 hover:border-[#ff7500]/40'
+          }`}
+        >
+          <div className="text-left">
+            <p className="text-[11px] font-black uppercase tracking-wider opacity-90">{rider.title}</p>
+            <p className={`text-xs font-bold mt-1 ${rider.active ? 'text-orange-100' : 'text-gray-600'}`}>{rider.desc}</p>
+          </div>
+          <div className={`text-xs font-black px-4 py-2.5 rounded-xl transition-colors ${rider.active ? 'bg-white/20 text-white' : 'bg-orange-50 text-[#ff7500]'}`}>
+            {rider.active ? 'REMOVE' : `+₹${rider.cost.toLocaleString('en-IN')}`}
+          </div>
+        </button>
+      ))}
+    </div>
 
-              {/* RIDER 5: ROOM UPGRADE */}
-              <div className={`flex flex-col md:flex-row justify-between items-center gap-4 p-5 rounded-xl border transition-all ${roomRiderActive ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-100'}`}>
-                 <div className="flex-1 text-center md:text-left">
-                    <p className="text-sm font-bold text-gray-900 uppercase flex items-center gap-2 md:justify-start justify-center">
-                       Room Upgrade
-                       {roomRiderActive && <span className="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Active</span>}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Upgrade from Single Private Room.</p>
-                 </div>
-                 <div className="flex items-center gap-2">
-                   {roomRiderActive && (
-                     <select 
-                       value={selectedRoom} 
-                       onChange={(e) => setSelectedRoom(e.target.value)} 
-                       className="text-xs font-bold border rounded-lg p-2"
-                     >
-                       <option value="Single Private AC Room">Single Private AC (+₹{VARISHTHA_RIDER_COSTS.roomRent['Single Private AC Room']})</option>
-                       <option value="Deluxe Room">Deluxe Room (+₹{VARISHTHA_RIDER_COSTS.roomRent['Deluxe Room']})</option>
-                       <option value="Any Room">Any Room (+₹{VARISHTHA_RIDER_COSTS.roomRent['Any Room'].toLocaleString('en-IN')})</option>
-                     </select>
-                   )}
-                   <button onClick={() => setRoomRiderActive(!roomRiderActive)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${roomRiderActive ? 'bg-amber-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}>
-                     {roomRiderActive ? 'Remove' : 'Upgrade'}
-                   </button>
-                 </div>
-              </div>
+    {/* 3. CO-PAY WAIVER (Synced Pattern) */}
+    <div className={`p-7 rounded-[2.5rem] border-2 transition-all duration-300 ${copayLevel !== 'standard' ? 'bg-orange-50/30 border-[#ff7500]/30 shadow-sm' : 'bg-white border-gray-200'}`}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">Co-pay Waiver</h3>
+            {copayLevel !== 'standard' && (
+              <span className="text-[10px] bg-[#ff7500] text-white px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Active</span>
+            )}
+          </div>
+          <p className="text-xs text-gray-700 mt-1.5 font-medium leading-relaxed max-w-md">
+            Standard policy has a 10% co-pay. Enable this to reduce your share to 5% or 0%.
+          </p>
+        </div>
+        <button 
+          aria-pressed={copayLevel !== 'standard'}
+          onClick={() => copayLevel !== 'standard' ? setCopayLevel('standard') : setCopayLevel('5%')}
+          className={`min-h-[44px] px-6 py-2.5 rounded-full text-[11px] font-black transition-all outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+            copayLevel !== 'standard' ? 'bg-red-50 text-red-700 border-2 border-red-100 hover:bg-red-100' : 'bg-[#ff7500] text-white shadow-lg'
+          }`}
+        >
+          {copayLevel !== 'standard' ? 'REMOVE RIDER' : 'ENABLE RIDER'}
+        </button>
+      </div>
 
-              {/* RIDER 6: DEDUCTIBLE */}
-              <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-5 rounded-xl border bg-gray-50 border-gray-100">
-                 <div className="flex-1 text-center md:text-left">
-                    <p className="text-sm font-bold text-gray-900 uppercase">Voluntary Deductible</p>
-                    <p className="text-xs text-gray-500 mt-1">Choose a deductible to lower your premium.</p>
-                 </div>
-                 <select 
-                   value={selectedDeductible} 
-                   onChange={(e) => setSelectedDeductible(e.target.value)} 
-                   className="text-xs font-bold border border-gray-300 rounded-lg p-2 bg-white"
-                 >
-                   <option value="None">None</option>
-                   <option value="10k">₹10,000 (-₹{VARISHTHA_RIDER_COSTS.deductible['10k'].toLocaleString('en-IN')})</option>
-                   <option value="25k">₹25,000 (-₹{VARISHTHA_RIDER_COSTS.deductible['25k'].toLocaleString('en-IN')})</option>
-                   <option value="50k">₹50,000 (-₹{VARISHTHA_RIDER_COSTS.deductible['50k'].toLocaleString('en-IN')})</option>
-                   <option value="1L">₹1,00,000 (-₹{VARISHTHA_RIDER_COSTS.deductible['1L'].toLocaleString('en-IN')})</option>
-                 </select>
-              </div>
-           </div>
-        </section>
+      {copayLevel !== 'standard' && (
+        <div role="radiogroup" aria-label="Co-pay level" className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2">
+          {[
+            { id: '5%', label: '5% Reduced Co-pay', cost: VARISHTHA_RIDER_COSTS.copayWaiver['5%'] },
+            { id: '0%', label: '0% Nil Co-pay', cost: VARISHTHA_RIDER_COSTS.copayWaiver['0%'] }
+          ].map((opt) => (
+            <button
+              key={opt.id}
+              role="radio"
+              aria-checked={copayLevel === opt.id}
+              onClick={() => setCopayLevel(opt.id)}
+              className={`flex flex-col items-center justify-center min-h-[64px] p-4 rounded-2xl border-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-[#ff7500] focus-visible:ring-offset-2 ${
+                copayLevel === opt.id ? 'border-[#ff7500] bg-white shadow-md ring-1 ring-[#ff7500]' : 'border-transparent bg-white/60 text-gray-700 hover:border-orange-200'
+              }`}
+            >
+              <span className={`text-xs font-black ${copayLevel === opt.id ? 'text-[#ff7500]' : ''}`}>{opt.label}</span>
+              <span className="text-[10px] font-bold text-orange-600 mt-1.5">+₹{opt.cost.toLocaleString('en-IN')}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
 
+    {/* 4. ROOM CATEGORY UPGRADE */}
+    <div className={`p-7 rounded-[2.5rem] border-2 transition-all duration-300 ${roomRiderActive ? 'bg-orange-50/30 border-[#ff7500]/30 shadow-inner' : 'bg-white border-gray-200'}`}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">Room Category Upgrade</h3>
+          <p className="text-xs text-gray-700 mt-1.5 font-medium leading-relaxed">Upgrade your eligibility to higher room classes.</p>
+        </div>
+        <button 
+          aria-pressed={roomRiderActive}
+          onClick={() => setRoomRiderActive(!roomRiderActive)}
+          className={`min-h-[44px] px-6 py-2.5 rounded-full text-[11px] font-black transition-all outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+            roomRiderActive ? 'bg-red-50 text-red-700 border-2 border-red-200 hover:bg-red-100' : 'bg-[#ff7500] text-white shadow-lg'
+          }`}
+        >
+          {roomRiderActive ? 'REMOVE UPGRADE' : 'ENABLE UPGRADE'}
+        </button>
+      </div>
+
+      {roomRiderActive && (
+        <div role="radiogroup" aria-label="Select room type" className="grid grid-cols-1 md:grid-cols-3 gap-3 animate-in fade-in slide-in-from-top-2">
+          {Object.entries(VARISHTHA_RIDER_COSTS.roomRent).map(([room, cost]) => (
+            <button
+              key={room}
+              role="radio"
+              aria-checked={selectedRoom === room}
+              onClick={() => setSelectedRoom(room)}
+              className={`flex flex-col p-5 rounded-2xl border-2 transition-all text-center min-h-[80px] justify-center outline-none focus-visible:ring-2 focus-visible:ring-[#ff7500] focus-visible:ring-offset-2 ${
+                selectedRoom === room ? 'border-[#ff7500] bg-white ring-1 ring-[#ff7500]' : 'border-transparent bg-white/60 text-gray-700 hover:border-orange-200'
+              }`}
+            >
+              <span className="text-[11px] font-black leading-tight">{room}</span>
+              <span className="text-[10px] font-black text-[#ff7500] mt-2 tracking-tighter uppercase">+₹{cost.toLocaleString('en-IN')}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+
+    {/* 5. VOLUNTARY DEDUCTIBLE */}
+    <div className="p-8 rounded-[2.5rem] border-2 bg-gray-900 text-white shadow-2xl relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#ff7500]/10 blur-[60px] rounded-full"></div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 relative z-10">
+        <div>
+          <h3 className="text-sm font-black uppercase tracking-widest text-[#ff7500]">Voluntary Deductible</h3>
+          <p className="text-[11px] text-gray-300 mt-1.5 font-medium">Paying the first share yourself lowers your annual premium significantly.</p>
+        </div>
+        <div className="bg-green-500/10 text-green-400 text-[10px] font-black px-4 py-1.5 rounded-full border border-green-500/40 uppercase tracking-wider">Save Up to 35%</div>
+      </div>
+      <div role="radiogroup" aria-label="Deductible options" className="grid grid-cols-2 sm:grid-cols-5 gap-3 relative z-10">
+        {[
+          { id: 'None', label: '0', disc: 0 },
+          { id: '10k', label: '10k', disc: VARISHTHA_RIDER_COSTS.deductible['10k'] },
+          { id: '25k', label: '25k', disc: VARISHTHA_RIDER_COSTS.deductible['25k'] },
+          { id: '50k', label: '50k', disc: VARISHTHA_RIDER_COSTS.deductible['50k'] },
+          { id: '1L', label: '1L', disc: VARISHTHA_RIDER_COSTS.deductible['1L'] }
+        ].map((opt) => (
+          <button
+            key={opt.id}
+            role="radio"
+            aria-checked={selectedDeductible === opt.id}
+            onClick={() => setSelectedDeductible(opt.id)}
+            className={`min-h-[70px] py-4 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1.5 outline-none focus-visible:ring-2 focus-visible:ring-[#ff7500] focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
+              selectedDeductible === opt.id ? 'border-[#ff7500] bg-[#ff7500] text-white shadow-lg scale-105' : 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10'
+            }`}
+          >
+            <span className="text-xs font-black">{opt.label}</span>
+            {opt.disc > 0 && <span className={`text-[10px] font-bold ${selectedDeductible === opt.id ? 'text-orange-100' : 'text-green-400'}`}>-₹{opt.disc.toLocaleString('en-IN')}</span>}
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
         {/* EXCLUSIONS */}
         <section aria-labelledby="exclusions-heading">
            <h2 id="exclusions-heading" className="text-xs font-bold text-red-400 uppercase tracking-widest mb-4">❌ Standard Exclusions</h2>

@@ -1,6 +1,61 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
+import PlanSelect from '../common/PlanSelect';
+
+// List of supported banks used in dropdown
+const BANKS = [
+  "AU Small Finance Bank",
+  "Airtel Payments Bank",
+  "Axis Bank",
+  "Bandhan Bank",
+  "Bank of Baroda",
+  "Bank of India",
+  "Bank of Maharashtra",
+  "Canara Bank",
+  "Capital Small Finance Bank",
+  "Central Bank of India",
+  "City Union Bank",
+  "CSB Bank",
+  "DBS Bank India",
+  "DCB Bank",
+  "Dhanlaxmi Bank",
+  "ESAF Small Finance Bank",
+  "Equitas Small Finance Bank",
+  "Federal Bank",
+  "Fino Payments Bank",
+  "HDFC Bank",
+  "HSBC India",
+  "ICICI Bank",
+  "IDBI Bank",
+  "IDFC First Bank",
+  "India Post Payments Bank",
+  "Indian Bank",
+  "Indian Overseas Bank",
+  "IndusInd Bank",
+  "Jammu & Kashmir Bank",
+  "Jana Small Finance Bank",
+  "Karnataka Bank",
+  "Karur Vysya Bank",
+  "Kotak Mahindra Bank",
+  "Nainital Bank",
+  "North East Small Finance Bank",
+  "Punjab & Sind Bank",
+  "Punjab National Bank",
+  "RBL Bank",
+  "Shivalik Small Finance Bank",
+  "South Indian Bank",
+  "Standard Chartered Bank",
+  "State Bank of India",
+  "Suryoday Small Finance Bank",
+  "Tamilnad Mercantile Bank",
+  "UCO Bank",
+  "Ujjivan Small Finance Bank",
+  "Union Bank of India",
+  "Unity Small Finance Bank",
+  "Utkarsh Small Finance Bank",
+  "YES Bank"
+];
 import { submitBankDetails } from '../../utils/api';
 
 /**
@@ -564,37 +619,34 @@ const BankInformationPage = () => {
               )}
             </div>
 
-            {/* Account Type */}
+            {/* Account Type - use PlanSelect for consistent UX */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
                 Account Type <span className="text-red-600">*</span>
               </label>
-              <select
+              <PlanSelect
                 value={bankData.accountType}
-                onChange={(e) => handleChange('accountType', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all bg-white"
-              >
-                <option value="Savings">💰 Savings Account</option>
-                <option value="Current">🏢 Current Account</option>
-                <option value="Business">📊 Business Account</option>
-              </select>
+                onChange={(val) => handleChange('accountType', val)}
+                options={[
+                  { value: 'Savings', label: '💰 Savings Account' },
+                  { value: 'Current', label: '🏢 Current Account' },
+                ]}
+                placeholder="Select account type"
+                className="w-full"
+              />
             </div>
 
-            {/* Bank Name */}
+            {/* Bank Name (dropdown) */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
                 Bank Name <span className="text-red-600">*</span>
               </label>
-              <input
-                type="text"
+              <PlanSelect
                 value={bankData.bankName}
-                onChange={(e) => handleChange('bankName', e.target.value)}
-                placeholder="e.g., State Bank of India"
-                className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none transition-all ${
-                  formErrors.bankName
-                    ? 'border-red-400 bg-red-50 focus:border-red-500'
-                    : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
-                }`}
+                onChange={(val) => handleChange('bankName', val)}
+                options={BANKS.map((b) => ({ value: b, label: b }))}
+                placeholder="Select your bank"
+                className="w-full"
               />
               {formErrors.bankName && (
                 <p className="text-red-600 text-xs mt-1.5 flex items-center gap-1">
@@ -633,7 +685,7 @@ const BankInformationPage = () => {
                 Confirm Account Number <span className="text-red-600">*</span>
               </label>
               <input
-                type="text"
+                type="password"
                 value={bankData.confirmAccountNumber}
                 onChange={(e) => handleChange('confirmAccountNumber', e.target.value.replace(/\D/g, ''))}
                 placeholder="Re-enter account number"

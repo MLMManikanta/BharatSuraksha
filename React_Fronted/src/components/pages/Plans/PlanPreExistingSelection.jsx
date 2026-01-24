@@ -16,7 +16,23 @@ const PlanPreExistingSelection = () => {
   // 1. RECEIVE DATA & PERSISTENT TAB STATE
   // If we came back from a review page, check if a specific tab was requested
   const prevData = location.state || {}; 
-  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'parivar');
+
+  const computeDefaultTab = (state) => {
+    try {
+      const memberAges = (state && state.memberAges) || prevData.memberAges || {};
+      const raw = memberAges.self ?? (Array.isArray(memberAges?.self) ? memberAges.self[0] : undefined);
+      const age = parseInt(raw);
+      if (!Number.isNaN(age) && age >= 60) return 'varishtha';
+    } catch (e) { /* ignore */ }
+    return 'parivar';
+  };
+
+  const [activeTab, setActiveTab] = useState(() => {
+    if (location.state?.activeTab) return location.state.activeTab;
+    const stored = window.localStorage.getItem('planActiveTab');
+    if (stored) return stored;
+    return computeDefaultTab(location.state);
+  });
   const [customizationData, setCustomizationData] = useState(location.state?.customizationData || null); 
   const [skipRedirect, setSkipRedirect] = useState(false);
 
@@ -24,12 +40,29 @@ const PlanPreExistingSelection = () => {
   useEffect(() => {
     if (location.state?.activeTab) {
       setActiveTab(location.state.activeTab);
+    } else if (location.state) {
+      // If we navigated in with member data but no explicit activeTab, choose default based on age
+      setActiveTab(computeDefaultTab(location.state));
     }
     // If coming back from edit, restore customization data
     if (location.state?.customizationData) {
       setCustomizationData(location.state.customizationData);
     }
   }, [location.state]);
+
+  // Persist activeTab so a page refresh keeps the same tab
+  useEffect(() => {
+    try { window.localStorage.setItem('planActiveTab', activeTab); } catch (e) { /* ignore */ }
+  }, [activeTab]);
+
+  // Scoped plans loader: show the plans-area loader for exactly 2 seconds
+  const [isPlansLoading, setIsPlansLoading] = useState(true);
+  useEffect(() => {
+    // Show loader on mount, route entry/refresh and when active tab changes
+    setIsPlansLoading(true);
+    const timer = setTimeout(() => setIsPlansLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, [location.pathname, activeTab]);
 
   const normalizeAges = (value) => {
     if (Array.isArray(value)) return value;
@@ -264,6 +297,9 @@ const PlanPreExistingSelection = () => {
         isCustom: true 
       }
     });
+    // When user explicitly activates the VAJRA tab, avoid the generic
+    // 2s plans loading spinner so the builder renders immediately.
+    setIsPlansLoading(false);
   };
 
   const handleProceedToReview = (finalSelectionData) => {
@@ -354,23 +390,39 @@ const PlanPreExistingSelection = () => {
           ))}
         </div>
 
-        <div className="min-h-[500px]">
-          {!customizationData ? (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {activeTab === 'neev' && <BasicPlan onSelectPlan={handlePlanSelection} />}
-              {activeTab === 'parivar' && <FamilyShieldPlan onSelectPlan={handlePlanSelection} memberCounts={prevData.counts} />}
-              {activeTab === 'varishtha' && <SeniorProtectPlan onSelectPlan={handlePlanSelection} />}
-              {activeTab === 'vishwa' && <UniversalCoverage onSelectPlan={handlePlanSelection} />}
+        <div className="min-h-[500px] relative">
+          {/* Content layer: plans or customization -> stays in flow so layout doesn't collapse */}
+          <div
+            className={`relative w-full transition-opacity transition-transform duration-300 ease-out will-change-opacity will-change-transform flex flex-col ${isPlansLoading ? 'opacity-0 -translate-y-2 scale-95 pointer-events-none' : 'opacity-100 translate-y-0 scale-100 pointer-events-auto'}`}
+          >
+            {!customizationData ? (
+              <div className="w-full">
+                {activeTab === 'neev' && <BasicPlan onSelectPlan={handlePlanSelection} />}
+                {activeTab === 'parivar' && <FamilyShieldPlan onSelectPlan={handlePlanSelection} memberCounts={prevData.counts} />}
+                {activeTab === 'varishtha' && <SeniorProtectPlan onSelectPlan={handlePlanSelection} />}
+                {activeTab === 'vishwa' && <UniversalCoverage onSelectPlan={handlePlanSelection} />}
+              </div>
+            ) : (
+              <div className="w-full">
+                <CustomizeHealthPage 
+                   initialData={customizationData}
+                   onProceed={handleProceedToReview}
+                   onBack={handleCloseCustomization}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Loading */}
+          <div
+            aria-hidden={!isPlansLoading}
+            className={`absolute inset-0 transition-opacity transition-transform duration-300 ease-out flex items-start justify-center pt-8 ${isPlansLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+          >
+            <div className="flex flex-col items-center gap-4 -translate-y-6">
+              <div className="w-14 h-14 rounded-full border-4 border-gray-200 border-t-[#1A5EDB] animate-spin" />
+              <div className="text-sm font-medium text-slate-600">Loading plans...</div>
             </div>
-          ) : (
-            <div className="animate-in fade-in zoom-in duration-500">
-              <CustomizeHealthPage 
-                 initialData={customizationData}
-                 onProceed={handleProceedToReview}
-                 onBack={handleCloseCustomization}
-              />
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

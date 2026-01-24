@@ -1,7 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useId } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
 import { submitKYC } from '../../utils/api';
+
+// --- Constants & Options Data ---
+const STATES_INDIA = [
+  "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar",
+  "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa",
+  "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka",
+  "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
+  "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+  "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+].sort();
 
 const KYCPage = () => {
   const navigate = useNavigate();
@@ -44,7 +54,15 @@ const KYCPage = () => {
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  
+  const membersRef = useRef(null);
 
+  const scrollToMembers = () => {
+    if (membersRef.current) {
+      membersRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollBy(0, -80);
+    }
+  };
   // Initialize Members based on Plan Selection
   useEffect(() => {
     if (planData.counts) {
@@ -69,7 +87,8 @@ const KYCPage = () => {
             calculatedAge: ageValue, 
             ageUnit: 'years',      
             ageInYears: ageValue,
-            originalAge: ageValue
+            originalAge: ageValue,
+            uniqueId: `${memberId}-${i}`
           });
         }
       });
@@ -279,32 +298,37 @@ const KYCPage = () => {
 
       <div className="max-w-5xl mx-auto px-4 -mt-16 relative z-10 space-y-8 animate-slide-up">
 
-        {/* Age Mismatch Alert */}
-        {validateAgeChanges.hasMismatch && (
-          <div className="bg-white rounded-2xl shadow-xl border-l-4 border-amber-500 overflow-hidden animate-shake">
-            <div className="p-5">
-              <div className="flex items-start gap-4">
-                <div className="bg-amber-100 p-2 rounded-full text-xl">⚠️</div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-amber-800 text-sm uppercase tracking-wide mb-2">Age Adjustment Detected</h3>
-                  <div className="space-y-1">
-                    {validateAgeChanges.messages.map((msg, idx) => (
-                      <p key={idx} className="text-xs text-slate-600 font-medium bg-amber-50 p-2 rounded border border-amber-100">
-                        {msg}
-                      </p>
-                    ))}
-                  </div>
-                  {planData.totalPremium && (
-                    <div className="mt-3 flex items-center gap-2">
-                      <span className="text-xs text-slate-500 font-bold uppercase">New Premium:</span>
-                      <span className="text-lg font-black text-blue-600">₹{planData.totalPremium.toLocaleString('en-IN')}</span>
-                    </div>
-                  )}
+        {/* Age Mismatch Alert (updated design) */}
+        {validateAgeChanges.hasMismatch && (() => {
+          const firstMsg = validateAgeChanges.messages[0] || '';
+          const namePart = firstMsg.includes(':') ? firstMsg.split(':')[0] : 'Member';
+          const rest = firstMsg.includes(':') ? firstMsg.split(':')[1].trim() : firstMsg;
+
+          return (
+            <div className="flex flex-col gap-4 rounded-xl border border-yellow-300 bg-yellow-50 p-5 md:flex-row md:items-center md:justify-between animate-shake">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-100">
+                  <span className="text-yellow-600 text-lg">⚠️</span>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold text-yellow-800">Age Adjustment Detected</h4>
+                  <p className="mt-1 text-sm text-yellow-700 leading-relaxed">
+                    <span className="font-medium">{namePart}</span>: {rest}
+                  </p>
+                  {validateAgeChanges.messages.slice(1).map((m, i) => (
+                    <p key={i} className="mt-1 text-xs text-yellow-700">{m}</p>
+                  ))}
+                  <p className="mt-1 text-xs text-yellow-600">Please update member DOBs in the Members section to continue.</p>
                 </div>
               </div>
+
+              <div className="flex gap-3 md:ml-6">
+                <button onClick={() => navigate('/plans')} className="rounded-lg border border-blue-500 px-5 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition">Go to Members</button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* 1. Proposer Details */}
         <div className="bg-white rounded-3xl shadow-lg border border-slate-100 p-8">
@@ -314,13 +338,13 @@ const KYCPage = () => {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField label="Full Name" value={proposerData.fullName} onChange={(val) => handleProposerChange('fullName', val)} error={formErrors.proposerName} placeholder="As per PAN Card" />
+            <InputField label="Full Name" value={proposerData.fullName} onChange={(val) => handleProposerChange('fullName', val)} error={formErrors.proposerName} placeholder="Enter the full name as per PAN card" />
             
-            <InputField label="Date of Birth" type="date" value={proposerData.dateOfBirth} onChange={(val) => handleProposerChange('dateOfBirth', val)} error={formErrors.proposerDOB} />
+            <CustomDatePicker label="Date of Birth" value={proposerData.dateOfBirth} onChange={(val) => handleProposerChange('dateOfBirth', val)} error={formErrors.proposerDOB} max={new Date().toISOString().split('T')[0]} />
             
-            <SelectField label="Gender" value={proposerData.gender} onChange={(val) => handleProposerChange('gender', val)} error={formErrors.gender} options={['Male', 'Female', 'Other']} />
+            <CustomSelect label="Gender" value={proposerData.gender} onChange={(val) => handleProposerChange('gender', val)} error={formErrors.gender} options={['Male', 'Female', 'Other']} />
             
-            <SelectField label="Marital Status" value={proposerData.maritalStatus} onChange={(val) => handleProposerChange('maritalStatus', val)} error={formErrors.maritalStatus} options={['Single', 'Married', 'Divorced', 'Widowed']} />
+            <CustomSelect label="Marital Status" value={proposerData.maritalStatus} onChange={(val) => handleProposerChange('maritalStatus', val)} error={formErrors.maritalStatus} options={['Single', 'Married', 'Divorced', 'Widowed']} />
             
             <InputField label="Occupation" value={proposerData.occupation} onChange={(val) => handleProposerChange('occupation', val)} error={formErrors.occupation} placeholder="e.g. Software engineer, Business" />
             
@@ -352,46 +376,66 @@ const KYCPage = () => {
           </h2>
 
           <div className="space-y-6">
-            {membersData.map((member, idx) => (
-              <div key={idx} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 relative group hover:border-blue-300 transition-all">
-                <div className="absolute top-4 right-4 text-3xl opacity-10 group-hover:opacity-20 transition-opacity">
-                  {member.relationship === 'Self' ? '' : ''}
-                </div>
-                <h3 className="font-black text-slate-700 uppercase text-xs tracking-widest mb-4 border-b border-slate-200 pb-2">
-                  {member.memberId === 'self' ? 'Proposer (Self)' : `Member ${idx + 1}`}
-                </h3>
+  {membersData.map((member, idx) => (
+    <div key={member.uniqueId} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 relative">
+      <h3 className="font-black text-slate-700 uppercase text-xs tracking-widest mb-4 border-b border-slate-200 pb-2">
+        {member.memberId === 'self' ? 'Proposer (Self)' : `Member ${idx + 1}`}
+      </h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <InputField 
+           label="First Name" 
+           value={member.name} 
+           onChange={(v) => handleMemberChange(idx, 'name', v)} 
+           error={formErrors[`member_${idx}_name`]} 
+           placeholder="First Name" 
+        />
+        
+        {member.memberId !== 'self' && (
+          <InputField 
+             label="Last Name" 
+             value={member.lastName} 
+             onChange={(v) => handleMemberChange(idx, 'lastName', v)} 
+             placeholder="Last Name" 
+          />
+        )}
+        
+        <CustomDatePicker 
+          label="Date of Birth" 
+          value={member.dateOfBirth} 
+          onChange={(v) => handleMemberChange(idx, 'dateOfBirth', v)} 
+          error={formErrors[`member_${idx}_dob`]} 
+          placeholder="Select DOB"
+          max={new Date().toISOString().split("T")[0]}
+        />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InputField label="First Name" value={member.name} onChange={(val) => handleMemberChange(idx, 'name', val)} error={formErrors[`member_${idx}_name`]} />
-                  
-                  {member.memberId !== 'self' && (
-                    <InputField label="Last Name" value={member.lastName} onChange={(val) => handleMemberChange(idx, 'lastName', val)} />
-                  )}
-
-                  <InputField label="Date of Birth" type="date" value={member.dateOfBirth} onChange={(val) => handleMemberChange(idx, 'dateOfBirth', val)} error={formErrors[`member_${idx}_dob`]} />
-
-                  {/* Auto Calculated Age Display */}
-                  {member.calculatedAge !== null && (
-                    <div className="bg-white p-3 rounded-xl border border-slate-200">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Age Check</label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-slate-800">{member.calculatedAge} {member.ageUnit}</span>
-                        {member.calculatedAge != member.originalAge && member.originalAge !== null && (
-                          <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold">
-                            Changed (Was {member.originalAge})
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {member.memberId !== 'self' && (
-                    <SelectField label="Relationship" value={member.relationship} onChange={(val) => handleMemberChange(idx, 'relationship', val)} error={formErrors[`member_${idx}_rel`]} options={['Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Brother', 'Sister']} />
-                  )}
-                </div>
-              </div>
-            ))}
+        {member.calculatedAge !== null && (
+          <div className="bg-white p-3  w-50 rounded-xl border border-slate-200 flex items-center justify-between">
+            <span className="text-sm font-bold text-slate-600 uppercase">Age: </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xl font-bold text-slate-800">{member.calculatedAge}</span>
+              <span className="text-sm font-semibold text-slate-600">{member.ageUnit}</span>
+              {Number(member.calculatedAge) !== Number(member.originalAge) && member.originalAge !== null && (
+                <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold">Changed</span>
+              )}
+            </div>
           </div>
+        )}
+
+        {member.memberId !== 'self' && (
+          <CustomSelect 
+             label="Relationship" 
+             value={member.relationship} 
+             onChange={(v) => handleMemberChange(idx, 'relationship', v)} 
+             error={formErrors[`member_${idx}_rel`]} 
+             options={RELATIONSHIP_OPTIONS} 
+             placeholder="Select Relationship" 
+          />
+        )}
+      </div>
+    </div>
+  ))}
+</div>
         </div>
 
         {/* 3. Address */}
@@ -408,7 +452,7 @@ const KYCPage = () => {
               <InputField label="Street / Area" value={addressData.street} onChange={(val) => handleAddressChange('street', val)} error={formErrors.street} />
             </div>
             <InputField label="City" value={addressData.city} onChange={(val) => handleAddressChange('city', val)} error={formErrors.city} />
-            <SelectField label="State" value={addressData.state} onChange={(val) => handleAddressChange('state', val)} error={formErrors.state} options={['Maharashtra', 'Karnataka', 'Tamil Nadu', 'Delhi', 'Uttar Pradesh', 'Rajasthan', 'Gujarat', 'West Bengal', 'Telangana', 'Andhra Pradesh']} />
+            <CustomSelect label="State" value={addressData.state} onChange={(val) => handleAddressChange('state', val)} error={formErrors.state} options={STATES_INDIA} />
             <InputField label="Pincode" value={addressData.pincode} onChange={(val) => handleAddressChange('pincode', val)} error={formErrors.pincode} maxLength={6} />
           </div>
         </div>
@@ -438,8 +482,8 @@ const KYCPage = () => {
           
           <button 
             onClick={handleSubmit}
-            disabled={isSubmitting}
-            className={`group w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-black uppercase tracking-widest shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all relative overflow-hidden ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+            disabled={isSubmitting || validateAgeChanges.hasMismatch}
+            className={`group w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-black uppercase tracking-widest shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all relative overflow-hidden ${(isSubmitting || validateAgeChanges.hasMismatch) ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
             <span className="relative flex items-center justify-center gap-3">
@@ -485,38 +529,193 @@ const KYCPage = () => {
 
 // --- Reusable UI Components ---
 
-const InputField = ({ label, type = "text", value, onChange, error, placeholder, maxLength, disabled }) => (
-  <div className="space-y-1">
-    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{label}</label>
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
-      placeholder={placeholder}
-      maxLength={maxLength}
-      className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-slate-800 placeholder-slate-300 ${disabled ? 'bg-slate-100 text-slate-400' : error ? 'border-red-300 bg-red-50 focus:border-red-500' : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50'}`}
-    />
-    {error && <p className="text-red-500 text-[10px] font-bold mt-1 animate-pulse">{error}</p>}
-  </div>
-);
-
-const SelectField = ({ label, value, onChange, error, options }) => (
-  <div className="space-y-1">
-    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{label}</label>
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-slate-800 appearance-none ${error ? 'border-red-300 bg-red-50 focus:border-red-500' : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50'}`}
-      >
-        <option value="">Select...</option>
-        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-      </select>
-      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">▼</div>
+const InputField = ({ label, type = "text", value, onChange, error, placeholder, maxLength, disabled, autoComplete, ...props }) => {
+  const uniqueId = useId();
+  return (
+    <div className="space-y-1">
+      <label htmlFor={uniqueId} className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">{label}</label>
+      <input
+        id={uniqueId} type={type} value={value} onChange={(e) => onChange(e.target.value)}
+        disabled={disabled} placeholder={placeholder} maxLength={maxLength} autoComplete={autoComplete}
+        className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-slate-900 placeholder-slate-400
+          ${disabled ? 'bg-slate-100 text-slate-500' : 
+            error ? 'border-red-600 bg-red-50 focus:border-red-600' : 
+            'border-slate-300 bg-slate-50 focus:bg-white focus:border-blue-600'}`}
+        {...props}
+      />
+      {error && <p className="text-red-600 text-xs font-bold mt-1">{error}</p>}
     </div>
-    {error && <p className="text-red-500 text-[10px] font-bold mt-1 animate-pulse">{error}</p>}
-  </div>
-);
+  );
+};
+
+const CustomSelect = ({ label, value, onChange, error, options, placeholder = "Select..." }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  const handleSelect = (val) => {
+    if (onChange) onChange(val);
+    setIsOpen(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => { 
+      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); 
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="space-y-1 relative" ref={containerRef}>
+      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">{label}</label>
+      <button
+        type="button" onClick={() => setIsOpen(!isOpen)}
+        className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-left flex justify-between items-center
+          ${error ? 'border-red-600 bg-red-50' : isOpen ? 'border-blue-800  text-blue-700' : 'border-slate-300 bg-slate-50 focus:border-blue-600 focus:bg-white'}`}
+      >
+        <span className={!value ? 'text-slate-500' : 'text-slate-900'}>{value || placeholder}</span>
+        <span className="text-slate-400 text-xs">▼</span>
+      </button>
+
+      {isOpen && (
+        <ul className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-auto py-1 animate-fade-in-up">
+                {options.map((op, i) => {
+                  const optValue = typeof op === 'string' ? op : op.value;
+                  const optLabel = typeof op === 'string' ? op : op.label;
+                  return (
+                    <li
+                      key={`${i}-${optValue}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleSelect(optValue)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleSelect(optValue);
+                        }
+                      }}
+                      className="text-[18px] cursor-pointer px-3 py-2 hover:bg-blue-800 hover:text-white focus:bg-blue-800 focus:text-white focus:outline-none hover:rounded-lg focus:rounded-lg"
+                    >
+                      {optLabel}
+                    </li>
+                  );
+                })}
+        </ul>
+      )}
+      {error && <p className="text-red-600 text-xs font-bold mt-1">{error}</p>}
+    </div>
+  );
+};
+
+const RELATIONSHIP_OPTIONS = ['Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Brother', 'Sister'];
+
+const CustomDatePicker = ({ label, value, onChange, error, placeholder = 'DD MMM YYYY', max }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(new Date()); 
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (value && !isNaN(new Date(value).getTime())) {
+      setViewDate(new Date(value));
+    }
+  }, [value, isOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => { 
+      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); 
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleDateClick = (day) => {
+    const selected = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+    const year = selected.getFullYear();
+    const month = String(selected.getMonth() + 1).padStart(2, '0');
+    const d = String(selected.getDate()).padStart(2, '0');
+    onChange(`${year}-${month}-${d}`);
+    setIsOpen(false);
+  };
+
+  const changeMonthDropdown = (monthIndex) => setViewDate(new Date(viewDate.getFullYear(), parseInt(monthIndex), 1));
+  const changeYear = (year) => setViewDate(new Date(parseInt(year), viewDate.getMonth(), 1));
+
+  const renderCalendar = () => {
+    const totalDays = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+    const startDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+    const days = [];
+
+    for (let i = 0; i < startDay; i++) days.push(<div key={`empty-${i}`} className="h-8 w-8" />);
+    for (let i = 1; i <= totalDays; i++) {
+      const currentDayDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), i);
+      const isFuture = max && currentDayDate > new Date(max);
+      const isSelected = value && new Date(value).getDate() === i && 
+                        new Date(value).getMonth() === viewDate.getMonth() && 
+                        new Date(value).getFullYear() === viewDate.getFullYear();
+      days.push(
+        <button key={i} type="button" onClick={() => !isFuture && handleDateClick(i)} disabled={isFuture}
+          className={`h-8 w-8 flex items-center justify-center rounded-full text-sm font-medium transition-all 
+            ${isSelected ? 'bg-blue-600 text-white shadow-md' : 'text-slate-700 hover:bg-slate-100'} 
+            ${isFuture ? 'text-slate-300 cursor-not-allowed hover:bg-transparent' : ''}`}
+        >{i}</button>
+      );
+    }
+    return days;
+  };
+
+  const formatDisplayValue = (isoDate) => {
+    if (!isoDate) return '';
+    const d = new Date(isoDate);
+    return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
+  const years = [];
+  for (let y = new Date().getFullYear(); y >= 1900; y--) years.push(y);
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  return (
+    <div className="space-y-1 relative" ref={containerRef}>
+      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">{label}</label>
+      <button type="button" onClick={() => setIsOpen(!isOpen)}
+        className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-left flex justify-between items-center 
+          ${error ? 'border-red-600 bg-red-50' : 'border-slate-300 bg-slate-50 focus:border-blue-600 focus:bg-white'}`}
+      >
+        <span className={!value ? 'text-slate-500' : 'text-slate-900'}>
+          {value ? formatDisplayValue(value) : placeholder}
+        </span>
+        <span className="text-slate-400 text-lg">📅</span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 mt-2 w-auto bg-white rounded-xl shadow-2xl border border-slate-200 p-4 animate-fade-in-up left-0 overflow-hidden">
+          <div className="flex justify-between items-center mb-4 gap-2">
+            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
+              className="h-10 w-12 flex items-center justify-center rounded-md text-blue-600 bg-white hover:bg-blue-50 active:bg-blue-100 transition-colors duration-150"
+              aria-label="Previous month"
+            ><span className="text-2xl leading-none">⬅️</span></button>
+
+            <div className="flex gap-2 items-center">
+              <div className="w-48">
+                <CustomSelect value={months[viewDate.getMonth()]} options={months} onChange={(m) => changeMonthDropdown(months.indexOf(m))} />
+              </div>
+              <div className="w-28">
+                <CustomSelect value={String(viewDate.getFullYear())} options={years.map(y => String(y))} onChange={(y) => changeYear(y)} />
+              </div>
+            </div>
+            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
+              className="h-10 w-12 flex items-center justify-center rounded-md text-blue-600 bg-white hover:bg-blue-50 active:bg-blue-100 transition-colors duration-150"
+              aria-label="Next month"
+            ><span className="text-2xl leading-none">➡️</span></button>
+          </div>
+          <div className="grid grid-cols-7 text-center mb-2">
+            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <span key={d} className="text-[10px] font-bold text-slate-400 uppercase">{d}</span>)}
+          </div>
+          <div className="grid grid-cols-7 gap-1 place-items-center">{renderCalendar()}</div>
+        </div>
+      )}
+      {error && <p className="text-red-600 text-xs font-bold mt-1">{error}</p>}
+    </div>
+  );
+};
 
 export default KYCPage;

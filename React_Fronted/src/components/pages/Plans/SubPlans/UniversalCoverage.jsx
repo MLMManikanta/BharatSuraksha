@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import LockedSelect from '../../../common/LockedSelect';
+import PlanSelect from '../../../common/PlanSelect';
 import { useAuth } from '../../../../context/AuthContext';
 
 const UniversalCoverage = ({ onSelectPlan }) => {
@@ -70,7 +70,7 @@ const UniversalCoverage = ({ onSelectPlan }) => {
 
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto bg-gray-50 p-2 rounded-2xl border border-gray-100 mt-4 md:mt-0">
                <div className="relative w-full sm:w-auto">
-                 <LockedSelect
+                 <PlanSelect
                    label={null}
                    value={selectedSumInsured}
                    onChange={setSelectedSumInsured}

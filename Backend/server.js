@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import bodyParser from "body-parser";
@@ -24,11 +25,31 @@ let client;
 /* -------------------- DB CONNECTION -------------------- */
 const initializeDBAndServer = async () => {
   try {
-    client = new MongoClient("mongodb://localhost:27017");
+    client = new MongoClient(process.env.MONGODB_URI || "mongodb://localhost:27017");
     await client.connect();
 
-    // Hard check
+    // Hard check for native driver
     await client.db("admin").command({ ping: 1 });
+
+    // Also connect Mongoose for schema/model usage (KYC storage)
+    try {
+      await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/BharatSurakshaDB", {
+        // mongoose 8+ doesn't require these, but safe defaults
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log("✅ Mongoose connected successfully");
+    } catch (mErr) {
+      console.warn("⚠️ Mongoose connection warning:", mErr.message);
+    }
+
+    // Ensure users collection has an index on `name` for future queries/admin use
+    try {
+      await client.db("AuthDB").collection("users").createIndex({ name: 1 });
+    } catch (idxErr) {
+      // Index creation shouldn't block server start
+      console.warn("Could not create name index:", idxErr.message);
+    }
 
     console.log("✅ MongoDB connected successfully");
 
@@ -62,13 +83,126 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+/* -------------------- KYC MODEL + ROUTE -------------------- */
+// Flexible schema to accept arbitrary KYC JSON payloads; timestamps added
+const kycSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
+const Kyc = mongoose.models.Kyc || mongoose.model("Kyc", kycSchema);
+
+// Save incoming KYC JSON to DB
+app.post("/api/kyc", async (req, res) => {
+  try {
+    const payload = req.body;
+    if (!payload || Object.keys(payload).length === 0) {
+      return res.status(400).json({ error: "Empty payload" });
+    }
+
+    const saved = await Kyc.create(payload);
+
+    // Return the shape expected by the frontend: { success: true, data: { kycId } }
+    res.status(200).json({ success: true, data: { kycId: saved._id } });
+  } catch (err) {
+    console.error("KYC SAVE ERROR:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/* -------------------- MEDICAL INFO -------------------- */
+// Flexible schema for medical information submissions
+const medicalSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
+const Medical = mongoose.models.Medical || mongoose.model("Medical", medicalSchema);
+
+// Save incoming medical JSON to DB
+app.post("/api/medical", async (req, res) => {
+  try {
+    const payload = req.body;
+    if (!payload || Object.keys(payload).length === 0) {
+      return res.status(400).json({ error: "Empty payload" });
+    }
+
+    const saved = await Medical.create(payload);
+
+    // Return the shape expected by the frontend: { success: true, data: { medicalInfoId } }
+    res.status(200).json({ success: true, data: { medicalInfoId: saved._id } });
+  } catch (err) {
+    console.error("MEDICAL SAVE ERROR:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/* -------------------- BANK INFO -------------------- */
+// Flexible schema for bank information submissions
+const bankInfoSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
+const BankInfo = mongoose.models.BankInfo || mongoose.model("BankInfo", bankInfoSchema);
+
+// Save incoming bank info JSON to DB
+app.post("/api/bankinfo", async (req, res) => {
+  try {
+    const payload = req.body;
+    if (!payload || Object.keys(payload).length === 0) {
+      return res.status(400).json({ error: "Empty payload" });
+    }
+
+    const saved = await BankInfo.create(payload);
+
+    // Return the shape expected by the frontend
+    res.status(200).json({ success: true, data: { bankInfoId: saved._id } });
+  } catch (err) {
+    console.error("BANK INFO SAVE ERROR:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Also expose the legacy /api/bank route expected by frontend
+app.post('/api/bank', async (req, res) => {
+  try {
+    const payload = req.body;
+    if (!payload || Object.keys(payload).length === 0) {
+      return res.status(400).json({ error: 'Empty payload' });
+    }
+
+    const saved = await BankInfo.create(payload);
+
+    // Frontend expects `bankDetailsId` in data
+    // Also persist an Order record representing the Review Your Order / final order data
+    try {
+      const orderSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
+      const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
+
+      // Build order document from payload.planData if present, else store payload
+      const orderDoc = {
+        bankDetailsRef: saved._id,
+        bankDetailsSnapshot: payload,
+        planData: payload.planData || payload.orderData || null,
+        paymentDetails: payload.paymentDetails || null,
+        createdAt: new Date()
+      };
+
+      const orderSaved = await Order.create(orderDoc);
+      console.log('Order persisted with id:', orderSaved._id.toString());
+    } catch (ordErr) {
+      console.warn('Could not persist order record:', ordErr.message);
+    }
+
+    res.status(200).json({ success: true, data: { bankDetailsId: saved._id } });
+  } catch (err) {
+    console.error('BANK SAVE ERROR:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 /* -------------------- REGISTER -------------------- */
 app.post("/register", async (req, res) => {
   try {
-    const { email, password, mobile } = req.body;
+
+    const { email, password, mobile, name } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    // Name validation for new users
+    if (!name || typeof name !== "string" || name.trim().length < 2 || name.trim().length > 50) {
+      return res.status(400).json({ error: "Name is required and must be 2-50 characters" });
     }
 
     const collection = client.db("AuthDB").collection("users");
@@ -80,7 +214,9 @@ app.post("/register", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
+
     const result = await collection.insertOne({
+      name: name.trim(),
       email,
       mobile,
       password: hashedPassword,
@@ -120,11 +256,17 @@ app.post("/login", async (req, res) => {
       { expiresIn: "1d" }
     );
 
+    // Provide name in response; if missing for existing users, fallback to email prefix
+    const displayName = user.name && typeof user.name === "string" && user.name.trim().length > 0
+      ? user.name
+      : (user.email ? user.email.split("@")[0] : "User");
+
     res.json({
       message: "Login Successful",
       jwtToken: token,
       userId: user._id,
       userData: {
+        name: displayName,
         email: user.email,
         mobile: user.mobile,
       },

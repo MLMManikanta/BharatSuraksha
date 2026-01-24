@@ -1,6 +1,60 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
+
+// Bank list (inlined here)
+const BANKS = [
+  "AU Small Finance Bank",
+  "Airtel Payments Bank",
+  "Axis Bank",
+  "Bandhan Bank",
+  "Bank of Baroda",
+  "Bank of India",
+  "Bank of Maharashtra",
+  "Canara Bank",
+  "Capital Small Finance Bank",
+  "Central Bank of India",
+  "City Union Bank",
+  "CSB Bank",
+  "DBS Bank India",
+  "DCB Bank",
+  "Dhanlaxmi Bank",
+  "ESAF Small Finance Bank",
+  "Equitas Small Finance Bank",
+  "Federal Bank",
+  "Fino Payments Bank",
+  "HDFC Bank",
+  "HSBC India",
+  "ICICI Bank",
+  "IDBI Bank",
+  "IDFC First Bank",
+  "India Post Payments Bank",
+  "Indian Bank",
+  "Indian Overseas Bank",
+  "IndusInd Bank",
+  "Jammu & Kashmir Bank",
+  "Jana Small Finance Bank",
+  "Karnataka Bank",
+  "Karur Vysya Bank",
+  "Kotak Mahindra Bank",
+  "Nainital Bank",
+  "North East Small Finance Bank",
+  "Punjab & Sind Bank",
+  "Punjab National Bank",
+  "RBL Bank",
+  "Shivalik Small Finance Bank",
+  "South Indian Bank",
+  "Standard Chartered Bank",
+  "State Bank of India",
+  "Suryoday Small Finance Bank",
+  "Tamilnad Mercantile Bank",
+  "UCO Bank",
+  "Ujjivan Small Finance Bank",
+  "Union Bank of India",
+  "Unity Small Finance Bank",
+  "Utkarsh Small Finance Bank",
+  "YES Bank"
+];
 
 const PaymentPage = () => {
   const location = useLocation();
@@ -262,13 +316,8 @@ const PaymentPage = () => {
                 value={bankCode} 
                 onChange={setBankCode} 
                 error={errors.bankCode} 
-                options={[
-                  { value: 'SBI', label: 'State Bank of India' },
-                  { value: 'HDFC', label: 'HDFC Bank' },
-                  { value: 'ICICI', label: 'ICICI Bank' },
-                  { value: 'AXIS', label: 'Axis Bank' },
-                  { value: 'KOTAK', label: 'Kotak Mahindra Bank' }
-                ]} 
+                options={BANKS.map(b => ({ value: b, label: b }))} 
+                className="max-w-full text-sm"
               />
             </div>
           )}
@@ -336,22 +385,59 @@ const InputField = ({ label, type = "text", value, onChange, error, placeholder,
   </div>
 );
 
-const SelectField = ({ label, value, onChange, error, options }) => (
-  <div className="space-y-1">
-    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">{label}</label>
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-gray-800 appearance-none ${error ? 'border-red-300 bg-red-50 focus:border-red-500' : 'border-gray-200 bg-gray-50 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50'}`}
+const SelectField = ({ label, value, onChange, error, options, className = '', placeholder = 'Select...' }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelect = (val) => {
+    if (onChange) onChange(val);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="space-y-1 relative z-50" ref={containerRef}>
+      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+        {label}
+      </label>
+
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-4 py-3 rounded-xl border-2 bg-gray-50 font-semibold flex justify-between items-center"
       >
-        <option value="">Select...</option>
-        {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-      </select>
-      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">▼</div>
+        <span className={!value ? 'text-gray-400' : 'text-gray-900'}>
+          {value || placeholder}
+        </span>
+        <span className="text-gray-400 text-xs">{isOpen ? '▲' : '▼'}</span>
+      </button>
+
+      {isOpen && (
+        <ul className="absolute left-0 z-[9999] w-full bottom-full mb-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-auto py-1">
+          {options.map((op, i) => {
+            const optValue = typeof op === 'string' ? op : op.value;
+            const optLabel = typeof op === 'string' ? op : op.label;
+            return (
+              <li
+                key={i}
+                onClick={() => handleSelect(optValue)}
+                className="cursor-pointer px-3 py-2 hover:bg-emerald-700 hover:text-white rounded-lg"
+              >
+                {optLabel}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
-    {error && <p className="text-red-500 text-[10px] font-bold mt-1 animate-pulse">{error}</p>}
-  </div>
-);
+  );
+};
 
 export default PaymentPage;
