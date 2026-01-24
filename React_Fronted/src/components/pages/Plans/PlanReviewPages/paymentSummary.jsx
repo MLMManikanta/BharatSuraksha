@@ -693,6 +693,17 @@ const PaymentSummary = ({ data }) => {
 
     // Handle Vajra (Custom) plan features and riders with age-based multipliers
     if (isVajraPlan && riders && typeof riders === 'object' && !Array.isArray(riders)) {
+      const hasRiderSelections = (Array.isArray(riders.addons) && riders.addons.length > 0)
+        || (Array.isArray(riders.selectedRiders) && riders.selectedRiders.length > 0)
+        || (Array.isArray(riders.features) && riders.features.length > 0)
+        || (Array.isArray(riders.chronicConditions) && riders.chronicConditions.length > 0);
+
+      // Only compute and display individual rider prices when the caller provided
+      // explicit rider/feature selections (prevents showing pricing when no backend
+      // integration or user selection exists).
+      if (!hasRiderSelections) {
+        // no-op: leave riderCost/riderLineItems at zero/empty
+      } else {
       // Map of VAJRA feature IDs to display labels
       const vajraFeatureLabels = {
         'pre_hosp_30': 'Pre-Hospitalization (30 days)',
@@ -789,18 +800,19 @@ const PaymentSummary = ({ data }) => {
         });
       }
       
-      // Process chronic conditions for Vajra
-      if (riders.chronicConditions && Array.isArray(riders.chronicConditions)) {
-        riders.chronicConditions.forEach(condition => {
-          const condId = typeof condition === 'string' ? condition : (condition.id || condition.name || '');
-          const cost = getVajraChronicCost(condId, coverageKey, eldestMemberAge);
-          if (cost > 0) {
-            riderCost += cost;
-            const condLabel = condId.charAt(0).toUpperCase() + condId.slice(1).replace(/_/g, ' ');
-            explanationLines.push(`Chronic Care (${condLabel}): +₹${cost.toLocaleString('en-IN')}`);
-            riderLineItems.push({ label: `Chronic Care (${condLabel})`, amount: cost });
-          }
-        });
+        // Process chronic conditions for Vajra
+        if (riders.chronicConditions && Array.isArray(riders.chronicConditions)) {
+          riders.chronicConditions.forEach(condition => {
+            const condId = typeof condition === 'string' ? condition : (condition.id || condition.name || '');
+            const cost = getVajraChronicCost(condId, coverageKey, eldestMemberAge);
+            if (cost > 0) {
+              riderCost += cost;
+              const condLabel = condId.charAt(0).toUpperCase() + condId.slice(1).replace(/_/g, ' ');
+              explanationLines.push(`Chronic Care (${condLabel}): +₹${cost.toLocaleString('en-IN')}`);
+              riderLineItems.push({ label: `Chronic Care (${condLabel})`, amount: cost });
+            }
+          });
+        }
       }
     }
     // Handle Varishtha plan riders (object format from SeniorPlanReview)

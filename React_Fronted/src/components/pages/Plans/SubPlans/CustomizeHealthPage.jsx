@@ -242,21 +242,31 @@ const handlePedKeyDown = (e) => {
   // Notify parent of changes for live PaymentSummary update
   useEffect(() => {
     if (onChange) {
-      onChange({
+      const activeRiders = Array.isArray(processedRiders) ? processedRiders.filter(r => r.active) : [];
+
+      const payload = {
         currentSI,
         tenure,
         preHosp,
         postHosp,
         features,
-        riders: {
-          features: features.filter(f => f.active),
-          selectedRiders: processedRiders.filter(r => r.active),
-          addons: processedRiders.filter(r => r.active),
-          chronicConditions: chronicActive ? selectedChronic : []
-        },
         selectedChronic: chronicActive ? selectedChronic : [],
         estimatedPremium
-      });
+      };
+
+      // Only include a `riders` payload when the user has explicitly selected riders/addons
+      // or chronic cover is active. This prevents misleading default/display-only values
+      // from being interpreted as real priced add-ons when no backend/pricing was provided.
+      if ((Array.isArray(activeRiders) && activeRiders.length > 0) || chronicActive) {
+        payload.riders = {
+          features: features.filter(f => f.active),
+          selectedRiders: activeRiders,
+          addons: activeRiders,
+          chronicConditions: chronicActive ? selectedChronic : []
+        };
+      }
+
+      onChange(payload);
     }
   }, [onChange, currentSI, tenure, preHosp, postHosp, features, processedRiders, chronicActive, selectedChronic, estimatedPremium]);
 
@@ -516,7 +526,7 @@ const handlePedKeyDown = (e) => {
                                   role="listbox"
                                   aria-label="PED reduction options"
                                   tabIndex={-1}
-                                  className={`absolute z-40 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 ring-1 ring-black/5 py-1 max-h-44 overflow-auto focus:outline-none transition-all duration-150 transform origin-top-right ${pedOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'}`}
+                                  className={`absolute z-50 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 ring-1 ring-black/5 py-1 max-h-44 overflow-auto focus:outline-none transition-all duration-150 transform origin-top-right ${pedOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'}`}
                                 >
                                   {PED_OPTIONS.map((opt, idx) => {
                                     const isSelected = opt.value === (r.selectedVariant || 'none');

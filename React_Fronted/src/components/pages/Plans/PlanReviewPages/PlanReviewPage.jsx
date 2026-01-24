@@ -72,10 +72,17 @@ const PlanReviewPage = () => {
     
     const planName = String(data.selectedPlan?.name || "").toLowerCase();
     const isVajra = data.selectedPlan?.isCustom || planName.includes('vajra');
-
     if (isVajra && data.isReviewingCustomPlan) {
-      // If reviewing a custom plan, just flip back to builder mode on same page
-      setData(prev => ({ ...prev, isReviewingCustomPlan: false }));
+      // When the user is on the review page for a custom VAJRA plan,
+      // take them to the Plan Selection / configuration entry point so
+      // they can clearly re-enter the configuration flow.
+      navigate('/select-plan', {
+        state: {
+          ...data,
+          activeTab: 'vajra',
+          reenterFromReview: true
+        }
+      });
     } else {
       // If standard plan, go back to the Plan Selection grid
       navigate('/select-plan', { 
