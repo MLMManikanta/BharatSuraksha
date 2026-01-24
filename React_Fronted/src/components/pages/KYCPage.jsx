@@ -329,11 +329,11 @@ const KYCPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField label="Full Name" value={proposerData.fullName} onChange={(val) => handleProposerChange('fullName', val)} error={formErrors.proposerName} placeholder="As per PAN Card" />
             
-            <InputField label="Date of Birth" type="date" value={proposerData.dateOfBirth} onChange={(val) => handleProposerChange('dateOfBirth', val)} error={formErrors.proposerDOB} />
+            <CustomDatePicker label="Date of Birth" value={proposerData.dateOfBirth} onChange={(val) => handleProposerChange('dateOfBirth', val)} error={formErrors.proposerDOB} max={new Date().toISOString().split('T')[0]} />
             
-            <SelectField label="Gender" value={proposerData.gender} onChange={(val) => handleProposerChange('gender', val)} error={formErrors.gender} options={['Male', 'Female', 'Other']} />
+            <CustomSelect label="Gender" value={proposerData.gender} onChange={(val) => handleProposerChange('gender', val)} error={formErrors.gender} options={['Male', 'Female', 'Other']} />
             
-            <SelectField label="Marital Status" value={proposerData.maritalStatus} onChange={(val) => handleProposerChange('maritalStatus', val)} error={formErrors.maritalStatus} options={['Single', 'Married', 'Divorced', 'Widowed']} />
+            <CustomSelect label="Marital Status" value={proposerData.maritalStatus} onChange={(val) => handleProposerChange('maritalStatus', val)} error={formErrors.maritalStatus} options={['Single', 'Married', 'Divorced', 'Widowed']} />
             
             <InputField label="Occupation" value={proposerData.occupation} onChange={(val) => handleProposerChange('occupation', val)} error={formErrors.occupation} placeholder="e.g. Software engineer, Business" />
             
@@ -381,7 +381,7 @@ const KYCPage = () => {
                     <InputField label="Last Name" value={member.lastName} onChange={(val) => handleMemberChange(idx, 'lastName', val)} />
                   )}
 
-                  <InputField label="Date of Birth" type="date" value={member.dateOfBirth} onChange={(val) => handleMemberChange(idx, 'dateOfBirth', val)} error={formErrors[`member_${idx}_dob`]} />
+                  <CustomDatePicker label="Date of Birth" value={member.dateOfBirth} onChange={(val) => handleMemberChange(idx, 'dateOfBirth', val)} error={formErrors[`member_${idx}_dob`]} max={new Date().toISOString().split('T')[0]} />
 
                   {/* Auto Calculated Age Display */}
                   {member.calculatedAge !== null && (
@@ -399,7 +399,7 @@ const KYCPage = () => {
                   )}
 
                   {member.memberId !== 'self' && (
-                    <SelectField label="Relationship" value={member.relationship} onChange={(val) => handleMemberChange(idx, 'relationship', val)} error={formErrors[`member_${idx}_rel`]} options={['Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Brother', 'Sister']} />
+                    <CustomSelect label="Relationship" value={member.relationship} onChange={(val) => handleMemberChange(idx, 'relationship', val)} error={formErrors[`member_${idx}_rel`]} options={['Spouse', 'Son', 'Daughter', 'Father', 'Mother', 'Brother', 'Sister']} />
                   )}
                 </div>
               </div>
@@ -421,7 +421,7 @@ const KYCPage = () => {
               <InputField label="Street / Area" value={addressData.street} onChange={(val) => handleAddressChange('street', val)} error={formErrors.street} />
             </div>
             <InputField label="City" value={addressData.city} onChange={(val) => handleAddressChange('city', val)} error={formErrors.city} />
-            <SelectField label="State" value={addressData.state} onChange={(val) => handleAddressChange('state', val)} error={formErrors.state} options={['Maharashtra', 'Karnataka', 'Tamil Nadu', 'Delhi', 'Uttar Pradesh', 'Rajasthan', 'Gujarat', 'West Bengal', 'Telangana', 'Andhra Pradesh']} />
+            <CustomSelect label="State" value={addressData.state} onChange={(val) => handleAddressChange('state', val)} error={formErrors.state} options={['Maharashtra', 'Karnataka', 'Tamil Nadu', 'Delhi', 'Uttar Pradesh', 'Rajasthan', 'Gujarat', 'West Bengal', 'Telangana', 'Andhra Pradesh']} />
             <InputField label="Pincode" value={addressData.pincode} onChange={(val) => handleAddressChange('pincode', val)} error={formErrors.pincode} maxLength={6} />
           </div>
         </div>
@@ -514,22 +514,143 @@ const InputField = ({ label, type = "text", value, onChange, error, placeholder,
   </div>
 );
 
-const SelectField = ({ label, value, onChange, error, options }) => (
-  <div className="space-y-1">
-    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{label}</label>
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-slate-800 appearance-none ${error ? 'border-red-300 bg-red-50 focus:border-red-500' : 'border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50'}`}
+const CustomSelect = ({ label, value, onChange, error, options, placeholder = "Select..." }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => { 
+      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); 
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="space-y-1 relative" ref={containerRef}>
+      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">{label}</label>
+      <button
+        type="button" onClick={() => setIsOpen(!isOpen)}
+        className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-left flex justify-between items-center
+          ${error ? 'border-red-600 bg-red-50' : 'border-slate-300 bg-slate-50 focus:border-blue-600 focus:bg-white'}`}
       >
-        <option value="">Select...</option>
-        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-      </select>
-      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400">▼</div>
+        <span className={!value ? 'text-slate-500' : 'text-slate-900'}>{value || placeholder}</span>
+        <span className="text-slate-400 text-xs">▼</span>
+      </button>
+
+      {isOpen && (
+        <ul className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-60 overflow-auto py-1 animate-fade-in-up">
+          {options.map((opt) => (
+            <li key={opt} onClick={() => { onChange(opt); setIsOpen(false); }}
+              className={`px-4 py-2 cursor-pointer text-sm font-medium hover:bg-slate-100 
+                ${value === opt ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-700'}`}
+            >
+              {opt}
+            </li>
+          ))}
+        </ul>
+      )}
+      {error && <p className="text-red-600 text-xs font-bold mt-1">{error}</p>}
     </div>
-    {error && <p className="text-red-500 text-[10px] font-bold mt-1 animate-pulse">{error}</p>}
-  </div>
-);
+  );
+};
+
+const CustomDatePicker = ({ label, value, onChange, error, placeholder = 'DD MMM YYYY', max }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(new Date()); 
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (value && !isNaN(new Date(value).getTime())) {
+      setViewDate(new Date(value));
+    }
+  }, [value, isOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => { 
+      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false); 
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleDateClick = (day) => {
+    const selected = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+    const year = selected.getFullYear();
+    const month = String(selected.getMonth() + 1).padStart(2, '0');
+    const d = String(selected.getDate()).padStart(2, '0');
+    onChange(`${year}-${month}-${d}`);
+    setIsOpen(false);
+  };
+
+  const changeMonthDropdown = (monthIndex) => setViewDate(new Date(viewDate.getFullYear(), parseInt(monthIndex), 1));
+  const changeYear = (year) => setViewDate(new Date(parseInt(year), viewDate.getMonth(), 1));
+
+  const renderCalendar = () => {
+    const totalDays = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+    const startDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+    const days = [];
+
+    for (let i = 0; i < startDay; i++) days.push(<div key={`empty-${i}`} className="h-8 w-8" />);
+    for (let i = 1; i <= totalDays; i++) {
+      const currentDayDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), i);
+      const isFuture = max && currentDayDate > new Date(max);
+      const isSelected = value && new Date(value).getDate() === i && 
+                        new Date(value).getMonth() === viewDate.getMonth() && 
+                        new Date(value).getFullYear() === viewDate.getFullYear();
+      days.push(
+        <button key={i} type="button" onClick={() => !isFuture && handleDateClick(i)} disabled={isFuture}
+          className={`h-8 w-8 flex items-center justify-center rounded-full text-sm font-medium transition-all 
+            ${isSelected ? 'bg-blue-600 text-white shadow-md' : 'text-slate-700 hover:bg-slate-100'} 
+            ${isFuture ? 'text-slate-300 cursor-not-allowed hover:bg-transparent' : ''}`}
+        >{i}</button>
+      );
+    }
+    return days;
+  };
+
+  const formatDisplayValue = (isoDate) => {
+    if (!isoDate) return '';
+    const d = new Date(isoDate);
+    return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
+  const years = [];
+  for (let y = new Date().getFullYear(); y >= 1900; y--) years.push(y);
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  return (
+    <div className="space-y-1 relative" ref={containerRef}>
+      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">{label}</label>
+      <button type="button" onClick={() => setIsOpen(!isOpen)}
+        className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-left flex justify-between items-center 
+          ${error ? 'border-red-600 bg-red-50' : 'border-slate-300 bg-slate-50 focus:border-blue-600 focus:bg-white'}`}
+      >
+        <span className={!value ? 'text-slate-500' : 'text-slate-900'}>
+          {value ? formatDisplayValue(value) : placeholder}
+        </span>
+        <span className="text-slate-400 text-lg">📅</span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 animate-fade-in-up left-0 md:left-auto">
+          <div className="flex justify-between items-center mb-4 gap-2">
+             <div className="w-1/2">
+               <CustomSelect value={months[viewDate.getMonth()]} options={months} onChange={(m) => changeMonthDropdown(months.indexOf(m))} />
+             </div>
+             <div className="w-1/2">
+               <CustomSelect value={String(viewDate.getFullYear())} options={years.map(y => String(y))} onChange={(y) => changeYear(y)} />
+             </div>
+          </div>
+          <div className="grid grid-cols-7 text-center mb-2">
+            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => <span key={d} className="text-[10px] font-bold text-slate-400 uppercase">{d}</span>)}
+          </div>
+          <div className="grid grid-cols-7 gap-1 place-items-center">{renderCalendar()}</div>
+        </div>
+      )}
+      {error && <p className="text-red-600 text-xs font-bold mt-1">{error}</p>}
+    </div>
+  );
+};
 
 export default KYCPage;
