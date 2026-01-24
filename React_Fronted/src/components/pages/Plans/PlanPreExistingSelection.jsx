@@ -391,7 +391,7 @@ const PlanPreExistingSelection = () => {
             )}
           </div>
 
-          {/* Skeleton layer: fades/scales in while loading, positioned over content to avoid layout shift */}
+          {/* Loading */}
           <div
             aria-hidden={!isPlansLoading}
             className={`absolute inset-0 transition-opacity transition-transform duration-300 ease-out flex items-center justify-center ${isPlansLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
