@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import CheckoutStepper from '../layout/CheckoutStepper';
 import { submitKYC } from '../../utils/api';
@@ -44,7 +44,15 @@ const KYCPage = () => {
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  
+  const membersRef = useRef(null);
 
+  const scrollToMembers = () => {
+    if (membersRef.current) {
+      membersRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollBy(0, -80);
+    }
+  };
   // Initialize Members based on Plan Selection
   useEffect(() => {
     if (planData.counts) {
@@ -279,32 +287,37 @@ const KYCPage = () => {
 
       <div className="max-w-5xl mx-auto px-4 -mt-16 relative z-10 space-y-8 animate-slide-up">
 
-        {/* Age Mismatch Alert */}
-        {validateAgeChanges.hasMismatch && (
-          <div className="bg-white rounded-2xl shadow-xl border-l-4 border-amber-500 overflow-hidden animate-shake">
-            <div className="p-5">
-              <div className="flex items-start gap-4">
-                <div className="bg-amber-100 p-2 rounded-full text-xl">⚠️</div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-amber-800 text-sm uppercase tracking-wide mb-2">Age Adjustment Detected</h3>
-                  <div className="space-y-1">
-                    {validateAgeChanges.messages.map((msg, idx) => (
-                      <p key={idx} className="text-xs text-slate-600 font-medium bg-amber-50 p-2 rounded border border-amber-100">
-                        {msg}
-                      </p>
-                    ))}
-                  </div>
-                  {planData.totalPremium && (
-                    <div className="mt-3 flex items-center gap-2">
-                      <span className="text-xs text-slate-500 font-bold uppercase">New Premium:</span>
-                      <span className="text-lg font-black text-blue-600">₹{planData.totalPremium.toLocaleString('en-IN')}</span>
-                    </div>
-                  )}
+        {/* Age Mismatch Alert (updated design) */}
+        {validateAgeChanges.hasMismatch && (() => {
+          const firstMsg = validateAgeChanges.messages[0] || '';
+          const namePart = firstMsg.includes(':') ? firstMsg.split(':')[0] : 'Member';
+          const rest = firstMsg.includes(':') ? firstMsg.split(':')[1].trim() : firstMsg;
+
+          return (
+            <div className="flex flex-col gap-4 rounded-xl border border-yellow-300 bg-yellow-50 p-5 md:flex-row md:items-center md:justify-between animate-shake">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-100">
+                  <span className="text-yellow-600 text-lg">⚠️</span>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold text-yellow-800">Age Adjustment Detected</h4>
+                  <p className="mt-1 text-sm text-yellow-700 leading-relaxed">
+                    <span className="font-medium">{namePart}</span>: {rest}
+                  </p>
+                  {validateAgeChanges.messages.slice(1).map((m, i) => (
+                    <p key={i} className="mt-1 text-xs text-yellow-700">{m}</p>
+                  ))}
+                  <p className="mt-1 text-xs text-yellow-600">Please update member DOBs in the Members section to continue.</p>
                 </div>
               </div>
+
+              <div className="flex gap-3 md:ml-6">
+                <button onClick={() => navigate('/plans')} className="rounded-lg border border-blue-500 px-5 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition">Go to Members</button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* 1. Proposer Details */}
         <div className="bg-white rounded-3xl shadow-lg border border-slate-100 p-8">
@@ -438,8 +451,8 @@ const KYCPage = () => {
           
           <button 
             onClick={handleSubmit}
-            disabled={isSubmitting}
-            className={`group w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-black uppercase tracking-widest shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all relative overflow-hidden ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+            disabled={isSubmitting || validateAgeChanges.hasMismatch}
+            className={`group w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-black uppercase tracking-widest shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all relative overflow-hidden ${(isSubmitting || validateAgeChanges.hasMismatch) ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
             <span className="relative flex items-center justify-center gap-3">
