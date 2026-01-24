@@ -36,6 +36,15 @@ const PlanPreExistingSelection = () => {
     try { window.localStorage.setItem('planActiveTab', activeTab); } catch (e) { /* ignore */ }
   }, [activeTab]);
 
+  // Scoped plans loader: show the plans-area loader for exactly 2 seconds
+  const [isPlansLoading, setIsPlansLoading] = useState(true);
+  useEffect(() => {
+    // Show loader on mount, route entry/refresh and when active tab changes
+    setIsPlansLoading(true);
+    const timer = setTimeout(() => setIsPlansLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, [location.pathname, activeTab]);
+
   const normalizeAges = (value) => {
     if (Array.isArray(value)) return value;
     if (value !== undefined && value !== null && value !== '') return [value];
@@ -359,23 +368,71 @@ const PlanPreExistingSelection = () => {
           ))}
         </div>
 
-        <div className="min-h-[500px]">
-          {!customizationData ? (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {activeTab === 'neev' && <BasicPlan onSelectPlan={handlePlanSelection} />}
-              {activeTab === 'parivar' && <FamilyShieldPlan onSelectPlan={handlePlanSelection} memberCounts={prevData.counts} />}
-              {activeTab === 'varishtha' && <SeniorProtectPlan onSelectPlan={handlePlanSelection} />}
-              {activeTab === 'vishwa' && <UniversalCoverage onSelectPlan={handlePlanSelection} />}
+        <div className="min-h-[500px] relative">
+          {/* Content layer: plans or customization -> crossfades out when loading */}
+          <div
+            className={`absolute inset-0 transition-opacity transition-transform duration-300 ease-out will-change-opacity will-change-transform flex flex-col ${isPlansLoading ? 'opacity-0 -translate-y-2 scale-95 pointer-events-none' : 'opacity-100 translate-y-0 scale-100 pointer-events-auto'}`}
+          >
+            {!customizationData ? (
+              <div className="w-full">
+                {activeTab === 'neev' && <BasicPlan onSelectPlan={handlePlanSelection} />}
+                {activeTab === 'parivar' && <FamilyShieldPlan onSelectPlan={handlePlanSelection} memberCounts={prevData.counts} />}
+                {activeTab === 'varishtha' && <SeniorProtectPlan onSelectPlan={handlePlanSelection} />}
+                {activeTab === 'vishwa' && <UniversalCoverage onSelectPlan={handlePlanSelection} />}
+              </div>
+            ) : (
+              <div className="w-full">
+                <CustomizeHealthPage 
+                   initialData={customizationData}
+                   onProceed={handleProceedToReview}
+                   onBack={handleCloseCustomization}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Skeleton layer: fades/scales in while loading, positioned over content to avoid layout shift */}
+          <div
+            aria-hidden={!isPlansLoading}
+            className={`absolute inset-0 transition-opacity transition-transform duration-300 ease-out flex items-center justify-center ${isPlansLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+          >
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative w-16 h-16">
+                <div className="spinner-center absolute inset-0 flex items-center justify-center">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+                </div>
+                <div className="spinner-ring absolute inset-0">
+                  <div className="ring-dot dot-1" />
+                  <div className="ring-dot dot-2" />
+                  <div className="ring-dot dot-3" />
+                  <div className="ring-dot dot-4" />
+                  <div className="ring-dot dot-5" />
+                  <div className="ring-dot dot-6" />
+                  <div className="ring-dot dot-7" />
+                  <div className="ring-dot dot-8" />
+                </div>
+              </div>
+              <div className="text-sm font-medium text-slate-600">Loading plans...</div>
             </div>
-          ) : (
-            <div className="animate-in fade-in zoom-in duration-500">
-              <CustomizeHealthPage 
-                 initialData={customizationData}
-                 onProceed={handleProceedToReview}
-                 onBack={handleCloseCustomization}
-              />
-            </div>
-          )}
+
+            <style>{`
+              .spinner-ring { position: relative; width: 100%; height: 100%; transform-origin: center; animation: spin-rotate 900ms linear infinite; }
+              .ring-dot { position: absolute; width: 10%; height: 10%; background: transparent; }
+              .ring-dot::before { content: ''; display: block; width: 8px; height: 8px; background: #2563eb; border-radius: 50%; transform-origin: center; }
+              .ring-dot.dot-1 { left: 50%; top: 4%; transform: translate(-50%, 0); }
+              .ring-dot.dot-2 { right: 4%; top: 18%; }
+              .ring-dot.dot-3 { right: 4%; bottom: 18%; }
+              .ring-dot.dot-4 { left: 50%; bottom: 4%; transform: translate(-50%, 0); }
+              .ring-dot.dot-5 { left: 4%; bottom: 18%; }
+              .ring-dot.dot-6 { left: 4%; top: 18%; }
+              .ring-dot.dot-7 { left: 26%; top: 6%; }
+              .ring-dot.dot-8 { right: 26%; bottom: 6%; }
+
+              @keyframes spin-rotate { to { transform: rotate(360deg); } }
+              @keyframes pulse-scale { 0% { transform: scale(1); opacity: 1 } 50% { transform: scale(0.6); opacity: 0.5 } 100% { transform: scale(1); opacity: 1 } }
+              .spinner-center > div { animation: pulse-scale 900ms ease-in-out infinite; }
+            `}</style>
+          </div>
         </div>
       </div>
     </div>
