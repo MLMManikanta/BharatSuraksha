@@ -79,6 +79,41 @@ function Header() {
     return true;
   });
 
+  /* ---------------- GROUPED ROUTE ACTIVE CHECK ---------------- */
+  const planPaths = [
+    "/plans",
+    "/plan-details",
+    "/select-plan",
+    "/customize",
+    "/plan-review",
+    "/kyc",
+    "/medical",
+    "/bankinfo",
+    "/payment-frequency",
+    "/order-summary",
+    "/payment",
+    "/payment-success",
+  ];
+
+  const computeIsActive = (linkPath) => {
+    const path = location.pathname || "/";
+
+    if (linkPath === "/") {
+      return path === "/" || path === "/home";
+    }
+
+    if (linkPath === "/plans") {
+      return planPaths.some((p) => path === p || path.startsWith(p + "/") || path.startsWith(p));
+    }
+
+    if (linkPath.startsWith("/claims")) {
+      return path === "/claims" || path.startsWith("/claims");
+    }
+
+    // fallback to prefix match for other links
+    return path === linkPath || path.startsWith(linkPath + "/");
+  };
+
   /* ---------------- NAV LINK STYLE ---------------- */
   const getNavClass = ({ isActive }) =>
     `relative px-2 py-2 font-semibold transition
@@ -134,7 +169,7 @@ function Header() {
                   key={link.path}
                   to={link.path}
                   end={link.path === "/"}
-                  className={getNavClass}
+                  className={({ isActive }) => getNavClass({ isActive: computeIsActive(link.path) || isActive })}
                 >
                   {link.name}
                 </NavLink>
