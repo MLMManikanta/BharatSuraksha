@@ -179,6 +179,13 @@ const PlanSelect = ({
         const selected = opt.value === value;
         const active = idx === activeIdx;
 
+        // Focus/active state should visually match selected state (blue highlight)
+        const stateClass = selected
+          ? 'bg-blue-50 text-blue-700 font-semibold'
+          : active
+          ? 'bg-blue-50 text-blue-700'
+          : '';
+
         return (
           <li
             key={opt.value}
@@ -195,9 +202,9 @@ const PlanSelect = ({
             className={`
               px-4 py-3 text-sm
               flex items-center justify-between
-              ${locked ? "text-slate-400 cursor-not-allowed" : "cursor-pointer"}
-              ${selected ? "bg-blue-50 text-blue-700 font-semibold" : ""}
-              ${active ? "bg-slate-50" : ""}
+              ${locked ? 'text-slate-400 cursor-not-allowed' : 'cursor-pointer'}
+              ${stateClass}
+              ${active && !selected ? 'ring-1 ring-blue-50' : ''}
             `}
           >
             <span className="truncate">{opt.label}</span>
