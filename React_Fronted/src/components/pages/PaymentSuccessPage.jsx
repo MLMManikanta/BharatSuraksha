@@ -10,7 +10,7 @@ const PaymentSuccessPage = () => {
   const planData = location.state || {};
 
   // Extract Data
-  const txn = planData.paymentDetails?.transactionId || `TXN-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+  const transactionId = planData.paymentDetails?.transactionId || `TXN-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
   const method = planData.paymentDetails?.method || 'Card';
   const paidAt = planData.paymentDetails?.paidAt ? new Date(planData.paymentDetails.paidAt).toLocaleString() : new Date().toLocaleString();
   const amount = planData.finalPayableAmount || planData.price || 0;
@@ -51,8 +51,7 @@ const PaymentSuccessPage = () => {
     }
     try {
       if (planName) localStorage.setItem('latestPlanName', planName);
-      const txn = planData.paymentDetails?.transactionId;
-      if (txn) localStorage.setItem('latestTransactionId', txn);
+      if (transactionId) localStorage.setItem('latestTransactionId', transactionId);
     } catch (e) {
       console.warn('Failed to persist latest plan/txn to localStorage', e);
     }
@@ -64,7 +63,7 @@ const PaymentSuccessPage = () => {
       // If user is logged in but doesn't yet have policy attached, call backend to attach
       if (!user || user.policyNumber) return;
       try {
-        const payload = { policyNumber, planName, transactionId: planData.paymentDetails?.transactionId };
+        const payload = { policyNumber, planName, transactionId };
         const res = await api.post('/api/policies/activate', payload, { auth: true });
         if (mounted && res && res.user) {
           updateUser({
@@ -138,7 +137,7 @@ const PaymentSuccessPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
               <div className="space-y-1">
                 <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Transaction ID</p>
-                <p className="text-base font-bold text-gray-800 font-mono">{txn}</p>
+                <p className="text-base font-bold text-gray-800 font-mono">{transactionId}</p>
               </div>
               
               <div className="space-y-1">
@@ -190,13 +189,6 @@ const PaymentSuccessPage = () => {
             onClick={() => window.print()}
           >
             🖨️ Download Receipt
-          </button>
-
-          <button
-            onClick={() => navigate('/register', { state: { policyNumber, planName } })}
-            className="flex-1 py-4 px-6 bg-white border border-emerald-200 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-50 hover:border-emerald-300 transition-all shadow-sm"
-          >
-            Create Account
           </button>
           <button
             onClick={() => navigate('/claims/entitlement-dependents', { state: { policyNumber, planName, fromPayment: true } })}
