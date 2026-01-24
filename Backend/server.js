@@ -30,6 +30,14 @@ const initializeDBAndServer = async () => {
     // Hard check
     await client.db("admin").command({ ping: 1 });
 
+    // Ensure users collection has an index on `name` for future queries/admin use
+    try {
+      await client.db("AuthDB").collection("users").createIndex({ name: 1 });
+    } catch (idxErr) {
+      // Index creation shouldn't block server start
+      console.warn("Could not create name index:", idxErr.message);
+    }
+
     console.log("✅ MongoDB connected successfully");
 
     app.listen(PORT, () => {
@@ -65,10 +73,16 @@ const authenticateToken = (req, res, next) => {
 /* -------------------- REGISTER -------------------- */
 app.post("/register", async (req, res) => {
   try {
-    const { email, password, mobile } = req.body;
+
+    const { email, password, mobile, name } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    // Name validation for new users
+    if (!name || typeof name !== "string" || name.trim().length < 2 || name.trim().length > 50) {
+      return res.status(400).json({ error: "Name is required and must be 2-50 characters" });
     }
 
     const collection = client.db("AuthDB").collection("users");
@@ -80,7 +94,9 @@ app.post("/register", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
+
     const result = await collection.insertOne({
+      name: name.trim(),
       email,
       mobile,
       password: hashedPassword,
@@ -120,11 +136,17 @@ app.post("/login", async (req, res) => {
       { expiresIn: "1d" }
     );
 
+    // Provide name in response; if missing for existing users, fallback to email prefix
+    const displayName = user.name && typeof user.name === "string" && user.name.trim().length > 0
+      ? user.name
+      : (user.email ? user.email.split("@")[0] : "User");
+
     res.json({
       message: "Login Successful",
       jwtToken: token,
       userId: user._id,
       userData: {
+        name: displayName,
         email: user.email,
         mobile: user.mobile,
       },

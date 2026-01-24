@@ -12,7 +12,7 @@ const NAV_LINKS = [
 ];
 
 function Header() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,6 +23,8 @@ function Header() {
   const lastScrollY = useRef(0);
   const mobileMenuRef = useRef(null);
   const menuButtonRef = useRef(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
 
   /* ---------------- SCROLL LOGIC ---------------- */
   useEffect(() => {
@@ -57,6 +59,7 @@ function Header() {
   /* ---------------- CLOSE MENU ON ROUTE CHANGE ---------------- */
   useEffect(() => {
     if (menuOpen) setMenuOpen(false);
+    if (profileOpen) setProfileOpen(false);
   }, [location]);
 
   /* ---------------- BODY SCROLL LOCK ---------------- */
@@ -140,25 +143,46 @@ function Header() {
 
             {/* DESKTOP ACTIONS */}
             <div className="hidden md:flex items-center gap-3">
-              {isAuthenticated ? (
-                <button
-                  onClick={logout}
-                  className="px-5 py-2 rounded-xl border border-[#1A5EDB]
-                             text-[#1A5EDB] font-semibold
-                             hover:bg-[#1A5EDB] hover:text-white transition"
-                >
-                  Logout
-                </button>
-              ) : (
-                <Link
-                  to="/login"
-                  className="px-5 py-2 rounded-xl border border-[#1A5EDB]
-                             text-[#1A5EDB] font-semibold
-                             hover:bg-[#1A5EDB] hover:text-white transition"
-                >
-                  Login
-                </Link>
-              )}
+                {isAuthenticated ? (
+                  <div className="relative" ref={profileRef}>
+                    <button
+                      onClick={() => setProfileOpen((s) => !s)}
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl border border-transparent hover:border-slate-200 transition"
+                    >
+                      <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                        {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                      </div>
+                      <div className="hidden lg:flex flex-col items-start">
+                        <span className="text-sm font-semibold truncate max-w-[160px]">{user?.name || user?.email?.split("@")[0] || "User"}</span>
+                        <span className="text-xs text-slate-500">Account</span>
+                      </div>
+                    </button>
+
+                    {profileOpen && (
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 p-3 z-50">
+                        <div className="pb-3 border-b border-slate-100 mb-3">
+                          <div className="text-sm font-bold">{user?.name || user?.email?.split("@")[0] || "User"}</div>
+                          {user?.email && <div className="text-xs text-slate-500 truncate">{user.email}</div>}
+                        </div>
+                        <button
+                          onClick={() => { logout(); setProfileOpen(false); }}
+                          className="w-full text-left py-2 px-2 rounded-lg hover:bg-slate-50 font-semibold text-[#1A5EDB]"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="px-5 py-2 rounded-xl border border-[#1A5EDB]
+                               text-[#1A5EDB] font-semibold
+                               hover:bg-[#1A5EDB] hover:text-white transition"
+                  >
+                    Login
+                  </Link>
+                )}
 
               {!isAuthenticated && (
                 <button

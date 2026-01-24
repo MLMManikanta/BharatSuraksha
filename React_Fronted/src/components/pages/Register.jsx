@@ -7,6 +7,7 @@ function Register() {
   const location = useLocation();
 
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     mobileNumber: "",
     password: "",
@@ -32,7 +33,16 @@ function Register() {
   setSuccess("");
 
   try {
+    // Basic client-side validation for name
+    const name = (formData.name || "").trim();
+    if (!name || name.length < 2 || name.length > 50) {
+      setError("Full Name is required (2-50 characters)");
+      setLoading(false);
+      return;
+    }
+
     const payload = {
+      name,
       email: formData.email.trim().toLowerCase(),
       password: formData.password,
       mobile: formData.mobileNumber.trim(),
@@ -112,6 +122,19 @@ function Register() {
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Full Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Your full name"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                  required
+                />
+
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mt-3">
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input
