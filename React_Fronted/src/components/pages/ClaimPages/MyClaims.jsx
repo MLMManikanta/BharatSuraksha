@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { api } from "../../../utils/api";
+import CustomSelect from "../../common/CustomSelect";
+import ClaimsTopLinks from "../../common/ClaimsTopLinks";
 
 const getDateOnly = (value) => {
   if (!value) return "";
@@ -156,28 +158,7 @@ const MyClaims = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-wrap items-center justify-end gap-4 text-sm">
-            <Link to="/utilities/e-card" className="flex items-center gap-2 text-blue-700 hover:text-blue-800 transition-colors">
-              <span aria-hidden>🎫</span>
-              <span>Download E-Card</span>
-            </Link>
-            <Link to="/utilities/hospitals" className="flex items-center gap-2 text-blue-700 hover:text-blue-800 transition-colors">
-              <span aria-hidden>🏥</span>
-              <span>Hospital List</span>
-            </Link>
-            <Link to="/utilities/justification-letter" className="flex items-center gap-2 text-blue-700 hover:text-blue-800 transition-colors">
-              <span aria-hidden>📄</span>
-              <span>Justification Letter</span>
-            </Link>
-            <Link to="/utilities/claim-instructions" className="flex items-center gap-2 text-blue-700 hover:text-blue-800 transition-colors">
-              <span aria-hidden>📘</span>
-              <span>Claim Instructions</span>
-            </Link>
-          </div>
-        </div>
-      </div>
+      <ClaimsTopLinks />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
@@ -243,18 +224,19 @@ const MyClaims = () => {
             </div>
             <div>
               <label htmlFor="status" className="block text-sm font-semibold text-slate-700 mb-2">Status</label>
-              <select
-                id="status"
+              <CustomSelect
                 value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 shadow-inner bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">All</option>
-                <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
+                onChange={(val) => setStatus(val)}
+                options={[
+                  { value: "", label: "All" },
+                  "Pending",
+                  "In Progress",
+                  "Completed",
+                  "Cancelled",
+                ]}
+                placeholder="All"
+                className="w-full rounded-lg border border-slate-300 px-4 py-3 shadow-inner bg-white"
+              />
             </div>
             <div className="flex items-end gap-3">
               <button
@@ -410,20 +392,16 @@ const MyClaims = () => {
             <div className="bg-white px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-2 text-sm text-slate-700">
                 <label htmlFor="rowsPerPage" className="font-semibold">Rows per page:</label>
-                <select
-                  id="rowsPerPage"
-                  value={rowsPerPage}
-                  onChange={(e) => {
-                    setRowsPerPage(Number(e.target.value));
+                <CustomSelect
+                  value={String(rowsPerPage)}
+                  onChange={(val) => {
+                    setRowsPerPage(Number(val));
                     setCurrentPage(1);
                   }}
-                  className="rounded-lg border border-slate-300 px-3 py-1 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                </select>
+                  options={[5, 10, 20, 50]}
+                  placeholder={String(rowsPerPage)}
+                  className="rounded-lg border border-slate-300 px-3 py-1 bg-white"
+                />
               </div>
 
               <div className="flex items-center gap-4 text-sm text-slate-700">
