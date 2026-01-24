@@ -16,7 +16,23 @@ const PlanPreExistingSelection = () => {
   // 1. RECEIVE DATA & PERSISTENT TAB STATE
   // If we came back from a review page, check if a specific tab was requested
   const prevData = location.state || {}; 
-  const [activeTab, setActiveTab] = useState(() => location.state?.activeTab || window.localStorage.getItem('planActiveTab') || 'parivar');
+
+  const computeDefaultTab = (state) => {
+    try {
+      const memberAges = (state && state.memberAges) || prevData.memberAges || {};
+      const raw = memberAges.self ?? (Array.isArray(memberAges?.self) ? memberAges.self[0] : undefined);
+      const age = parseInt(raw);
+      if (!Number.isNaN(age) && age >= 60) return 'varishtha';
+    } catch (e) { /* ignore */ }
+    return 'parivar';
+  };
+
+  const [activeTab, setActiveTab] = useState(() => {
+    if (location.state?.activeTab) return location.state.activeTab;
+    const stored = window.localStorage.getItem('planActiveTab');
+    if (stored) return stored;
+    return computeDefaultTab(location.state);
+  });
   const [customizationData, setCustomizationData] = useState(location.state?.customizationData || null); 
   const [skipRedirect, setSkipRedirect] = useState(false);
 
@@ -24,6 +40,9 @@ const PlanPreExistingSelection = () => {
   useEffect(() => {
     if (location.state?.activeTab) {
       setActiveTab(location.state.activeTab);
+    } else if (location.state) {
+      // If we navigated in with member data but no explicit activeTab, choose default based on age
+      setActiveTab(computeDefaultTab(location.state));
     }
     // If coming back from edit, restore customization data
     if (location.state?.customizationData) {
