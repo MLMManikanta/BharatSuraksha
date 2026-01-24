@@ -163,6 +163,26 @@ app.post('/api/bank', async (req, res) => {
     const saved = await BankInfo.create(payload);
 
     // Frontend expects `bankDetailsId` in data
+    // Also persist an Order record representing the Review Your Order / final order data
+    try {
+      const orderSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
+      const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
+
+      // Build order document from payload.planData if present, else store payload
+      const orderDoc = {
+        bankDetailsRef: saved._id,
+        bankDetailsSnapshot: payload,
+        planData: payload.planData || payload.orderData || null,
+        paymentDetails: payload.paymentDetails || null,
+        createdAt: new Date()
+      };
+
+      const orderSaved = await Order.create(orderDoc);
+      console.log('Order persisted with id:', orderSaved._id.toString());
+    } catch (ordErr) {
+      console.warn('Could not persist order record:', ordErr.message);
+    }
+
     res.status(200).json({ success: true, data: { bankDetailsId: saved._id } });
   } catch (err) {
     console.error('BANK SAVE ERROR:', err);
