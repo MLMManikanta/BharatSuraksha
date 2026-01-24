@@ -253,10 +253,7 @@ const handlePedKeyDown = (e) => {
         selectedChronic: chronicActive ? selectedChronic : [],
         estimatedPremium
       };
-
-      // Only include a `riders` payload when the user has explicitly selected riders/addons
-      // or chronic cover is active. This prevents misleading default/display-only values
-      // from being interpreted as real priced add-ons when no backend/pricing was provided.
+      
       if ((Array.isArray(activeRiders) && activeRiders.length > 0) || chronicActive) {
         payload.riders = {
           features: features.filter(f => f.active),

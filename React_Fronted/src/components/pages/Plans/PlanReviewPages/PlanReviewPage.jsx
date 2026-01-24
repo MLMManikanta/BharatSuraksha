@@ -33,6 +33,16 @@ const PlanReviewPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Keep `data` in sync with route state. Some navigations update `location.state`
+  // after the component mounts (or re-use the same route with different state).
+  // Syncing ensures VAJRA/custom builder content renders immediately without
+  // needing the user to toggle tabs.
+  useEffect(() => {
+    if (location && location.state) {
+      setData(location.state);
+    }
+  }, [location.state]);
+
   /**
    * 1. LIVE UPDATE HANDLER (Crucial for Builder Mode)
    * This function allows the child component (CustomizeHealthPage) to update
@@ -107,8 +117,26 @@ const PlanReviewPage = () => {
 
   // --- CONTENT RENDERER ---
   const renderReviewContent = () => {
-    // Safety Check
+    // Safety Check: If no plan data is present, show a helpful fallback.
+    // However, when navigation `location.state` indicates the user is trying
+    // to open the VAJRA custom builder, show a focused loading placeholder
+    // while the route state/data settles (this prevents the user needing to
+    // re-click tabs to load the VAJRA UI).
     if (!data || !data.selectedPlan) {
+      const incomingPlan = location?.state?.selectedPlan;
+      const isIncomingVajra = incomingPlan && (incomingPlan.isCustom || String(incomingPlan.name || '').toLowerCase().includes('vajra'));
+
+      if (isIncomingVajra) {
+        return (
+          <div className="flex items-center justify-center h-64 bg-white rounded-3xl shadow-lg border border-slate-100">
+            <div className="w-full max-w-md text-center p-6">
+              <LoadingSpinner message="Loading VAJRA configuration..." />
+              <p className="text-sm text-slate-500 mt-3">Preparing your custom builder — this should be quick.</p>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div className="flex flex-col items-center justify-center h-64 bg-white rounded-3xl shadow-lg border border-slate-100">
           <div className="text-4xl mb-4">⚠️</div>

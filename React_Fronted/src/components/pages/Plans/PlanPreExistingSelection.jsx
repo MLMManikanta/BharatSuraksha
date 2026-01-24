@@ -297,6 +297,9 @@ const PlanPreExistingSelection = () => {
         isCustom: true 
       }
     });
+    // When user explicitly activates the VAJRA tab, avoid the generic
+    // 2s plans loading spinner so the builder renders immediately.
+    setIsPlansLoading(false);
   };
 
   const handleProceedToReview = (finalSelectionData) => {
