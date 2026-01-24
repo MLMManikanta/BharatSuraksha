@@ -137,7 +137,7 @@ function Header() {
       >
         {/* GLASS CONTAINER */}
         <div
-          className={`w-full max-w-7xl
+          className={`w-full max-w-6xl mx-auto
             backdrop-blur-xl bg-white/70
             border border-white/40
             rounded-2xl
