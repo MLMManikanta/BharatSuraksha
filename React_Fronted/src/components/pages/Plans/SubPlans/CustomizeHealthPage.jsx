@@ -197,11 +197,26 @@ const handlePedKeyDown = (e) => {
       }
     });
     
-    // Active riders cost (use processedRiders for correct smart_agg handling)
+    // Active riders cost (use processedRiders for correct smart_agg and PED handling)
     processedRiders.forEach(r => {
-      if (r.active) {
-        total += getVajraRiderCost(r.id, coverageKey, eldestAge, tenure);
+      if (!r.active) return;
+
+      // Determine effective rider id for pricing (handle variants)
+      let effectiveRiderId = r.id;
+
+      // Smart aggregate pricing depends on tenure (handled by getVajraRiderCost too,
+      // but we keep explicit mapping for clarity)
+      if (r.id === 'smart_agg') {
+        effectiveRiderId = tenure === 2 ? 'smart_agg_2y' : 'smart_agg_3y';
       }
+
+      // PED wait reduction uses selectedVariant on the rider ('2y' or '1y')
+      if (r.id === 'ped_wait') {
+        const v = r.selectedVariant || '1y';
+        effectiveRiderId = `ped_wait_${v.replace(/[^0-9a-z]/gi, '')}`; // e.g. ped_wait_2y
+      }
+
+      total += getVajraRiderCost(effectiveRiderId, coverageKey, eldestAge, tenure);
     });
     
     // Chronic conditions cost
