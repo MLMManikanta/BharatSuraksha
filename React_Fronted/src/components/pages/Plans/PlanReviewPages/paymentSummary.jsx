@@ -752,24 +752,39 @@ const PaymentSummary = ({ data }) => {
         'specific_wait': 'Specific Illness Wait Reduction'
       };
       
-      // Process selected riders
+      // Process selected riders (support merged rider objects with `selectedVariant`)
       const selectedRiders = riders.addons || riders.selectedRiders || [];
       if (Array.isArray(selectedRiders)) {
-        selectedRiders.forEach(rider => {
-          const riderId = typeof rider === 'string' ? rider : (rider.id || rider.name || '');
-          const normalizedRiderId = normalizeId(riderId);
-          
-          // Find matching VAJRA rider
-          const vajraRiderKey = Object.keys(VAJRA_RIDER_COSTS_BASE).find(k => 
-            normalizeId(k) === normalizedRiderId || 
-            k.toLowerCase().replace(/_/g, '') === normalizedRiderId.replace(/_/g, '')
-          );
-          
+        selectedRiders.forEach(raw => {
+          const riderObj = typeof raw === 'string' ? { id: raw } : raw || {};
+          const riderId = (riderObj.id || riderObj.name || '').toString();
+
+          // If the rider object carries a selectedVariant (from builder), prefer that to determine concrete VAJRA key
+          let concreteKey = '';
+          if (riderObj.selectedVariant) {
+            const v = riderObj.selectedVariant.toString();
+            if (riderId === 'smart_agg') concreteKey = `smart_agg_${v}`;
+            else if (riderId === 'ped_wait') concreteKey = `ped_wait_${v}`;
+          }
+
+          // If no concreteKey from variant, attempt to match directly against VAJRA keys
+          let vajraRiderKey = '';
+          if (concreteKey && VAJRA_RIDER_COSTS_BASE[concreteKey]) {
+            vajraRiderKey = concreteKey;
+          } else {
+            const normalizedRiderId = normalizeId(riderId);
+            vajraRiderKey = Object.keys(VAJRA_RIDER_COSTS_BASE).find(k => 
+              normalizeId(k) === normalizedRiderId || 
+              k.toLowerCase().replace(/_/g, '') === normalizedRiderId.replace(/_/g, '')
+            ) || '';
+          }
+
           if (vajraRiderKey) {
             const cost = getVajraRiderCost(vajraRiderKey, coverageKey, eldestMemberAge, tenure);
             riderCost += cost;
             const label = vajraRiderLabels[vajraRiderKey] || vajraRiderKey;
             explanationLines.push(`${label}: +₹${cost.toLocaleString('en-IN')}`);
+            riderLineItems.push({ label, amount: cost });
           }
         });
       }
@@ -783,6 +798,7 @@ const PaymentSummary = ({ data }) => {
             riderCost += cost;
             const condLabel = condId.charAt(0).toUpperCase() + condId.slice(1).replace(/_/g, ' ');
             explanationLines.push(`Chronic Care (${condLabel}): +₹${cost.toLocaleString('en-IN')}`);
+            riderLineItems.push({ label: `Chronic Care (${condLabel})`, amount: cost });
           }
         });
       }
@@ -906,9 +922,11 @@ const PaymentSummary = ({ data }) => {
             const totalAirCost = baseRiderCost * memberCount;
             riderCost += totalAirCost;
             explanationLines.push(`${RIDER_COSTS[rKey].label}: +₹${baseRiderCost.toLocaleString('en-IN')} × ${memberCount} = +₹${totalAirCost.toLocaleString('en-IN')}`);
+            riderLineItems.push({ label: RIDER_COSTS[rKey].label, amount: totalAirCost });
           } else {
             riderCost += baseRiderCost;
             explanationLines.push(`${RIDER_COSTS[rKey].label}: +₹${baseRiderCost}`);
+            riderLineItems.push({ label: RIDER_COSTS[rKey].label, amount: baseRiderCost });
           }
         }
       }

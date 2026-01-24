@@ -34,30 +34,46 @@ const CustomizeReviewHealthPage = ({ selectionData, onConfirm, onEdit }) => {
     selectedChronic = [],
   } = selectionData;
 
-  // Handle riders in both array and object format
-  // Object format: { features, selectedRiders, addons, chronicConditions }
-  // Array format: [{ id, label, active, ... }, ...]
-  let processedRiders = [];
-  if (Array.isArray(ridersData)) {
-    processedRiders = ridersData;
-  } else if (ridersData && typeof ridersData === 'object') {
-    // Object format - combine selectedRiders/addons
-    const combined = [
-      ...(ridersData.selectedRiders || []),
-      ...(ridersData.addons || [])
-    ];
-    // Remove duplicates by id
-    const seenIds = new Set();
-    processedRiders = combined.filter(r => {
-      const id = r?.id;
-      if (!id || seenIds.has(id)) return false;
-      seenIds.add(id);
-      return true;
-    });
-  }
+   // Normalize riders in both array and object formats so rendering is consistent
+   // Supported shapes: string ids, { id, label, active, desc, icon }, or object bundles { selectedRiders, addons }
+   const normalizeRider = (raw) => {
+      if (!raw && raw !== 0) return null;
+      if (typeof raw === 'string') {
+         const id = raw;
+         const label = String(raw).replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+         return { id, label, desc: '', active: true, icon: null };
+      }
+      const id = raw.id || raw.name || raw.label || '';
+      const label = raw.label || raw.name || raw.id || '';
+      const desc = raw.desc || raw.description || '';
+      const active = (raw.active !== false) && (raw.selected !== false);
+      const icon = raw.icon || null;
+      if (!id && !label) return null;
+      return { id: String(id), label: label || String(id), desc, active, icon };
+   };
 
-  const activeFeatures = features.filter((f) => f.active);
-  const activeRiders = processedRiders.filter((r) => r.active !== false);
+   let rawRiders = [];
+   if (Array.isArray(ridersData)) rawRiders = ridersData;
+   else if (ridersData && typeof ridersData === 'object') rawRiders = [
+      ...(ridersData.selectedRiders || []),
+      ...(ridersData.addons || []),
+      ...(ridersData.selectedFeatures || [])
+   ];
+
+   // Normalize and dedupe by id (preserve first occurrence)
+   const seen = new Set();
+   const processedRiders = rawRiders
+      .map(normalizeRider)
+      .filter(r => r && r.id)
+      .filter(r => {
+         const nid = String(r.id).toLowerCase();
+         if (seen.has(nid)) return false;
+         seen.add(nid);
+         return true;
+      });
+
+   const activeFeatures = features.filter((f) => f && f.active !== false);
+   const activeRiders = processedRiders.filter((r) => r && r.active !== false);
 
   return (
     <main className="w-full font-sans animate-fade-in-up">
@@ -160,23 +176,60 @@ const CustomizeReviewHealthPage = ({ selectionData, onConfirm, onEdit }) => {
               <article>
                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Active Add-ons</h3>
                  <div className="bg-teal-50/50 rounded-2xl p-1 border border-teal-100">
-                    {activeRiders.length > 0 ? (
-                       <div className="divide-y divide-teal-100/50">
-                          {activeRiders.map(r => (
-                             <div key={r.id} className="flex items-center gap-3 p-3">
-                                <span className="text-lg">{r.icon}</span>
-                                <div>
-                                   <p className="text-[11px] font-black text-teal-900 uppercase leading-none">{r.label}</p>
-                                   <p className="text-[9px] font-bold text-teal-600/80 mt-0.5">{r.desc}</p>
-                                </div>
-                             </div>
-                          ))}
-                       </div>
-                    ) : (
-                       <div className="p-4 text-center">
-                          <span className="text-xs text-gray-400 font-medium italic">No riders selected</span>
-                       </div>
-                    )}
+                      {/* Show a curated list of premium riders and mark selected ones */}
+                      {(() => {
+                               const premiumRidersList = [
+                                  { id: 'unlimited_care', label: 'Unlimited Care Package', desc: 'Expanded coverages and limits for major events', icon: '🛡️' },
+                                  { id: 'inflation_shield', label: 'Inflation Shield', desc: 'Index-linked inflation protection for sum insured', icon: '📈' },
+                                  { id: 'tele_consult', label: 'Tele-Consultation', desc: 'Unlimited telemedicine consultations', icon: '📞' },
+                                  { id: 'smart_agg', label: 'Smart Aggregate', desc: 'Choose 2Y or 3Y aggregate option', icon: '🔁' },
+                                  { id: 'super_bonus', label: 'Super Bonus (7x)', desc: 'Additional sum insured on claim-free years', icon: '⭐' },
+                                  { id: 'maternity_boost', label: 'Maternity Booster', desc: 'Up to 10% (max ₹5,00,000), min 2 year waiting', icon: '🤰' },
+                                  { id: 'ped_wait', label: 'PED Wait Reduction', desc: 'Reduce PED waiting period (3y → 2y / 1y)', icon: '⏳' },
+                                  { id: 'specific_wait', label: 'Specific Disease Wait Reduction', desc: 'Reduce waiting for listed illnesses', icon: '⚕️' }
+                               ];
+
+                               const normalize = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                               // Build selected set considering variants
+                               const selectedIds = new Set();
+                               (processedRiders || []).forEach(r => {
+                                  if (!r) return;
+                                  if (r.id === 'smart_agg' && r.selectedVariant) selectedIds.add(normalize('smart_agg:' + r.selectedVariant));
+                                  else if (r.id === 'ped_wait' && r.selectedVariant) selectedIds.add(normalize('ped_wait:' + r.selectedVariant));
+                                  else selectedIds.add(normalize(r.id));
+                               });
+
+                               return (
+                                  <div className="divide-y divide-teal-100/50">
+                                     {premiumRidersList.map(p => {
+                                        // Compute selected badge text for merged riders
+                                        let badge = null;
+                                        if (p.id === 'smart_agg') {
+                                           const r = (processedRiders || []).find(x => x.id === 'smart_agg');
+                                           if (r && r.active) badge = r.selectedVariant === '2y' ? '2Y' : (r.selectedVariant === '3y' ? '3Y' : 'Selected');
+                                        }
+                                        if (p.id === 'ped_wait') {
+                                           const r = (processedRiders || []).find(x => x.id === 'ped_wait');
+                                           if (r && r.active) badge = r.selectedVariant === '2y' ? '3→2y' : (r.selectedVariant === '1y' ? '3→1y' : 'Selected');
+                                        }
+
+                                        const isSelected = selectedIds.has(normalize(p.id)) || !!badge;
+                                        return (
+                                           <div key={p.id} className="flex items-center gap-3 p-3">
+                                                <span className="text-lg">{p.icon}</span>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center justify-between">
+                                                       <p className="text-[11px] font-black text-teal-900 uppercase leading-none">{p.label}</p>
+                                                       {badge ? <span className="text-[10px] font-bold text-white bg-teal-600 px-2 py-0.5 rounded-full">{badge}</span> : isSelected && <span className="text-[10px] font-bold text-white bg-teal-600 px-2 py-0.5 rounded-full">Selected</span>}
+                                                    </div>
+                                                    <p className="text-[9px] font-bold text-teal-600/80 mt-0.5">{p.desc}</p>
+                                                </div>
+                                           </div>
+                                        );
+                                     })}
+                                  </div>
+                               );
+                      })()}
                  </div>
               </article>
            </div>

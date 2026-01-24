@@ -16,7 +16,7 @@ const PlanPreExistingSelection = () => {
   // 1. RECEIVE DATA & PERSISTENT TAB STATE
   // If we came back from a review page, check if a specific tab was requested
   const prevData = location.state || {}; 
-  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'parivar');
+  const [activeTab, setActiveTab] = useState(() => location.state?.activeTab || window.localStorage.getItem('planActiveTab') || 'parivar');
   const [customizationData, setCustomizationData] = useState(location.state?.customizationData || null); 
   const [skipRedirect, setSkipRedirect] = useState(false);
 
@@ -30,6 +30,11 @@ const PlanPreExistingSelection = () => {
       setCustomizationData(location.state.customizationData);
     }
   }, [location.state]);
+
+  // Persist activeTab so a page refresh keeps the same tab
+  useEffect(() => {
+    try { window.localStorage.setItem('planActiveTab', activeTab); } catch (e) { /* ignore */ }
+  }, [activeTab]);
 
   const normalizeAges = (value) => {
     if (Array.isArray(value)) return value;

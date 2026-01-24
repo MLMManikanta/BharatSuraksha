@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   VAJRA_FEATURE_COSTS_BASE,
   VAJRA_RIDER_COSTS_BASE,
@@ -48,15 +48,16 @@ const CustomizeHealthPage = ({ initialData, onProceed, onChange }) => {
     { id: 'no_sublimit', label: 'No Sublimits', icon: '🔓', active: true, isLocked: true },
   ];
 
+  // Merged riders: smart_agg and ped_wait support variant selection
   const defaultRiders = [
     { id: 'unlimited_care', label: 'Unlimited Care', desc: 'Once in a lifetime benefit cover.', icon: '♾️', active: false },
     { id: 'inflation_shield', label: 'Inflation Shield', desc: 'SI increases annually matching inflation.', icon: '📈', active: false },
     { id: 'tele_consult', label: 'Tele-Consultation', desc: 'Unlimited online doctor consults 24/7', icon: '📱', active: false },
-    { id: 'smart_agg', label: 'Smart Aggregate', desc: 'Unlock total tenure cover in 1st Year', icon: '📅', active: false },
-    { id: 'super_bonus', label: 'Super Bonus', desc: '7x Coverage irrespective of claims', icon: '🚀', active: false },
-    { id: 'ped_wait', label: 'PED Wait Reduction', desc: 'Reduce Pre-existing disease wait to 1 Yr', icon: '📉', active: false },
-    { id: 'specific_wait', label: 'Specific Disease Wait', desc: 'Modify waiting period for listed illnesses', icon: '📋', active: false },
-    { id: 'maternity_boost', label: 'Maternity Booster', desc: 'Up to ₹3L Worldwide Limit', icon: '🤰', active: false, waitOption: 2 },
+    { id: 'smart_agg', label: 'Smart Aggregate', desc: 'Aggregate benefit (choose 2Y or 3Y)', icon: '🔁', active: false, selectedVariant: '3y' },
+    { id: 'super_bonus', label: 'Super Bonus (7x)', desc: 'Additional sum insured on claim-free years', icon: '🚀', active: false },
+    { id: 'ped_wait', label: 'PED Wait Reduction', desc: 'Reduce PED waiting period (choose reduction)', icon: '⏳', active: false, selectedVariant: '1y' },
+    { id: 'specific_wait', label: 'Specific Disease Wait', desc: 'Reduce waiting period for specific illnesses', icon: '⚕️', active: false },
+    { id: 'maternity_boost', label: 'Maternity Booster', desc: 'Up to 10% (max ₹5,00,000), min 2 year waiting', icon: '🤰', active: false, waitOption: 2 },
   ];
 
   const getInitialSliderIndex = () => {
@@ -96,21 +97,79 @@ const CustomizeHealthPage = ({ initialData, onProceed, onChange }) => {
 
   // Auto-enable/disable smart_agg rider based on tenure using useMemo
   // This avoids the cascading render issue from setState in useEffect
- const processedRiders = useMemo(() => {
+const processedRiders = useMemo(() => {
   // Ensure riders is always an array
   if (!Array.isArray(riders)) return [];
 
   return riders.map(r => {
-    if (r.id === 'smart_agg') {
-      // Disable smart_agg if tenure is 1
-      return {
-        ...r,
-        active: tenure > 1 ? r.active : false
-      };
+    // Disable smart_agg if tenure is 1
+    if (String(r.id || '').toLowerCase() === 'smart_agg') {
+      return { ...r, active: tenure > 1 ? r.active : false };
     }
     return r;
   });
 }, [riders, tenure]);
+
+// Ensure smart_agg variant respects tenure changes (coerce/deselect invalid options)
+useEffect(() => {
+  setRiders(prev => prev.map(r => {
+    if (r.id !== 'smart_agg') return r;
+    // Disable entirely on tenure 1
+    if (tenure === 1) return { ...r, active: false, selectedVariant: r.selectedVariant === '3y' ? '2y' : r.selectedVariant };
+    // If tenure is 2 and variant was 3y, coerce to 2y
+    if (tenure === 2 && r.selectedVariant === '3y') return { ...r, selectedVariant: '2y' };
+    return r;
+  }));
+}, [tenure]);
+
+// PED reduction listbox options and presentational state
+const PED_OPTIONS = [
+  { value: 'none', label: 'None' },
+  { value: '2y', label: '3y → 2y' },
+  { value: '1y', label: '3y → 1y' }
+];
+const [pedOpen, setPedOpen] = useState(false);
+const [pedFocusIndex, setPedFocusIndex] = useState(-1);
+const pedRef = useRef(null);
+
+// Close PED listbox on outside click
+useEffect(() => {
+  const onDocClick = (e) => {
+    if (pedRef.current && !pedRef.current.contains(e.target)) {
+      setPedOpen(false);
+      setPedFocusIndex(-1);
+    }
+  };
+  document.addEventListener('mousedown', onDocClick);
+  return () => document.removeEventListener('mousedown', onDocClick);
+}, []);
+
+// Keyboard navigation for PED listbox
+const handlePedKeyDown = (e) => {
+  const opts = PED_OPTIONS;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    setPedOpen(true);
+    setPedFocusIndex((i) => Math.min(i + 1, opts.length - 1));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    setPedOpen(true);
+    setPedFocusIndex((i) => Math.max(i - 1, 0));
+  } else if (e.key === 'Enter' || e.key === ' ') {
+    if (pedOpen && pedFocusIndex >= 0) {
+      const val = opts[pedFocusIndex].value;
+      setRiders(prev => prev.map(x => x.id === 'ped_wait' ? { ...x, selectedVariant: val, active: val !== 'none' } : x));
+      setPedOpen(false);
+      setPedFocusIndex(-1);
+    } else {
+      setPedOpen((o) => !o);
+    }
+    e.preventDefault();
+  } else if (e.key === 'Escape') {
+    setPedOpen(false);
+    setPedFocusIndex(-1);
+  }
+};
 
 
   // Calculate estimated premium using VAJRA pricing model
@@ -211,8 +270,25 @@ const CustomizeHealthPage = ({ initialData, onProceed, onChange }) => {
   }));
 
   const toggleRider = (id) => {
+    // Prevent enabling unlimited on unlimited base
     if (id === 'unlimited_care' && isBaseUnlimited) return;
-    setRiders(prev => prev.map(r => r.id === id ? { ...r, active: !r.active } : r));
+
+    setRiders(prev => prev.map(r => {
+      // Mutual exclusivity: Smart Aggregate options
+      if (String(id).toLowerCase().startsWith('smart_agg') && String(r.id).toLowerCase().startsWith('smart_agg')) {
+        // If clicking same id, toggle; otherwise turn off the other variant
+        if (r.id === id) return { ...r, active: !r.active };
+        return { ...r, active: false };
+      }
+
+      // Mutual exclusivity: PED wait options
+      if (String(id).toLowerCase().startsWith('ped_wait') && String(r.id).toLowerCase().startsWith('ped_wait')) {
+        if (r.id === id) return { ...r, active: !r.active };
+        return { ...r, active: false };
+      }
+
+      return r.id === id ? { ...r, active: !r.active } : r;
+    }));
   };
 
   return (
@@ -346,33 +422,130 @@ const CustomizeHealthPage = ({ initialData, onProceed, onChange }) => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {processedRiders.map(r => {
-                if (r.id === 'maternity_boost' && !isMaternityActive) return null;
-                const isDisabled = (r.id === 'unlimited_care' && isBaseUnlimited) || (r.id === 'smart_agg' && (tenure === 1 || isBaseUnlimited)) || (r.id === 'inflation_shield' && isBaseUnlimited);
-                
-                return (
-                  <button 
-                    key={r.id} 
-                    disabled={isDisabled} 
-                    onClick={() => toggleRider(r.id)} 
-                    className={`flex items-center p-4 rounded-2xl border transition-all text-left group ${
-                      isDisabled ? 'opacity-40 grayscale cursor-not-allowed border-gray-100' : 
-                      r.active ? 'border-teal-500 bg-teal-50/50 shadow-sm' : 
-                      'border-gray-200 bg-white hover:border-teal-300 hover:shadow-sm'
-                    }`}
-                  >
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mr-4 transition-colors ${r.active ? 'bg-teal-100' : 'bg-gray-50 group-hover:bg-teal-50'}`}>
-                      {r.icon}
-                    </div>
-                    <div>
-                      <h3 className={`font-bold text-xs uppercase tracking-wide mb-1 ${r.active ? 'text-teal-900' : 'text-gray-700'}`}>{r.label}</h3>
-                      <p className="text-[10px] text-gray-500 leading-tight font-medium">{r.desc}</p>
-                    </div>
-                    <div className={`ml-auto w-5 h-5 rounded-full border-2 flex items-center justify-center ${r.active ? 'border-teal-500 bg-teal-500' : 'border-gray-300'}`}>
-                      {r.active && <span className="text-white text-[10px]">✓</span>}
-                    </div>
-                  </button>
-                );
-              })}
+                    if (r.id === 'maternity_boost' && !isMaternityActive) return null;
+                    const isDisabled = (r.id === 'unlimited_care' && isBaseUnlimited) || (r.id === 'smart_agg' && (tenure === 1 || isBaseUnlimited)) || (r.id === 'inflation_shield' && isBaseUnlimited);
+
+                    // Special merged UI for Smart Aggregate
+                    if (r.id === 'smart_agg') {
+                      return (
+                        <div key={r.id} className={`flex items-center p-4 rounded-2xl border transition-all text-left ${isDisabled ? 'opacity-40 grayscale border-gray-100' : r.active ? 'border-teal-500 bg-teal-50/50' : 'border-gray-200 bg-white'}`}>
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mr-4 ${r.active ? 'bg-teal-100' : 'bg-gray-50'}`}>{r.icon}</div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className={`font-bold text-xs uppercase tracking-wide mb-1 ${r.active ? 'text-teal-900' : 'text-gray-700'}`}>{r.label}</h3>
+                                <p className="text-[10px] text-gray-500 leading-tight font-medium">{r.desc}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => toggleRider('smart_agg')} disabled={isDisabled} className={`px-3 py-1 rounded-full text-xs font-bold ${r.active ? 'bg-teal-600 text-white' : 'bg-white border'}`}>{r.active ? 'Enabled' : 'Add'}</button>
+                              </div>
+                            </div>
+                            <div className="mt-3 flex gap-2">
+                              <button onClick={() => setRiders(prev => prev.map(x => x.id === 'smart_agg' ? { ...x, selectedVariant: '2y', active: true } : x))} disabled={isDisabled || !r.active} className={`px-2 py-1 rounded-md text-xs ${r.selectedVariant === '2y' ? 'bg-blue-600 text-white' : 'bg-gray-50'}`}>2 Year</button>
+                              <button onClick={() => setRiders(prev => prev.map(x => x.id === 'smart_agg' ? { ...x, selectedVariant: '3y', active: true } : x))} disabled={isDisabled || !r.active || tenure === 2} className={`px-2 py-1 rounded-md text-xs ${r.selectedVariant === '3y' ? 'bg-blue-600 text-white' : 'bg-gray-50'} ${tenure === 2 ? 'opacity-50 cursor-not-allowed' : ''}`}>3 Year</button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Special merged UI for PED Wait Reduction
+                    if (r.id === 'ped_wait') {
+                      return (
+                        <div key={r.id} className={`flex items-center p-4 rounded-2xl border transition-all text-left ${isDisabled ? 'opacity-40 grayscale border-gray-100' : r.active ? 'border-teal-500 bg-teal-50/50' : 'border-gray-200 bg-white'}`}>
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mr-4 ${r.active ? 'bg-teal-100' : 'bg-gray-50'}`}>{r.icon}</div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className={`font-bold text-xs uppercase tracking-wide mb-1 ${r.active ? 'text-teal-900' : 'text-gray-700'}`}>{r.label}</h3>
+                                <p className="text-[10px] text-gray-500 leading-tight font-medium">{r.desc}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => toggleRider('ped_wait')} disabled={isDisabled} className={`px-3 py-1 rounded-full text-xs font-bold ${r.active ? 'bg-teal-600 text-white' : 'bg-white border'}`}>{r.active ? 'Enabled' : 'Add'}</button>
+                              </div>
+                            </div>
+                            <div className="mt-3 flex gap-2 items-center">
+                              <label className="text-[10px] text-gray-500">Reduction:</label>
+                              <div className="relative" ref={pedRef} onKeyDown={handlePedKeyDown}>
+                                <button
+                                  type="button"
+                                  aria-haspopup="listbox"
+                                  aria-expanded={pedOpen}
+                                  onClick={() => { setPedOpen(o => !o); setPedFocusIndex(-1); }}
+                                  disabled={isDisabled || !r.active}
+                                  className={`w-40 text-left pl-3 pr-8 py-2 rounded-md text-sm font-semibold transition duration-150 ${(!r.active || isDisabled) ? 'bg-gray-50 text-gray-400 border border-gray-100' : 'bg-white text-gray-800 border border-gray-200 hover:bg-gray-50'}`}
+                                >
+                                  <span className="flex items-center justify-between">
+                                    <span className="truncate">
+                                      {r.selectedVariant && r.selectedVariant !== 'none' ? PED_OPTIONS.find(o => o.value === r.selectedVariant)?.label : 'None'}
+                                    </span>
+                                    <svg className={`w-4 h-4 ml-2 transition-transform duration-150 ${pedOpen ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                  </span>
+                                </button>
+
+                                <div
+                                  role="listbox"
+                                  aria-label="PED reduction options"
+                                  tabIndex={-1}
+                                  className={`absolute z-40 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 ring-1 ring-black/5 py-1 max-h-44 overflow-auto focus:outline-none transition-all duration-150 transform origin-top-right ${pedOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'}`}
+                                >
+                                  {PED_OPTIONS.map((opt, idx) => {
+                                    const isSelected = opt.value === (r.selectedVariant || 'none');
+                                    const isFocused = idx === pedFocusIndex;
+                                    return (
+                                      <div
+                                        key={opt.value}
+                                        role="option"
+                                        aria-selected={isSelected}
+                                        onMouseEnter={() => setPedFocusIndex(idx)}
+                                        onMouseLeave={() => setPedFocusIndex(-1)}
+                                        onClick={() => { setRiders(prev => prev.map(x => x.id === 'ped_wait' ? { ...x, selectedVariant: opt.value, active: opt.value !== 'none' } : x)); setPedOpen(false); setPedFocusIndex(-1); }}
+                                        className={`flex items-center justify-between cursor-pointer px-3 py-2 text-sm transition-colors duration-150 ${isSelected ? 'bg-teal-50 text-teal-900 font-semibold' : 'text-gray-800 hover:bg-gray-50'} ${isFocused ? 'bg-gray-50' : ''}`}
+                                      >
+                                        <span className="truncate">{opt.label}</span>
+                                        {isSelected && (
+                                          <svg className="w-4 h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                                          </svg>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Default rendering for other riders
+                    return (
+                      <button 
+                        key={r.id} 
+                        disabled={isDisabled} 
+                        onClick={() => toggleRider(r.id)} 
+                        className={`flex items-center p-4 rounded-2xl border transition-all text-left group ${
+                          isDisabled ? 'opacity-40 grayscale cursor-not-allowed border-gray-100' : 
+                          r.active ? 'border-teal-500 bg-teal-50/50 shadow-sm' : 
+                          'border-gray-200 bg-white hover:border-teal-300 hover:shadow-sm'
+                        }`}
+                      >
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mr-4 transition-colors ${r.active ? 'bg-teal-100' : 'bg-gray-50 group-hover:bg-teal-50'}`}>
+                          {r.icon}
+                        </div>
+                        <div>
+                          <h3 className={`font-bold text-xs uppercase tracking-wide mb-1 ${r.active ? 'text-teal-900' : 'text-gray-700'}`}>{r.label}</h3>
+                          <p className="text-[10px] text-gray-500 leading-tight font-medium">{r.desc}</p>
+                        </div>
+                        <div className={`ml-auto w-5 h-5 rounded-full border-2 flex items-center justify-center ${r.active ? 'border-teal-500 bg-teal-500' : 'border-gray-300'}`}>
+                          {r.active && <span className="text-white text-[10px]">✓</span>}
+                        </div>
+                      </button>
+                    );
+                  })}
             </div>
           </section>
 
