@@ -561,7 +561,7 @@ const CustomSelect = ({ label, value, onChange, error, options, placeholder = "S
       <button
         type="button" onClick={() => setIsOpen(!isOpen)}
         className={`w-full px-4 py-3 rounded-xl border-2 outline-none transition-all font-semibold text-left flex justify-between items-center
-          ${error ? 'border-red-600 bg-red-50' : 'border-slate-300 bg-slate-50 focus:border-blue-600 focus:bg-white'}`}
+          ${error ? 'border-red-600 bg-red-50' : isOpen ? 'border-blue-800 bg-blue-800 text-white' : 'border-slate-300 bg-slate-50 focus:border-blue-600 focus:bg-white'}`}
       >
         <span className={!value ? 'text-slate-500' : 'text-slate-900'}>{value || placeholder}</span>
         <span className="text-slate-400 text-xs">▼</span>
@@ -584,7 +584,7 @@ const CustomSelect = ({ label, value, onChange, error, options, placeholder = "S
                           handleSelect(optValue);
                         }
                       }}
-                      className="text-sm cursor-pointer px-3 py-2 hover:bg-slate-100 focus:bg-blue-50 focus:text-blue-700 focus:outline-none"
+                      className="text-[18px] cursor-pointer px-3 py-2 hover:bg-blue-800 hover:text-white focus:bg-blue-800 focus:text-white focus:outline-none hover:rounded-lg focus:rounded-lg"
                     >
                       {optLabel}
                     </li>
@@ -677,7 +677,7 @@ const CustomDatePicker = ({ label, value, onChange, error, placeholder = 'DD MMM
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 animate-fade-in-up left-0 md:left-auto">
+        <div className="absolute z-50 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 animate-fade-in-up left-0 overflow-hidden">
           <div className="flex justify-between items-center mb-4 gap-2">
             <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
               className="px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
