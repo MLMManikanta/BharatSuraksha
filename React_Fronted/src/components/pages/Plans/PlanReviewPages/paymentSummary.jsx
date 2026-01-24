@@ -684,6 +684,8 @@ const PaymentSummary = ({ data }) => {
 
     let featureCost = 0;
     let riderCost = 0;
+    // For plans (Senior/Varishtha) we want to display selected riders as separate line items
+    const riderLineItems = [];
     
     // Get eldest member age for Vajra plan calculations (used for feature/rider age multipliers)
     const allAges = Object.values(memberAges).flat().filter(a => a);
@@ -789,29 +791,40 @@ const PaymentSummary = ({ data }) => {
     else if (isVarishthaPlan && riders && typeof riders === 'object' && !Array.isArray(riders)) {
       // Chronic Care Conditions - ₹4,032 per condition
       if (riders.chronicConditions && Array.isArray(riders.chronicConditions)) {
-        const chronicCost = riders.chronicConditions.length * VARISHTHA_RIDER_COSTS.chronicCare.perCondition;
-        if (chronicCost > 0) {
-          riderCost += chronicCost;
-          explanationLines.push(`Chronic Care (${riders.chronicConditions.length} conditions): +₹${chronicCost.toLocaleString('en-IN')}`);
+        const chronicCostVar = riders.chronicConditions.length * VARISHTHA_RIDER_COSTS.chronicCare.perCondition;
+        if (chronicCostVar > 0) {
+          riderCost += chronicCostVar;
+          const label = `Chronic Care (${riders.chronicConditions.length} conditions)`;
+          explanationLines.push(`${label}: +₹${chronicCostVar.toLocaleString('en-IN')}`);
+          riderLineItems.push({ label, amount: chronicCostVar });
         }
       }
       
       // PED Waiting Period Reduction - ₹3,387
       if (riders.pedCover) {
-        riderCost += VARISHTHA_RIDER_COSTS.pedReduction;
-        explanationLines.push(`PED Wait Reduction (3yr→1yr): +₹${VARISHTHA_RIDER_COSTS.pedReduction.toLocaleString('en-IN')}`);
+        const amt = VARISHTHA_RIDER_COSTS.pedReduction;
+        riderCost += amt;
+        const label = 'PED Wait Reduction (3yr→1yr)';
+        explanationLines.push(`${label}: +₹${amt.toLocaleString('en-IN')}`);
+        riderLineItems.push({ label, amount: amt });
       }
       
       // Specific Illness Reduction - ₹5,302
       if (riders.specificIllness) {
-        riderCost += VARISHTHA_RIDER_COSTS.specificIllnessReduction;
-        explanationLines.push(`Specific Illness Reduction: +₹${VARISHTHA_RIDER_COSTS.specificIllnessReduction.toLocaleString('en-IN')}`);
+        const amt = VARISHTHA_RIDER_COSTS.specificIllnessReduction;
+        riderCost += amt;
+        const label = 'Specific Illness Reduction';
+        explanationLines.push(`${label}: +₹${amt.toLocaleString('en-IN')}`);
+        riderLineItems.push({ label, amount: amt });
       }
       
       // Non-Medical Consumables - ₹996
       if (riders.consumables) {
-        riderCost += VARISHTHA_RIDER_COSTS.consumables;
-        explanationLines.push(`Non-Medical Consumables: +₹${VARISHTHA_RIDER_COSTS.consumables.toLocaleString('en-IN')}`);
+        const amt = VARISHTHA_RIDER_COSTS.consumables;
+        riderCost += amt;
+        const label = 'Non-Medical Consumables';
+        explanationLines.push(`${label}: +₹${amt.toLocaleString('en-IN')}`);
+        riderLineItems.push({ label, amount: amt });
       }
       
       // Co-pay Waiver
@@ -819,7 +832,9 @@ const PaymentSummary = ({ data }) => {
         const copayWaiverCost = VARISHTHA_RIDER_COSTS.copayWaiver[riders.copayLevel] || 0;
         if (copayWaiverCost > 0) {
           riderCost += copayWaiverCost;
-          explanationLines.push(`Co-pay Waiver (${riders.copayLevel}): +₹${copayWaiverCost.toLocaleString('en-IN')}`);
+          const label = `Co-pay Waiver (${riders.copayLevel})`;
+          explanationLines.push(`${label}: +₹${copayWaiverCost.toLocaleString('en-IN')}`);
+          riderLineItems.push({ label, amount: copayWaiverCost });
         }
       }
       
@@ -828,7 +843,9 @@ const PaymentSummary = ({ data }) => {
         const roomCost = VARISHTHA_RIDER_COSTS.roomRent[riders.roomUpgrade] || 0;
         if (roomCost > 0) {
           riderCost += roomCost;
-          explanationLines.push(`Room Upgrade (${riders.roomUpgrade}): +₹${roomCost.toLocaleString('en-IN')}`);
+          const label = `Room Upgrade (${riders.roomUpgrade})`;
+          explanationLines.push(`${label}: +₹${roomCost.toLocaleString('en-IN')}`);
+          riderLineItems.push({ label, amount: roomCost });
         }
       }
       
@@ -837,7 +854,9 @@ const PaymentSummary = ({ data }) => {
         const deductibleDiscount = VARISHTHA_RIDER_COSTS.deductible[riders.deductible] || 0;
         if (deductibleDiscount > 0) {
           riderCost -= deductibleDiscount; // Negative since it's a discount
-          explanationLines.push(`Voluntary Deductible (₹${riders.deductible === '1L' ? '1,00,000' : riders.deductible.replace('k', ',000')}): -₹${deductibleDiscount.toLocaleString('en-IN')}`);
+          const label = `Voluntary Deductible (₹${riders.deductible === '1L' ? '1,00,000' : riders.deductible.replace('k', ',000')})`;
+          explanationLines.push(`${label}: -₹${deductibleDiscount.toLocaleString('en-IN')}`);
+          riderLineItems.push({ label, amount: -deductibleDiscount });
         }
       }
     } else {
@@ -894,7 +913,7 @@ const PaymentSummary = ({ data }) => {
         }
       }
     });
-    } // End of else block for non-Varishtha/non-Vajra plans
+    } 
 
     let chronicCost = 0;
     // Use Vajra-specific chronic costs with age multipliers for Vajra plan
@@ -955,6 +974,7 @@ const PaymentSummary = ({ data }) => {
       featureCost,
       chronicCost,
       riderCost,
+      riderLineItems,
       totalOPDCost,
       opdRiderSelection,
       discountAmount,
@@ -972,7 +992,7 @@ const PaymentSummary = ({ data }) => {
   if (!data || !calculations) return null;
 
   const { 
-    totalBasePremium, memberBreakdown, featureCost, chronicCost, riderCost, totalOPDCost,
+    totalBasePremium, memberBreakdown, featureCost, chronicCost, riderCost, riderLineItems, totalOPDCost,
     discountAmount, gstAmount, totalPayable, planName, coverageDisplay 
   } = calculations;
 
@@ -1034,11 +1054,22 @@ const PaymentSummary = ({ data }) => {
           </div>
         )}
 
-        {riderCost > 0 && (
-          <div className="flex justify-between items-center">
-            <span className="text-purple-300 font-medium">Riders</span>
-            <span className="font-bold text-purple-300">₹{riderCost.toLocaleString('en-IN')}</span>
-          </div>
+        {Array.isArray(riderLineItems) && riderLineItems.length > 0 ? (
+          riderLineItems.map((r, idx) => (
+            <div key={idx} className="flex justify-between items-center">
+              <span className="text-purple-300 font-medium">{r.label}</span>
+              <span className={`font-bold ${r.amount < 0 ? 'text-green-400' : 'text-purple-300'}`}>
+                {r.amount < 0 ? '-' : ''}₹{Math.abs(r.amount).toLocaleString('en-IN')}
+              </span>
+            </div>
+          ))
+        ) : (
+          riderCost > 0 && (
+            <div className="flex justify-between items-center">
+              <span className="text-purple-300 font-medium">Riders</span>
+              <span className="font-bold text-purple-300">₹{riderCost.toLocaleString('en-IN')}</span>
+            </div>
+          )
         )}
 
         {discountAmount > 0 && (
