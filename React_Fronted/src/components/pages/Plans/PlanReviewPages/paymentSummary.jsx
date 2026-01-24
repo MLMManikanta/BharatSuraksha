@@ -880,8 +880,17 @@ const PaymentSummary = ({ data }) => {
         
         const rKey = Object.keys(RIDER_COSTS).find(k => normalizeId(k) === nId);
         if (rKey) {
-          riderCost += RIDER_COSTS[rKey].cost;
-          explanationLines.push(`${RIDER_COSTS[rKey].label}: +₹${RIDER_COSTS[rKey].cost}`);
+          const baseRiderCost = RIDER_COSTS[rKey].cost || 0;
+          // Air ambulance is charged per-head: multiply by number of members
+          if (rKey === 'air_ambulance') {
+            const memberCount = memberBreakdown.length || 1;
+            const totalAirCost = baseRiderCost * memberCount;
+            riderCost += totalAirCost;
+            explanationLines.push(`${RIDER_COSTS[rKey].label}: +₹${baseRiderCost.toLocaleString('en-IN')} × ${memberCount} = +₹${totalAirCost.toLocaleString('en-IN')}`);
+          } else {
+            riderCost += baseRiderCost;
+            explanationLines.push(`${RIDER_COSTS[rKey].label}: +₹${baseRiderCost}`);
+          }
         }
       }
     });
