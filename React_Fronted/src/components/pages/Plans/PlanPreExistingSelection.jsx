@@ -369,9 +369,9 @@ const PlanPreExistingSelection = () => {
         </div>
 
         <div className="min-h-[500px] relative">
-          {/* Content layer: plans or customization -> crossfades out when loading */}
+          {/* Content layer: plans or customization -> stays in flow so layout doesn't collapse */}
           <div
-            className={`absolute inset-0 transition-opacity transition-transform duration-300 ease-out will-change-opacity will-change-transform flex flex-col ${isPlansLoading ? 'opacity-0 -translate-y-2 scale-95 pointer-events-none' : 'opacity-100 translate-y-0 scale-100 pointer-events-auto'}`}
+            className={`relative w-full transition-opacity transition-transform duration-300 ease-out will-change-opacity will-change-transform flex flex-col ${isPlansLoading ? 'opacity-0 -translate-y-2 scale-95 pointer-events-none' : 'opacity-100 translate-y-0 scale-100 pointer-events-auto'}`}
           >
             {!customizationData ? (
               <div className="w-full">
