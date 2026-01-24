@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import bodyParser from "body-parser";
@@ -24,11 +25,23 @@ let client;
 /* -------------------- DB CONNECTION -------------------- */
 const initializeDBAndServer = async () => {
   try {
-    client = new MongoClient("mongodb://localhost:27017");
+    client = new MongoClient(process.env.MONGODB_URI || "mongodb://localhost:27017");
     await client.connect();
 
-    // Hard check
+    // Hard check for native driver
     await client.db("admin").command({ ping: 1 });
+
+    // Also connect Mongoose for schema/model usage (KYC storage)
+    try {
+      await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/BharatSurakshaDB", {
+        // mongoose 8+ doesn't require these, but safe defaults
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log("✅ Mongoose connected successfully");
+    } catch (mErr) {
+      console.warn("⚠️ Mongoose connection warning:", mErr.message);
+    }
 
     // Ensure users collection has an index on `name` for future queries/admin use
     try {
@@ -69,6 +82,29 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+/* -------------------- KYC MODEL + ROUTE -------------------- */
+// Flexible schema to accept arbitrary KYC JSON payloads; timestamps added
+const kycSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
+const Kyc = mongoose.models.Kyc || mongoose.model("Kyc", kycSchema);
+
+// Save incoming KYC JSON to DB
+app.post("/api/kyc", async (req, res) => {
+  try {
+    const payload = req.body;
+    if (!payload || Object.keys(payload).length === 0) {
+      return res.status(400).json({ error: "Empty payload" });
+    }
+
+    const saved = await Kyc.create(payload);
+
+    // Return the shape expected by the frontend: { success: true, data: { kycId } }
+    res.status(200).json({ success: true, data: { kycId: saved._id } });
+  } catch (err) {
+    console.error("KYC SAVE ERROR:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 /* -------------------- REGISTER -------------------- */
 app.post("/register", async (req, res) => {
