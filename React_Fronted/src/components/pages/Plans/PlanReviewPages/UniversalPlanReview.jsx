@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Vishwa Suraksha Maternity Cover Limits based on Sum Insured (from CSV)
@@ -67,6 +67,50 @@ const UniversalPlanReview = ({ data, onChange }) => {
       onChange({ opdRider: selectedOPD, selectedOPD: selectedOPD });
     }
   }, [selectedOPD, onChange]);
+
+  // --- Custom listbox state (local, purely presentational) ---
+  const [opdOpen, setOpdOpen] = useState(false);
+  const [opdFocusIndex, setOpdFocusIndex] = useState(-1);
+  const opdRef = useRef(null);
+
+  // Close on outside click
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (opdRef.current && !opdRef.current.contains(e.target)) {
+        setOpdOpen(false);
+        setOpdFocusIndex(-1);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
+  // Keyboard handler for listbox navigation
+  const handleOpdKeyDown = (e) => {
+    const opts = VISHWA_OPD_OPTIONS;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setOpdOpen(true);
+      setOpdFocusIndex((i) => Math.min(i + 1, opts.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setOpdOpen(true);
+      setOpdFocusIndex((i) => Math.max(i - 1, 0));
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      if (opdOpen && opdFocusIndex >= 0) {
+        const val = opts[opdFocusIndex].value;
+        setSelectedOPD(val);
+        setOpdOpen(false);
+        setOpdFocusIndex(-1);
+      } else {
+        setOpdOpen((o) => !o);
+      }
+      e.preventDefault();
+    } else if (e.key === 'Escape') {
+      setOpdOpen(false);
+      setOpdFocusIndex(-1);
+    }
+  };
 
 
 
@@ -243,26 +287,52 @@ const UniversalPlanReview = ({ data, onChange }) => {
                     </p>
                  </div>
                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <select
-                        value={selectedOPD}
-                        onChange={(e) => setSelectedOPD(e.target.value)}
-                        className={`pl-4 pr-10 py-2.5 rounded-xl text-xs font-bold appearance-none cursor-pointer transition-all ${
-                          selectedOPD 
-                            ? 'bg-emerald-800 text-white shadow-lg border-emerald-800' 
-                            : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-50'
-                        }`}
+                    <div className="relative" ref={opdRef} onKeyDown={handleOpdKeyDown}>
+                      <button
+                        type="button"
+                        aria-haspopup="listbox"
+                        aria-expanded={opdOpen}
+                        onClick={() => { setOpdOpen(o => !o); setOpdFocusIndex(-1); }}
+                        className={`w-56 text-left pl-4 pr-10 py-3 rounded-xl text-sm font-semibold transition duration-200 ease-out transform-gpu ${selectedOPD ? 'bg-emerald-800 text-white shadow-xl border-emerald-700' : 'bg-white text-emerald-900 border border-emerald-100 hover:bg-emerald-50'}`}
                       >
-                        {VISHWA_OPD_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value} className="text-gray-900 bg-white">
-                            {option.value ? `OPD ${option.label}` : 'Select OPD Limit'}
-                          </option>
-                        ))}
-                      </select>
-                      <div className={`absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none ${selectedOPD ? 'text-white' : 'text-emerald-600'}`}>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
+                        <span className="flex items-center justify-between">
+                          <span className="truncate">
+                            {selectedOPD ? `OPD ${selectedOPDOption.label}` : 'Select OPD Limit'}
+                          </span>
+                          <svg className={`w-4 h-4 ml-2 transition-transform duration-200 ${opdOpen ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                          </svg>
+                        </span>
+                      </button>
+
+                      <div
+                        role="listbox"
+                        aria-label="OPD options"
+                        tabIndex={-1}
+                        className={`absolute z-50 mt-2 w-56 bg-white rounded-xl shadow-xl border border-emerald-100 ring-1 ring-black/5 py-1 max-h-56 overflow-auto focus:outline-none transition-all duration-200 ease-out transform origin-top-right ${opdOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'}`}
+                      >
+                        {VISHWA_OPD_OPTIONS.map((opt, idx) => {
+                          const isSelected = opt.value === selectedOPD;
+                          const isFocused = idx === opdFocusIndex;
+                          return (
+                            <div
+                              key={opt.value}
+                              role="option"
+                              aria-selected={isSelected}
+                              onMouseEnter={() => setOpdFocusIndex(idx)}
+                              onMouseLeave={() => setOpdFocusIndex(-1)}
+                              onClick={() => { setSelectedOPD(opt.value); setOpdOpen(false); setOpdFocusIndex(-1); }}
+                              className={`flex items-center justify-between cursor-pointer px-4 py-3 text-sm transition-colors duration-150 ease-out ${isSelected ? 'bg-emerald-50 text-emerald-900 font-semibold' : 'text-gray-800 hover:bg-emerald-50'} ${isFocused ? 'bg-emerald-50' : ''}`}
+                            >
+                              <span className="truncate">{opt.value ? `OPD ${opt.label}` : opt.label}</span>
+                              {isSelected && (
+                                <svg className="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                     {selectedOPD && (
