@@ -139,6 +139,7 @@ const PlanSelect = ({
           bg-white px-4 py-3
           text-sm font-semibold text-left
           flex items-center justify-between
+          group
           focus:outline-none focus:ring-4 focus:ring-blue-500/10
         "
       >
@@ -146,7 +147,7 @@ const PlanSelect = ({
           {selectedIdx >= 0 ? normalized[selectedIdx].label : placeholder}
         </span>
         <ChevronDown
-          className={`w-4 h-4 transition-transform ${
+          className={`w-4 h-4 text-blue-600 transition-transform transition-colors duration-150 group-hover:text-blue-700 ${
             open ? "rotate-180" : ""
           }`}
         />
@@ -202,7 +203,7 @@ const PlanSelect = ({
             <span className="truncate">{opt.label}</span>
             {locked && (
               <span className="flex items-center gap-1 text-xs">
-                <Lock className="w-3 h-3" />
+                <Lock className="w-3 h-3 text-slate-400" />
                 {lockReason(opt)}
               </span>
             )}
