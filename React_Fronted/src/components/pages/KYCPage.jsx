@@ -579,7 +579,7 @@ const CustomSelect = ({ label, value, onChange, error, options, placeholder = "S
                           handleSelect(optValue);
                         }
                       }}
-                      className="text-sm cursor-pointer px-3 py-2 hover:bg-slate-100 focus:bg-blue-50 focus:text-blue-700 focus:outline-none"
+                      className="text-[18px] cursor-pointer px-3 py-2 hover:bg-blue-800 hover:text-white focus:bg-blue-800 focus:text-white focus:outline-none hover:rounded-lg focus:rounded-lg"
                     >
                       {optLabel}
                     </li>
