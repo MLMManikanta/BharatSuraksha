@@ -61,6 +61,8 @@ const claimSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   claimType: String,
   claimCycle: String,
+    hospitalizationType: String,
+    referenceId: String,
   dependentId: String,
   dependentName: String,
   claimedAmount: Number,
@@ -135,3 +137,43 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+/* ... Imports remain same ... */
+
+// FETCH REAL CLAIMS: Queries the database for the logged-in user's claims
+app.get("/api/claims", authenticateToken, async (req, res) => {
+  try {
+    const userClaims = await Claim.find({ userId: req.userId }).sort({ createdAt: -1 });
+    res.status(200).json(userClaims);
+  } catch (err) {
+    console.error("GET /api/claims error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.post("/api/claims", authenticateToken, async (req, res) => {
+  try {
+    const payload = { 
+      ...req.body, 
+      userId: req.userId,
+      claimedAmount: Number(req.body.claimedAmount)
+    };
+    const saved = await Claim.create(payload);
+    res.status(201).json({ success: true, data: { claimId: saved._id } });
+  } catch (err) {
+    console.error("POST /api/claims error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+const claimSchema = new mongoose.Schema({
+  userId: mongoose.Schema.Types.ObjectId,
+  dependentName: String,
+  claimType: String,
+  hospitalizationType: String, 
+  referenceId: String,       
+  hospitalAddress: String,    
+  diagnosis: String,         
+  claimedAmount: Number,
+  status: String,
+}, { timestamps: true });
