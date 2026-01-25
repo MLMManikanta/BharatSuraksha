@@ -5,10 +5,10 @@ import ClaimsTopLinks from '../../common/ClaimsTopLinks';
 import CustomSelect from '../../common/CustomSelect';
 import CustomDatePicker from '../../common/CustomDatePicker';
 
-// Verified Member List from your reference image
+// Verified Member List
 const DEPENDENT_DATA = [
   { id: "DEP001", name: "Arjun Gupta", label: "Arjun Gupta (Self)" },
-  { id: "DEP002", name: "Bhavni Gupta", label: "Bhavni Gupta (Spouse)" },
+  { id: "DEP002", name: "Bhavani Gupta", label: "Bhavani Gupta (Spouse)" },
   { id: "DEP003", name: "Maruthi Gupta", label: "Maruthi Gupta (Son)" },
   { id: "DEP004", name: "Harshi Gupta", label: "Harshi Gupta (Daughter)" },
   { id: "DEP005", name: "Eswar Gupta", label: "Eswar Gupta (Son)" },
@@ -20,13 +20,10 @@ const RaiseClaim = () => {
   const { dependentId: urlDependentId } = useParams();
   const [searchParams] = useSearchParams();
 
-  const isActive = (path) => location.pathname === path;
-
   const claimTypes = useMemo(() => [
     'Hospitalization',
     'Pre-Post Hospitalization',
     'Preventive Health Check-up',
-    'Dental',
   ], []);
 
   const claimCycles = useMemo(() => [
@@ -62,7 +59,7 @@ const RaiseClaim = () => {
 
   const updateField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
-  // Load Initial Data
+  // Load Initial Data for Editing
   useEffect(() => {
     const editClaim = location.state?.claim;
     if (editClaim) {
@@ -75,8 +72,6 @@ const RaiseClaim = () => {
 
   const validate = () => {
     const next = {};
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     const admission = form.admissionDate ? new Date(form.admissionDate) : null;
     const discharge = form.dischargeDate ? new Date(form.dischargeDate) : null;
 
@@ -87,7 +82,6 @@ const RaiseClaim = () => {
     if (!form.admissionDate) next.admissionDate = 'Required';
     if (!form.dischargeDate) next.dischargeDate = 'Required';
     if (admission && discharge && discharge < admission) next.dischargeDate = 'Invalid range';
-    if (!form.mobile || form.mobile.length < 10) next.mobile = 'Invalid mobile';
     if (!form.hospitalAddress.trim()) next.hospitalAddress = 'Required';
     if (!form.diagnosis.trim()) next.diagnosis = 'Required';
     if (!form.claimedAmount || Number(form.claimedAmount) <= 0) next.claimedAmount = 'Required';
@@ -128,43 +122,55 @@ const RaiseClaim = () => {
         </header>
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-xl shadow-sm mb-8 overflow-hidden border border-slate-200">
-          <nav className="flex divide-x divide-slate-200">
-            <Link to="/claims/my-claims" className="flex-1 px-6 py-4 text-sm font-semibold text-slate-600 hover:bg-slate-50 text-center transition-all">🧾 My Claims</Link>
-            <Link to="/claims/entitlement-dependents" className="flex-1 px-6 py-4 text-sm font-semibold text-slate-600 hover:bg-slate-50 text-center transition-all">👪 Entitlement & Dependents</Link>
-            <span className="flex-1 px-6 py-4 text-sm font-bold text-blue-700 bg-blue-50/50 text-center border-b-2 border-blue-700">➕ Raise New Claim</span>
+        <div className="bg-white rounded-2xl shadow-sm mb-8 p-1.5 border border-slate-200">
+          <nav className="flex items-center gap-1">
+            <Link to="/claims/my-claims" className="flex-1 px-6 py-3.5 text-sm font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl text-center transition-all">
+              🧾 My Claims
+            </Link>
+            <Link to="/claims/entitlement-dependents" className="flex-1 px-6 py-3.5 text-sm font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl text-center transition-all">
+              👪 Entitlement & Dependents
+            </Link>
+            <span className="flex-1 px-6 py-3.5 text-sm font-bold text-blue-700 bg-blue-50 rounded-xl text-center shadow-sm ring-1 ring-blue-700/10">
+              ➕ Raise New Claim
+            </span>
           </nav>
         </div>
 
         {/* STEP 1: SELECT CLAIM TYPE */}
-        <section className="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-slate-200">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest mb-1">Step 01</p>
-              <h2 className="text-xl font-black text-slate-900">Claim Category</h2>
-            </div>
-            {stepReady && <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase">Locked</span>}
+        <div className="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-slate-200">
+          <div className="flex items-center mb-8 gap-2">
+            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xs">01</div>
+            <h2 className="text-xl font-black text-slate-900">Claim Category</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="space-y-2">
               <CustomSelect
                 label="Claim Type"
                 value={claimType}
-                onChange={(v) => { setClaimType(v); setStepReady(false); }}
-                options={["", ...claimTypes].map(o => (o === "" ? { value: "", label: "Select category..." } : o))}
+                onChange={(v) => { setClaimType(v); setStepReady(false); updateField('hospitalizationType', ''); }}
+                options={["", ...claimTypes].map(o => (o === "" ? { value: "", label: "Select category..." } : { value: o, label: o }))}
               />
             </div>
 
-            {claimType === 'Pre-Post Hospitalization' && (
+            <div className="space-y-2">
+              <CustomSelect
+                label="Claim Cycle"
+                value={form.claimCycle}
+                onChange={(v) => { updateField('claimCycle', v); setStepReady(false); }}
+                options={[{ value: '', label: 'Select cycle...' }, ...claimCycles.map(c => ({ value: c, label: c }))]}
+              />
+            </div>
+
+            {claimType === 'Pre-Post Hospitalization' ? (
               <div className="space-y-2">
                 <label className="text-[11px] font-bold text-slate-400 uppercase">Sub-Category</label>
                 <div className="flex gap-2">
-                  {["Pre", "Post"].map(opt => (
+                  {['Pre', 'Post'].map(opt => (
                     <button
                       key={opt}
                       type="button"
-                      onClick={() => updateField('hospitalizationType', opt)}
+                      onClick={() => { updateField('hospitalizationType', opt); setStepReady(false); }}
                       className={`flex-1 py-3 rounded-xl border font-bold text-xs transition-all ${form.hospitalizationType === opt ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-500'}`}
                     >
                       {opt}
@@ -172,73 +178,107 @@ const RaiseClaim = () => {
                   ))}
                 </div>
               </div>
+            ) : (
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() => setStepReady(true)}
+                  disabled={!claimType || !form.claimCycle}
+                  className={`w-full py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all ${claimType && form.claimCycle ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-100 text-slate-300'}`}
+                >
+                  {stepReady ? 'Category Selected' : 'Proceed to Details'}
+                </button>
+              </div>
             )}
 
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={() => setStepReady(true)}
-                disabled={!claimType}
-                className={`w-full py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all ${claimType ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-100 text-slate-300'}`}
-              >
-                {stepReady ? 'Category Selected' : 'Proceed to Details'}
-              </button>
-            </div>
+            {claimType === 'Pre-Post Hospitalization' && (
+              <div className="lg:col-start-3 flex items-end">
+                <button
+                  type="button"
+                  onClick={() => setStepReady(true)}
+                  disabled={!claimType || !form.claimCycle || !form.hospitalizationType}
+                  className={`w-full py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all ${(claimType && form.claimCycle && form.hospitalizationType) ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-100 text-slate-300'}`}
+                >
+                  {stepReady ? 'Category Selected' : 'Proceed to Details'}
+                </button>
+              </div>
+            )}
           </div>
-        </section>
+        </div>
 
         {/* STEP 2: FORM DETAILS */}
         <form onSubmit={handleSubmit} className={`space-y-8 transition-all duration-500 ${!stepReady ? 'opacity-30 pointer-events-none grayscale' : ''}`}>
           {submitError && <div className="p-4 bg-rose-50 text-rose-700 rounded-xl border border-rose-100 font-bold text-sm">{submitError}</div>}
 
           <section className="bg-white rounded-2xl shadow-sm p-8 border border-slate-200">
-             <div className="flex items-center mb-8 gap-2">
-               <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xs">02</div>
-               <h2 className="text-xl font-black text-slate-900">Member & Hospital Details</h2>
-             </div>
+            <div className="flex items-center mb-8 gap-2">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xs">02</div>
+              <h2 className="text-xl font-black text-slate-900">Member & Hospital Details</h2>
+            </div>
 
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div className="space-y-2">
-                  <CustomSelect
-                    label="Verified Member"
-                    value={form.dependentId}
-                    onChange={(v) => {
-                      const sel = DEPENDENT_DATA.find(d => d.id === v);
-                      updateField('dependentId', v);
-                      updateField('dependentName', sel?.name || '');
-                    }}
-                    options={[{ value: '', label: 'Choose member...' }, ...DEPENDENT_DATA.map(d => ({ value: d.id, label: d.label }))]}
-                  />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="text-[15px] font-bold text-blue-800">
+                <CustomSelect
+                  label="Verified Member"
+                  value={form.dependentId}
+                  onChange={(v) => {
+                    const sel = DEPENDENT_DATA.find(d => d.id === v);
+                    updateField('dependentId', v);
+                    updateField('dependentName', sel?.name || '');
+                  }}
+                  options={[{ value: '', label: 'Choose member...' }, ...DEPENDENT_DATA.map(d => ({ value: d.id, label: d.label }))]}
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <CustomDatePicker
-                    label="Admission Date"
-                    value={form.admissionDate}
-                    onChange={(val) => updateField('admissionDate', val)}
-                    max={todayString}
-                  />
-                </div>
+              <div className="space-y-2">
+                <CustomDatePicker
+                  label="Admission Date"
+                  value={form.admissionDate}
+                  onChange={(val) => updateField('admissionDate', val)}
+                  max={todayString}
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <CustomDatePicker
-                    label="Discharge Date"
-                    value={form.dischargeDate}
-                    onChange={(val) => updateField('dischargeDate', val)}
-                    max={todayString}
-                  />
-                </div>
+              <div className="space-y-2">
+                <CustomDatePicker
+                  label="Discharge Date"
+                  value={form.dischargeDate}
+                  onChange={(val) => updateField('dischargeDate', val)}
+                  max={todayString}
+                />
+              </div>
 
-                <div className="md:col-span-2 space-y-2">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase">Hospital Name & Full Address</label>
-                  <textarea rows="3" className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 border resize-none" value={form.hospitalAddress} onChange={e => updateField('hospitalAddress', e.target.value)} placeholder="Enter details..." />
-                </div>
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-[15px] font-bold text-blue-800">Hospital Name & Full Address</label>
+                <textarea rows="3" className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 font-semibold text-slate-700 border resize-none focus:ring-2 focus:ring-blue-500 outline-none" value={form.hospitalAddress} onChange={e => updateField('hospitalAddress', e.target.value)} placeholder="Enter details..." />
+              </div>
 
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase">Claimed Amount (INR)</label>
-                  <input type="number" className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 font-black text-slate-900 border" value={form.claimedAmount} onChange={e => updateField('claimedAmount', e.target.value)} placeholder="₹ 0.00" />
+              <div className="space-y-2">
+                <label className="text-[15px] font-bold text-blue-800">Claimed Amount (INR)</label>
+                <input type="number" className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 font-black text-slate-900 border focus:ring-2 focus:ring-blue-500 outline-none" value={form.claimedAmount} onChange={e => updateField('claimedAmount', e.target.value)} placeholder="₹ 0.00" />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-[15px] font-bold text-blue-800">Is this one day care?</label>
+                <div className="flex gap-2">
+                  {['Yes', 'No'].map(opt => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => updateField('dayCare', opt)}
+                      className={`flex-1 py-3 rounded-xl border font-bold text-xs transition-all ${form.dayCare === opt ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-500'}`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
                 </div>
-             </div>
+              </div>
+
+              <div className="md:col-span-3 space-y-2">
+                <label className="text-[15px] font-bold text-blue-800">Diagnosis</label>
+                <textarea rows="3" className="w-full rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 border resize-none focus:ring-2 focus:ring-blue-500 outline-none" value={form.diagnosis} onChange={e => updateField('diagnosis', e.target.value)} placeholder="Provide primary diagnosis / ICD code if available" />
+              </div>
+            </div>
           </section>
 
           <section className="bg-white rounded-2xl shadow-sm p-8 border border-slate-200">
@@ -257,11 +297,11 @@ const RaiseClaim = () => {
           </section>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-end items-center">
-            <button type="button" onClick={() => navigate(-1)} className="w-full sm:w-auto px-8 py-3 font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest text-xs transition-all">Cancel</button>
+            <button type="button" onClick={() => navigate(-1)} className="w-full sm:w-auto px-8 py-3 font-bold text-slate-400 hover:text-slate-600 tracking-widest text-xs transition-all">Cancel</button>
             <button 
               type="submit" 
               disabled={submitting || !isFormComplete()}
-              className={`w-full sm:w-auto px-12 py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-xl ${isFormComplete() ? 'bg-blue-600 text-white shadow-blue-200 hover:scale-105' : 'bg-slate-100 text-slate-300 shadow-none'}`}
+              className={`w-full sm:w-auto px-12 py-4 rounded-xl font-black tracking-widest text-xs transition-all shadow-xl ${isFormComplete() ? 'bg-blue-600 text-white shadow-blue-200 hover:scale-105' : 'bg-slate-100 text-slate-300 shadow-none'}`}
             >
               {submitting ? 'Submitting...' : 'Confirm & Submit Claim'}
             </button>
