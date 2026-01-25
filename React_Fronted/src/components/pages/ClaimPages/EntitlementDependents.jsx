@@ -157,7 +157,7 @@ function EntitlementDependents() {
 
         {loading ? (
           <div className="bg-white rounded-[2rem] p-24 text-center border border-slate-100 animate-pulse">
-            <p className="text-slate-300 font-bold uppercase tracking-widest text-xs">Syncing Policy Data...</p>
+            <p className="text-sm font-semibold text-blue-700">Syncing Policy Data...</p>
           </div>
         ) : (
           <div className="space-y-10">
@@ -169,7 +169,8 @@ function EntitlementDependents() {
                 { label: "Expiry Date", val: "31 Dec 2026", color: "text-slate-900", sub: "Renew in Jan 2027" }
               ].map((item, i) => (
                 <motion.div key={i} whileHover={{ y: -4 }} className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40">
-                  <p className="text-[11px] font-black text-blue-500 uppercase tracking-[0.15em] mb-3">{item.label}</p>
+                  {/* Updated Card Label */}
+                  <p className="text-sm font-semibold text-blue-700 mb-3 block">{item.label}</p>
                   <p className={`text-3xl font-black tracking-tight ${item.color}`}>{item.val}</p>
                   {item.sub && (
                     <div className="mt-3 flex items-center gap-2">
@@ -185,7 +186,7 @@ function EntitlementDependents() {
               <div className="px-10 py-8 border-b border-slate-50 flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-black text-slate-900 tracking-tight">Verified Beneficiaries</h2>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Dependents linked to policy</p>
+                  <p className="text-sm font-semibold text-blue-700 mt-1">Dependents linked to policy</p>
                 </div>
                 <button onClick={handleExportCSV} className="p-2.5 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-xl border border-slate-100 transition-all">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -195,9 +196,11 @@ function EntitlementDependents() {
               <div className="overflow-x-auto">
                 <table className="min-w-full">
                   <thead>
-                    <tr className="bg-slate-50/50">
+                    <tr className="bg-blue-50/50">
                       {["Full Name", "Relationship", "Age", "Status", "Actions"].map((head) => (
-                        <th key={head} className="px-10 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{head}</th>
+                        <th key={head} className="px-10 py-5 text-left text-sm font-semibold text-blue-700">
+                          {head}
+                        </th>
                       ))}
                     </tr>
                   </thead>
@@ -234,7 +237,7 @@ function EntitlementDependents() {
         )}
 
         <div className="mt-12 mb-20 flex justify-center">
-          <Link to="/claims/my-claims" className="flex items-center gap-2 text-[11px] font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors">
+          <Link to="/claims/my-claims" className="flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900 transition-colors">
             <span>←</span> Return to Claim History
           </Link>
         </div>
