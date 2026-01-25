@@ -99,29 +99,32 @@ function EntitlementDependents() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fbfcfd] font-sans selection:bg-blue-100 selection:text-blue-900">
-      <div className="bg-slate-50/50 border-b border-slate-100">
+    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-blue-100 selection:text-blue-900">
+      <div className="no-print">
         <ClaimsTopLinks />
       </div>
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        
-        <header className="mb-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      {/* ROYAL BLUE HEADER SECTION */}
+      <div className="bg-blue-700 pt-16 pb-24 no-print">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-                Policy Coverage Summary
+              <h1 className="text-4xl font-black text-white tracking-tight">
+                Policy Coverage
               </h1>
+              <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mt-2 opacity-80">View limits and verified beneficiaries</p>
             </div>
-            <div className="flex items-center gap-3 bg-blue-600 px-5 py-2.5 rounded-2xl shadow-lg shadow-blue-200">
+            <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-white/30 shadow-lg">
               <span className="text-[10px] font-black text-blue-100 uppercase tracking-widest">ID:</span>
               <span className="text-sm font-mono font-bold text-white tracking-widest">{entitlement?.policyNumber}</span>
             </div>
-          </div>
-        </header>
+          </header>
+        </div>
+      </div>
 
-        {/* Sliding Tab Navigation */}
-        <div className="bg-slate-200/50 p-1.5 rounded-[2rem] mb-12 max-w-3xl border border-slate-200 relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12">
+        {/* FIXED TAB NAVIGATION */}
+        <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-[2rem] mb-12 max-w-2xl border border-white/20 relative no-print shadow-xl">
           <nav className="flex relative z-10">
             {[
               { id: 'claims', label: 'MY CLAIMS', path: '/claims/my-claims' },
@@ -134,13 +137,13 @@ function EntitlementDependents() {
                   key={tab.id}
                   to={tab.path}
                   className={`relative flex-1 px-6 py-3 text-[11px] font-black uppercase tracking-normal text-center transition-colors duration-300 ${
-                    isCurrent ? 'text-blue-700' : 'text-slate-500 hover:text-slate-900'
+                    isCurrent ? 'text-blue-700' : 'text-blue-100 hover:text-white'
                   }`}
                 >
                   {isCurrent && (
                     <motion.div
                       layoutId="activeTabPill"
-                      className="absolute inset-0 bg-white rounded-[1.5rem] shadow-sm shadow-blue-900/10"
+                      className="absolute inset-0 bg-white rounded-[1.5rem] shadow-sm"
                       initial={false}
                       transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                     />
@@ -178,7 +181,7 @@ function EntitlementDependents() {
               ))}
             </section>
 
-            <section className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
+            <section className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden mb-12">
               <div className="px-10 py-8 border-b border-slate-50 flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-black text-slate-900 tracking-tight">Verified Beneficiaries</h2>
@@ -230,7 +233,7 @@ function EntitlementDependents() {
           </div>
         )}
 
-        <div className="mt-12 flex justify-center">
+        <div className="mt-12 mb-20 flex justify-center">
           <Link to="/claims/my-claims" className="flex items-center gap-2 text-[11px] font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors">
             <span>←</span> Return to Claim History
           </Link>

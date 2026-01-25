@@ -5,7 +5,7 @@ import { api } from "../../../utils/api";
 import CustomDatePicker from "../../common/CustomDatePicker";
 import ClaimsTopLinks from "../../common/ClaimsTopLinks";
 
-// Standardized Member Data with corrected name
+// Standardized Member Data
 const DEPENDENT_DATA = [
   { id: "DEP001", name: "Arjun Gupta", label: "Arjun Gupta (Self)" },
   { id: "DEP002", name: "Bhavani Gupta", label: "Bhavani Gupta (Spouse)" },
@@ -28,37 +28,55 @@ const CustomSelect = ({ label, value, onChange, options, buttonClassName }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const formattedOptions = options?.map((opt) =>
-    typeof opt === "string" ? { value: opt, label: opt } : opt
-  ) || [];
+  const formattedOptions =
+    options?.map((opt) =>
+      typeof opt === "string" ? { value: opt, label: opt } : opt,
+    ) || [];
 
-  const currentLabel = formattedOptions.find((o) => o.value === value)?.label || "Select Option";
+  const currentLabel =
+    formattedOptions.find((o) => o.value === value)?.label || "Select Option";
 
   return (
-    <div className="relative w-full space-y-2" ref={containerRef}>
-      {label && <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{label}</label>}
+    <div className="relative w-full space-y-3" ref={containerRef}>
+      {label && (
+        <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+          {label}
+        </label>
+      )}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={buttonClassName || "w-full h-14 rounded-2xl border border-slate-200 bg-slate-50 px-5 text-sm font-bold text-slate-700 flex items-center justify-between hover:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all"}
+        className={
+          buttonClassName ||
+          "w-full h-14 rounded-2xl border border-slate-200 bg-slate-50 px-5 text-sm font-bold text-slate-700 flex items-center justify-between hover:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all"
+        }
       >
         <span className="truncate">{currentLabel}</span>
-        <span className={`text-[10px] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>▼</span>
+        <span className="text-[12px] transition-all duration-300">
+          {isOpen ? "🔼" : "🔽"}
+        </span>
       </button>
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
             className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden"
           >
             {formattedOptions.map((opt) => (
               <div
                 key={opt.value}
                 className={`px-5 py-3 text-sm cursor-pointer transition-colors ${
-                  value === opt.value ? "bg-blue-50 text-blue-700 font-bold" : "text-slate-600 hover:bg-slate-50"
+                  value === opt.value
+                    ? "bg-blue-50 text-blue-700 font-bold"
+                    : "text-slate-600 hover:bg-slate-50"
                 }`}
-                onClick={() => { onChange(opt.value); setIsOpen(false); }}
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
               >
                 {opt.label}
               </div>
@@ -75,29 +93,41 @@ const RaiseClaim = () => {
   const navigate = useNavigate();
   const { dependentId: urlDependentId } = useParams();
 
-  const [claimType, setClaimType] = useState('');
+  const [claimType, setClaimType] = useState("");
   const [form, setForm] = useState({
-    claimCycle: '',
-    dependentId: urlDependentId || '',
-    dependentName: '',
-    dayCare: '',
-    admissionDate: '',
-    dischargeDate: '',
-    hospitalAddress: '',
-    diagnosis: '',
-    claimedAmount: '',
+    claimCycle: "",
+    dependentId: urlDependentId || "",
+    dependentName: "",
+    dayCare: "",
+    admissionDate: "",
+    dischargeDate: "",
+    hospitalAddress: "",
+    diagnosis: "",
+    claimedAmount: "",
     consentSummary: false,
     consentTerms: false,
-    hospitalizationType: '',
+    hospitalizationType: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
   const [stepReady, setStepReady] = useState(false);
-  const [submitError, setSubmitError] = useState('');
-  const [editClaimId, setEditClaimId] = useState(null);
+  const [submitError, setSubmitError] = useState("");
   const todayString = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
-  const updateField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+  const updateField = (key, value) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
+
+  const handleDateChange = (field, value) => {
+    if (form.dayCare === "Yes") {
+      setForm((prev) => ({
+        ...prev,
+        admissionDate: value,
+        dischargeDate: value,
+      }));
+    } else {
+      updateField(field, value);
+    }
+  };
 
   const validate = () => {
     const admission = form.admissionDate ? new Date(form.admissionDate) : null;
@@ -105,57 +135,73 @@ const RaiseClaim = () => {
 
     if (!claimType || !form.claimCycle || !form.dependentId || !form.dayCare) return false;
     if (!form.admissionDate || !form.dischargeDate || !form.hospitalAddress.trim()) return false;
-    if (admission && discharge && discharge < admission) return false;
+    if (form.dayCare === "Yes" && form.admissionDate !== form.dischargeDate) return false;
+    if (form.dayCare === "No" && admission && discharge && discharge < admission) return false;
     if (!form.claimedAmount || Number(form.claimedAmount) <= 0) return false;
     if (!form.consentSummary || !form.consentTerms) return false;
-    
+
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setSubmitError("");
     try {
-      const endpoint = editClaimId ? `/api/claims/${editClaimId}` : '/api/claims';
-      const method = editClaimId ? 'patch' : 'post';
-      await api[method](endpoint, { claimType, ...form }, { auth: true });
-      navigate('/claims/my-claims', { state: { toast: 'Success' } });
+      await api.post("/api/claims", { claimType, ...form }, { auth: true });
+      navigate("/claims/my-claims", { state: { toast: "Success" } });
     } catch (err) {
-      setSubmitError(err.message || 'Submission failed');
+      setSubmitError(err.message || "Submission failed");
     } finally {
       setSubmitting(false);
     }
   };
 
+  const isCategoryComplete = useMemo(() => {
+    if (claimType === "Pre-Post Hospitalization") {
+      return claimType && form.claimCycle && form.hospitalizationType;
+    }
+    return claimType && form.claimCycle;
+  }, [claimType, form.claimCycle, form.hospitalizationType]);
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans pb-20">
-      <ClaimsTopLinks />
-      
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <header className="mb-10">
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Raise New Claim</h1>
-        </header>
+      <div className="no-print">
+        <ClaimsTopLinks />
+      </div>
 
-        {/* Sliding Tab Navigation */}
-        <div className="bg-slate-200/50 p-1.5 rounded-[2rem] mb-12 max-w-3xl mx-auto border border-slate-200 relative no-print">
+      <div className="bg-blue-700 pt-16 pb-24 no-print">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <header>
+            <h1 className="text-4xl font-black text-white tracking-tight">Raise New Claim</h1>
+            <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mt-2 opacity-80">
+              Submit a new request for reimbursement or hospitalization
+            </p>
+          </header>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12">
+        <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-[2rem] mb-12 max-w-2xl border border-white/20 relative no-print shadow-xl">
           <nav className="flex relative z-10">
             {[
-              { id: 'claims', label: 'MY CLAIMS', path: '/claims/my-claims' },
-              { id: 'beneficiaries', label: 'BENEFICIARIES', path: '/claims/entitlement-dependents' },
-              { id: 'new-claim', label: 'NEW CLAIM', path: '/claims/raise-claim' }
+              { id: "claims", label: "MY CLAIMS", path: "/claims/my-claims" },
+              { id: "beneficiaries", label: "BENEFICIARIES", path: "/claims/entitlement-dependents" },
+              { id: "new-claim", label: "NEW CLAIM", path: "/claims/raise-claim" },
             ].map((tab) => {
               const isCurrent = location.pathname === tab.path;
               return (
                 <Link
-                  key={tab.id} to={tab.path}
+                  key={tab.id}
+                  to={tab.path}
                   className={`relative flex-1 px-6 py-3 text-[11px] font-black uppercase tracking-normal text-center transition-colors duration-300 ${
-                    isCurrent ? 'text-blue-700' : 'text-slate-500 hover:text-slate-900'
+                    isCurrent ? "text-blue-700" : "text-blue-100 hover:text-white"
                   }`}
                 >
                   {isCurrent && (
                     <motion.div
                       layoutId="activeTabPill"
-                      className="absolute inset-0 bg-white rounded-[1.5rem] shadow-sm shadow-blue-900/10"
+                      className="absolute inset-0 bg-white rounded-[1.5rem] shadow-sm"
                       initial={false}
                       transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                     />
@@ -167,10 +213,12 @@ const RaiseClaim = () => {
           </nav>
         </div>
 
-        {/* STEP 1: CATEGORY */}
+        {/* STEP 1: CATEGORY SELECTION */}
         <section className="bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 p-8 md:p-10 mb-8 border border-slate-100">
           <div className="flex items-center mb-8 gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-lg shadow-blue-200">01</div>
+            <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-lg shadow-blue-200">
+              01
+            </div>
             <div>
               <h2 className="text-xl font-black text-slate-900">Claim Category</h2>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identify your request type</p>
@@ -181,57 +229,44 @@ const RaiseClaim = () => {
             <CustomSelect
               label="Claim Type"
               value={claimType}
-              onChange={(v) => { setClaimType(v); setStepReady(false); updateField('hospitalizationType', ''); }}
-              options={['Hospitalization', 'Pre-Post Hospitalization', 'Preventive Health Check-up']}
+              onChange={(v) => { setClaimType(v); setStepReady(false); updateField("hospitalizationType", ""); }}
+              options={["Hospitalization", "Pre-Post Hospitalization", "Preventive Health Check-up"]}
             />
-
             <CustomSelect
               label="Claim Cycle"
               value={form.claimCycle}
-              onChange={(v) => { updateField('claimCycle', v); setStepReady(false); }}
-              options={['Fresh Claim', 'Reimbursement', 'Follow-up / Continuation']}
+              onChange={(v) => { updateField("claimCycle", v); setStepReady(false); }}
+              options={["Fresh Claim", "Reimbursement", "Follow-up / Continuation"]}
             />
-
-            {claimType === 'Pre-Post Hospitalization' ? (
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sub-Category</label>
-                <div className="flex gap-2">
-                  {['Pre', 'Post'].map(opt => (
-                    <button
-                      key={opt} type="button"
-                      onClick={() => { updateField('hospitalizationType', opt); setStepReady(false); }}
-                      className={`flex-1 h-14 rounded-2xl border font-black text-[10px] uppercase tracking-normal transition-all ${form.hospitalizationType === opt ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-end">
-                <button
-                  type="button"
-                  onClick={() => setStepReady(true)}
-                  disabled={!claimType || !form.claimCycle}
-                  className={`w-full h-14 rounded-2xl font-black uppercase tracking-normal text-[10px] transition-all ${claimType && form.claimCycle ? 'bg-slate-900 text-white shadow-xl shadow-slate-200 active:scale-95' : 'bg-slate-100 text-slate-300'}`}
-                >
-                  {stepReady ? '✓ Category Set' : 'Next Step'}
-                </button>
-              </div>
-            )}
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={() => setStepReady(true)}
+                disabled={!isCategoryComplete}
+                className={`w-full h-14 rounded-2xl font-black uppercase tracking-normal text-[10px] transition-all ${
+                  isCategoryComplete ? "bg-slate-900 text-white shadow-xl active:scale-95" : "bg-slate-100 text-slate-300"
+                }`}
+              >
+                {stepReady ? "✓ Category Set" : "Next Step"}
+              </button>
+            </div>
           </div>
         </section>
 
         {/* STEP 2: FORM DETAILS */}
         <AnimatePresence>
           {stepReady && (
-            <motion.form 
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              onSubmit={handleSubmit} className="space-y-8"
+            <motion.form
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              onSubmit={handleSubmit}
+              className="space-y-8"
             >
               <section className="bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 p-8 md:p-10 border border-slate-100">
                 <div className="flex items-center mb-8 gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-lg shadow-blue-200">02</div>
+                  <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-lg shadow-blue-200">
+                    02
+                  </div>
                   <div>
                     <h2 className="text-xl font-black text-slate-900">Hospital & Member Details</h2>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verify beneficiary and facility</p>
@@ -243,51 +278,134 @@ const RaiseClaim = () => {
                     label="Verified Member"
                     value={form.dependentId}
                     onChange={(v) => {
-                      const sel = DEPENDENT_DATA.find(d => d.id === v);
-                      updateField('dependentId', v);
-                      updateField('dependentName', sel?.name || '');
+                      const sel = DEPENDENT_DATA.find((d) => d.id === v);
+                      updateField("dependentId", v);
+                      updateField("dependentName", sel?.name || "");
                     }}
-                    options={DEPENDENT_DATA.map(d => ({ value: d.id, label: d.label }))}
+                    options={DEPENDENT_DATA.map((d) => ({ value: d.id, label: d.label }))}
                   />
 
-                  <CustomDatePicker label="Admission Date" value={form.admissionDate} onChange={(val) => updateField('admissionDate', val)} max={todayString} />
-                  <CustomDatePicker label="Discharge Date" value={form.dischargeDate} onChange={(val) => updateField('dischargeDate', val)} max={todayString} />
-
-                  <div className="md:col-span-2 space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Hospital Address</label>
-                    <textarea rows="3" className="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-700 border resize-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={form.hospitalAddress} onChange={e => updateField('hospitalAddress', e.target.value)} placeholder="Full facility name and street address..." />
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Admission Date</label>
+                    <CustomDatePicker
+                      value={form.admissionDate}
+                      onChange={(val) => handleDateChange("admissionDate", val)}
+                      max={todayString}
+                    />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Requested Amount (INR)</label>
-                    <input type="number" className="w-full h-14 rounded-2xl border-slate-200 bg-slate-50 px-5 font-black text-slate-900 border focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={form.claimedAmount} onChange={e => updateField('claimedAmount', e.target.value)} placeholder="₹ 0.00" />
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Discharge Date</label>
+                    <CustomDatePicker
+                      value={form.dischargeDate}
+                      onChange={(val) => handleDateChange("dischargeDate", val)}
+                      max={todayString}
+                      disabled={form.dayCare === "Yes"}
+                    />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Day Care Procedure?</label>
-                    <div className="flex gap-2">
-                      {['Yes', 'No'].map(opt => (
+
+                  <div className="md:col-span-2 space-y-3">
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Hospital Address</label>
+                    <textarea
+                      rows="3"
+                      className="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-700 border resize-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      value={form.hospitalAddress}
+                      onChange={(e) => updateField("hospitalAddress", e.target.value)}
+                      placeholder="Full facility name and street address..."
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Requested Amount (INR)</label>
+                    <input
+                      type="number"
+                      className="w-full h-14 rounded-2xl border-slate-200 bg-slate-50 px-5 font-black text-slate-900 border focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      value={form.claimedAmount}
+                      onChange={(e) => updateField("claimedAmount", e.target.value)}
+                      placeholder="₹ 0.00"
+                    />
+                  </div>
+
+                  {/* Primary Diagnosis - SWAPPED TO LEFT */}
+                  <div className="md:col-span-2 space-y-3">
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Primary Diagnosis</label>
+                    <textarea
+                      rows="3"
+                      className="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-700 border resize-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      value={form.diagnosis}
+                      onChange={(e) => updateField("diagnosis", e.target.value)}
+                      placeholder="Provide diagnosis details..."
+                    />
+                  </div>
+
+                  {/* Day Care Procedure - SWAPPED TO RIGHT */}
+                  <div className="flex flex-col items-start space-y-3">
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                      Day Care Procedure?
+                    </label>
+                    <div className="flex flex-col gap-2">
+                      {["Yes", "No"].map((opt) => (
                         <button
-                          key={opt} type="button"
-                          onClick={() => updateField('dayCare', opt)}
-                          className={`flex-1 h-14 rounded-2xl border font-black text-[10px] uppercase tracking-normal transition-all ${form.dayCare === opt ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
+                          key={opt}
+                          type="button"
+                          onClick={() => {
+                            updateField("dayCare", opt);
+                            if (opt === "Yes" && form.admissionDate) {
+                              setForm((prev) => ({ ...prev, dayCare: opt, dischargeDate: prev.admissionDate }));
+                            }
+                          }}
+                          className={`w-20 h-9 rounded-lg border font-bold text-[10px] uppercase transition-all ${
+                            form.dayCare === opt
+                              ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-100"
+                              : "bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300"
+                          }`}
                         >
                           {opt}
                         </button>
                       ))}
                     </div>
                   </div>
+                </div>
 
-                  <div className="md:col-span-2 space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Primary Diagnosis</label>
-                    <textarea rows="3" className="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-700 border resize-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none" value={form.diagnosis} onChange={e => updateField('diagnosis', e.target.value)} placeholder="Provide diagnosis details..." />
-                  </div>
+                {/* CONSENT */}
+                <div className="mt-10 pt-8 border-t border-slate-50 space-y-4">
+                  {submitError && <div className="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-bold mb-4">⚠️ {submitError}</div>}
+                  <label className="flex items-start gap-4 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.consentSummary}
+                      onChange={(e) => updateField("consentSummary", e.target.checked)}
+                      className="mt-1 w-5 h-5 rounded border-slate-900 text-blue-600"
+                    />
+                    <span className="text-m font-bold text-slate-700 leading-relaxed">
+                      I certify the information provided is true and complete.
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-4 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.consentTerms}
+                      onChange={(e) => updateField("consentTerms", e.target.checked)}
+                      className="mt-1 w-5 h-5 rounded border-slate-900 text-blue-600"
+                    />
+                    <span className="text-m font-bold text-slate-700 leading-relaxed">
+                      I agree to the terms and conditions regarding claim processing.
+                    </span>
+                  </label>
                 </div>
               </section>
 
-              <div className="flex justify-center">
-                <button type="submit" disabled={submitting || !validate()} className={`w-full sm:w-80 h-16 rounded-[2rem] font-black tracking-normal text-[11px] uppercase transition-all shadow-2xl ${validate() ? 'bg-blue-600 text-white shadow-blue-200 hover:scale-105 active:scale-95' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>
-                  {submitting ? 'Processing...' : 'Submit Claim Request'}
+              <div className="flex justify-center mb-20">
+                <button
+                  type="submit"
+                  disabled={submitting || !validate()}
+                  className={`w-full sm:w-80 h-16 rounded-[2rem] font-black uppercase text-[11px] transition-all shadow-2xl ${
+                    validate() 
+                    ? "bg-blue-600 text-white shadow-blue-200 hover:scale-105 active:scale-95" 
+                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  }`}
+                >
+                  {submitting ? "Processing..." : "Submit Claim Request"}
                 </button>
               </div>
             </motion.form>

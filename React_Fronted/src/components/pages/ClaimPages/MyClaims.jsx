@@ -140,13 +140,19 @@ const MyClaims = () => {
     <div className="min-h-screen bg-[#F8FAFC] font-sans">
       <ClaimsTopLinks />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <header className="mb-10">
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">🧾 My Claims</h1>
-        </header>
+      {/* ROYAL BLUE HEADER SECTION */}
+      <div className="bg-blue-700 pt-16 pb-24 no-print">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <header>
+            <h1 className="text-4xl font-black text-white tracking-tight">🧾 My Claims</h1>
+            <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mt-2 opacity-80">Manage and track your reimbursement history</p>
+          </header>
+        </div>
+      </div>
 
-        {/* Sliding Tab Navigation */}
-        <div className="bg-slate-200/50 p-1.5 rounded-[2rem] mb-12 max-w-3xl border border-slate-200 relative no-print">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12">
+        {/* FIXED TAB NAVIGATION */}
+        <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-[2rem] mb-12 max-w-2xl border border-white/20 relative no-print shadow-xl">
           <nav className="flex relative z-10">
             {[
               { id: 'claims', label: 'MY CLAIMS', path: '/claims/my-claims' },
@@ -158,13 +164,13 @@ const MyClaims = () => {
                 <Link
                   key={tab.id} to={tab.path}
                   className={`relative flex-1 px-6 py-3 text-[11px] font-black uppercase tracking-normal text-center transition-colors duration-300 ${
-                    isCurrent ? 'text-blue-700' : 'text-slate-500 hover:text-slate-900'
+                    isCurrent ? 'text-blue-700' : 'text-blue-50 hover:text-white'
                   }`}
                 >
                   {isCurrent && (
                     <motion.div
                       layoutId="activeTabPill"
-                      className="absolute inset-0 bg-white rounded-[1.5rem] shadow-sm shadow-blue-900/10"
+                      className="absolute inset-0 bg-white rounded-[1.5rem] shadow-sm"
                       initial={false}
                       transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                     />
