@@ -6,6 +6,9 @@ import { api } from "../../../utils/api";
 import CustomDatePicker from "../../common/CustomDatePicker";
 import ClaimsTopLinks from "../../common/ClaimsTopLinks";
 
+/**
+ * CONSTANTS & MAPPINGS
+ */
 const DEPENDENT_NAME_MAP = {
   DEP001: "Arjun Gupta",
   DEP002: "Bhavani Gupta",
@@ -21,6 +24,10 @@ const STATUS_CLASSES = {
   Cancelled: "bg-rose-50 text-rose-700 ring-rose-600/20",
 };
 
+/**
+ * INTERNAL COMPONENT: CustomSelect
+ * Specialized dropdown for status filtering
+ */
 const CustomSelect = ({ value, onChange, options, buttonClassName }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -43,7 +50,6 @@ const CustomSelect = ({ value, onChange, options, buttonClassName }) => {
 
   return (
     <div className="relative w-full space-y-3" ref={containerRef}>
-      {/* Updated Label Styling */}
       <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Filter Status</label>
       <button
         type="button"
@@ -57,7 +63,9 @@ const CustomSelect = ({ value, onChange, options, buttonClassName }) => {
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: 10 }}
             className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden"
           >
             {formattedOptions.map((opt) => (
@@ -78,19 +86,25 @@ const CustomSelect = ({ value, onChange, options, buttonClassName }) => {
   );
 };
 
+/**
+ * MAIN COMPONENT: MyClaims
+ */
 const MyClaims = () => {
   const location = useLocation();
   const { user } = useAuth();
-  const hasActivePolicy = Boolean(user?.hasActivePolicy || localStorage.getItem("latestPolicyNumber"));
-
+  
+  // State Management
   const [claimId, setClaimId] = useState("");
   const [raisedOn, setRaisedOn] = useState("");
   const [status, setStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const rowsPerPage = 10;
+  const hasActivePolicy = Boolean(user?.hasActivePolicy || localStorage.getItem("latestPolicyNumber"));
 
+  // Fetch Claims Data
   useEffect(() => {
     let isMounted = true;
     const loadClaims = async () => {
@@ -122,6 +136,7 @@ const MyClaims = () => {
     return () => { isMounted = false; };
   }, [hasActivePolicy]);
 
+  // Memoized Filter Logic
   const filteredClaims = useMemo(() => {
     return claims.filter((claim) => {
       const matchesId = !claimId || claim.displayId.toLowerCase().includes(claimId.toLowerCase());
@@ -131,6 +146,7 @@ const MyClaims = () => {
     });
   }, [claims, claimId, raisedOn, status]);
 
+  // Pagination Logic
   const totalPages = Math.ceil(filteredClaims.length / rowsPerPage) || 1;
   const currentClaims = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
@@ -139,6 +155,7 @@ const MyClaims = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans">
+      {/* Sub-navigation for E-Card, Hospitals, etc. */}
       <ClaimsTopLinks />
 
       {/* ROYAL BLUE HEADER SECTION */}
@@ -146,13 +163,15 @@ const MyClaims = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <header>
             <h1 className="text-4xl font-black text-white tracking-tight">🧾 My Claims</h1>
-            <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mt-2 opacity-80">Manage and track your reimbursement history</p>
+            <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mt-2 opacity-80">
+              Manage and track your reimbursement history
+            </p>
           </header>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12">
-        {/* FIXED TAB NAVIGATION */}
+        {/* IN-PAGE TAB NAVIGATION */}
         <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-[2rem] mb-12 max-w-2xl border border-white/20 relative no-print shadow-xl">
           <nav className="flex relative z-10">
             {[
@@ -217,7 +236,7 @@ const MyClaims = () => {
         </section>
 
         {/* Results Table */}
-        <section className="bg-white rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+        <section className="bg-white rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden mb-20">
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead>
@@ -235,8 +254,11 @@ const MyClaims = () => {
                 ) : currentClaims.length > 0 ? (
                   currentClaims.map((claim, idx) => (
                     <motion.tr 
-                      initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
-                      key={claim.id} className="group hover:bg-blue-50/30 transition-all"
+                      initial={{ opacity: 0, x: -10 }} 
+                      animate={{ opacity: 1, x: 0 }} 
+                      transition={{ delay: idx * 0.05 }}
+                      key={claim.id} 
+                      className="group hover:bg-blue-50/30 transition-all"
                     >
                       <td className="px-10 py-6">
                         <span className="font-mono text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
@@ -271,12 +293,24 @@ const MyClaims = () => {
             </table>
           </div>
 
-          {/* Pagination */}
+          {/* Pagination Footer */}
           <div className="px-10 py-8 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
             <p className="text-sm font-semibold text-blue-700">Page {currentPage} of {totalPages}</p>
             <div className="flex gap-3">
-              <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-200 bg-white disabled:opacity-30 hover:bg-slate-50 transition-all">Previous</button>
-              <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl bg-slate-900 text-white disabled:opacity-30 hover:bg-blue-600 transition-all shadow-lg shadow-slate-200">Next Page</button>
+              <button 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(p => p - 1)} 
+                className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-200 bg-white disabled:opacity-30 hover:bg-slate-50 transition-all"
+              >
+                Previous
+              </button>
+              <button 
+                disabled={currentPage === totalPages} 
+                onClick={() => setCurrentPage(p => p + 1)} 
+                className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl bg-slate-900 text-white disabled:opacity-30 hover:bg-blue-600 transition-all shadow-lg shadow-slate-200"
+              >
+                Next Page
+              </button>
             </div>
           </div>
         </section>
