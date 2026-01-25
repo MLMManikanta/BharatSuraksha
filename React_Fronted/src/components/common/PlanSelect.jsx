@@ -157,6 +157,7 @@ const PlanSelect = ({
     <ul
       ref={listRef}
       role="listbox"
+      data-portal-dropdown="true"
       style={{
         position: "fixed",
         top: pos.top,

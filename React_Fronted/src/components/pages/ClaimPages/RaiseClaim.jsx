@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../../../utils/api";
 import CustomDatePicker from "../../common/CustomDatePicker";
 import ClaimsTopLinks from "../../common/ClaimsTopLinks";
+import TabLoader from "../../common/TabLoader";
 
 // Standardized Member Data
 const DEPENDENT_DATA = [
@@ -14,6 +15,9 @@ const DEPENDENT_DATA = [
   { id: "DEP005", name: "Eswar Gupta", label: "Eswar Gupta (Son)" },
 ];
 
+/**
+ * INTERNAL COMPONENT: CustomSelect
+ */
 const CustomSelect = ({ label, value, onChange, options, buttonClassName }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -28,13 +32,11 @@ const CustomSelect = ({ label, value, onChange, options, buttonClassName }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const formattedOptions =
-    options?.map((opt) =>
-      typeof opt === "string" ? { value: opt, label: opt } : opt,
-    ) || [];
+  const formattedOptions = options?.map((opt) =>
+    typeof opt === "string" ? { value: opt, label: opt } : opt
+  ) || [];
 
-  const currentLabel =
-    formattedOptions.find((o) => o.value === value)?.label || "Select Option";
+  const currentLabel = formattedOptions.find((o) => o.value === value)?.label || "Select Option";
 
   return (
     <div className="relative w-full space-y-3" ref={containerRef}>
@@ -52,8 +54,8 @@ const CustomSelect = ({ label, value, onChange, options, buttonClassName }) => {
         }
       >
         <span className="truncate">{currentLabel}</span>
-        <span className="text-[12px] transition-all duration-300">
-          {isOpen ? "🔼" : "🔽"}
+        <span className={`text-[12px] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+          ▼
         </span>
       </button>
 
@@ -88,6 +90,9 @@ const CustomSelect = ({ label, value, onChange, options, buttonClassName }) => {
   );
 };
 
+/**
+ * MAIN COMPONENT: RaiseClaim
+ */
 const RaiseClaim = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -98,12 +103,13 @@ const RaiseClaim = () => {
     claimCycle: "",
     dependentId: urlDependentId || "",
     dependentName: "",
-    dayCare: "",
+    dayCare: "No",
     admissionDate: "",
     dischargeDate: "",
     hospitalAddress: "",
     diagnosis: "",
     claimedAmount: "",
+    referenceId: "",
     consentSummary: false,
     consentTerms: false,
     hospitalizationType: "",
@@ -133,9 +139,9 @@ const RaiseClaim = () => {
     const admission = form.admissionDate ? new Date(form.admissionDate) : null;
     const discharge = form.dischargeDate ? new Date(form.dischargeDate) : null;
 
-    if (!claimType || !form.claimCycle || !form.dependentId || !form.dayCare) return false;
+    if (!claimType || !form.claimCycle || !form.dependentId) return false;
+    if (claimType === "Pre-Post Hospitalization" && (!form.hospitalizationType || !form.referenceId.trim())) return false;
     if (!form.admissionDate || !form.dischargeDate || !form.hospitalAddress.trim()) return false;
-    if (form.dayCare === "Yes" && form.admissionDate !== form.dischargeDate) return false;
     if (form.dayCare === "No" && admission && discharge && discharge < admission) return false;
     if (!form.claimedAmount || Number(form.claimedAmount) <= 0) return false;
     if (!form.consentSummary || !form.consentTerms) return false;
@@ -147,28 +153,43 @@ const RaiseClaim = () => {
     e.preventDefault();
     setSubmitting(true);
     setSubmitError("");
+
     try {
-      await api.post("/api/claims", { claimType, ...form }, { auth: true });
-      navigate("/claims/my-claims", { state: { toast: "Success" } });
+      const payload = {
+        ...form,
+        claimType,
+        claimedAmount: Number(form.claimedAmount),
+        status: "Pending"
+      };
+
+      await api.post("/api/claims", payload, { auth: true });
+      navigate("/claims/my-claims", { state: { toast: "Claim Submitted Successfully" } });
     } catch (err) {
-      setSubmitError(err.message || "Submission failed");
-    } finally {
+      console.error("Claim submission failed:", err);
+      const serverMsg = err.response?.data?.error || err.message || "Request failed";
+      setSubmitError(serverMsg);
       setSubmitting(false);
     }
   };
 
   const isCategoryComplete = useMemo(() => {
-    if (claimType === "Pre-Post Hospitalization") {
-      return claimType && form.claimCycle && form.hospitalizationType;
-    }
     return claimType && form.claimCycle;
-  }, [claimType, form.claimCycle, form.hospitalizationType]);
+  }, [claimType, form.claimCycle]);
+
+  const handleNav = (path) => {
+    if (location.pathname === path) return;
+    navigate(path);
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans pb-20">
       <div className="no-print">
         <ClaimsTopLinks />
       </div>
+
+      <AnimatePresence>
+        {submitting && <TabLoader />}
+      </AnimatePresence>
 
       <div className="bg-blue-700 pt-16 pb-24 no-print">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -191,9 +212,10 @@ const RaiseClaim = () => {
             ].map((tab) => {
               const isCurrent = location.pathname === tab.path;
               return (
-                <Link
+                <button
                   key={tab.id}
-                  to={tab.path}
+                  type="button"
+                  onClick={() => handleNav(tab.path)}
                   className={`relative flex-1 px-6 py-3 text-[11px] font-black uppercase tracking-normal text-center transition-colors duration-300 ${
                     isCurrent ? "text-blue-700" : "text-blue-100 hover:text-white"
                   }`}
@@ -207,7 +229,7 @@ const RaiseClaim = () => {
                     />
                   )}
                   <span className="relative z-20">{tab.label}</span>
-                </Link>
+                </button>
               );
             })}
           </nav>
@@ -229,7 +251,7 @@ const RaiseClaim = () => {
             <CustomSelect
               label="Claim Type"
               value={claimType}
-              onChange={(v) => { setClaimType(v); setStepReady(false); updateField("hospitalizationType", ""); }}
+              onChange={(v) => { setClaimType(v); setStepReady(false); }}
               options={["Hospitalization", "Pre-Post Hospitalization", "Preventive Health Check-up"]}
             />
             <CustomSelect
@@ -285,6 +307,41 @@ const RaiseClaim = () => {
                     options={DEPENDENT_DATA.map((d) => ({ value: d.id, label: d.label }))}
                   />
 
+                  {claimType === "Pre-Post Hospitalization" && (
+                    <>
+                      <div className="space-y-3">
+                        <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Type</label>
+                        <div className="flex gap-2">
+                          {["Pre", "Post"].map((type) => (
+                            <button
+                              key={type}
+                              type="button"
+                              onClick={() => updateField("hospitalizationType", type)}
+                              className={`flex-1 h-14 rounded-2xl border font-bold transition-all ${
+                                form.hospitalizationType === type
+                                  ? "bg-blue-600 border-blue-600 text-white"
+                                  : "bg-slate-50 border-slate-200 text-slate-500"
+                              }`}
+                            >
+                              {type}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Reference ID</label>
+                        <input
+                          type="text"
+                          className="w-full h-14 rounded-2xl border-slate-200 bg-slate-50 px-5 font-bold text-slate-700 border focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                          value={form.referenceId}
+                          onChange={(e) => updateField("referenceId", e.target.value)}
+                          placeholder="Original Claim Ref #"
+                        />
+                      </div>
+                    </>
+                  )}
+
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Admission Date</label>
                     <CustomDatePicker
@@ -311,12 +368,12 @@ const RaiseClaim = () => {
                       className="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-700 border resize-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                       value={form.hospitalAddress}
                       onChange={(e) => updateField("hospitalAddress", e.target.value)}
-                      placeholder="Full facility name and street address..."
+                      placeholder="Facility Address..."
                     />
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Requested Amount (INR)</label>
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Amount (INR)</label>
                     <input
                       type="number"
                       className="w-full h-14 rounded-2xl border-slate-200 bg-slate-50 px-5 font-black text-slate-900 border focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
@@ -326,22 +383,20 @@ const RaiseClaim = () => {
                     />
                   </div>
 
-                  {/* Primary Diagnosis - SWAPPED TO LEFT */}
                   <div className="md:col-span-2 space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Primary Diagnosis</label>
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Diagnosis</label>
                     <textarea
                       rows="3"
                       className="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-700 border resize-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                       value={form.diagnosis}
                       onChange={(e) => updateField("diagnosis", e.target.value)}
-                      placeholder="Provide diagnosis details..."
+                      placeholder="Diagnosis details..."
                     />
                   </div>
 
-                  {/* Day Care Procedure - SWAPPED TO RIGHT */}
                   <div className="flex flex-col items-start space-y-3">
                     <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-                      Day Care Procedure?
+                      Day Care?
                     </label>
                     <div className="flex flex-col gap-2">
                       {["Yes", "No"].map((opt) => (
@@ -367,9 +422,16 @@ const RaiseClaim = () => {
                   </div>
                 </div>
 
-                {/* CONSENT */}
                 <div className="mt-10 pt-8 border-t border-slate-50 space-y-4">
-                  {submitError && <div className="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-bold mb-4">⚠️ {submitError}</div>}
+                  {submitError && (
+                    <motion.div 
+                      initial={{ opacity: 0 }} 
+                      animate={{ opacity: 1 }} 
+                      className="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-bold mb-4 border border-red-100"
+                    >
+                      ⚠️ Error: {submitError}
+                    </motion.div>
+                  )}
                   <label className="flex items-start gap-4 cursor-pointer">
                     <input
                       type="checkbox"
@@ -378,7 +440,7 @@ const RaiseClaim = () => {
                       className="mt-1 w-5 h-5 rounded border-slate-900 text-blue-600"
                     />
                     <span className="text-m font-bold text-slate-700 leading-relaxed">
-                      I certify the information provided is true and complete.
+                      I certify the information provided is true.
                     </span>
                   </label>
                   <label className="flex items-start gap-4 cursor-pointer">
@@ -389,7 +451,7 @@ const RaiseClaim = () => {
                       className="mt-1 w-5 h-5 rounded border-slate-900 text-blue-600"
                     />
                     <span className="text-m font-bold text-slate-700 leading-relaxed">
-                      I agree to the terms and conditions regarding claim processing.
+                      I agree to the terms.
                     </span>
                   </label>
                 </div>
@@ -400,7 +462,7 @@ const RaiseClaim = () => {
                   type="submit"
                   disabled={submitting || !validate()}
                   className={`w-full sm:w-80 h-16 rounded-[2rem] font-black uppercase text-[11px] transition-all shadow-2xl ${
-                    validate() 
+                    validate() && !submitting
                     ? "bg-blue-600 text-white shadow-blue-200 hover:scale-105 active:scale-95" 
                     : "bg-slate-200 text-slate-400 cursor-not-allowed"
                   }`}

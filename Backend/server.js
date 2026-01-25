@@ -18,7 +18,6 @@ app.use(express.urlencoded({ extended: true }));
 
 const PORT = process.env.VITE_BACKEND_PORT || 5000;
 const SECRET = process.env.VITE_BACKEND_SECRET_TOKEN;
-const SALT_ROUNDS = 10;
 
 let client;
 
@@ -27,16 +26,9 @@ const initializeDBAndServer = async () => {
   try {
     client = new MongoClient(process.env.MONGODB_URI || "mongodb://localhost:27017");
     await client.connect();
-    await client.db("admin").command({ ping: 1 });
-
-    try {
-      await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/BharatSurakshaDB");
-      console.log("✅ Mongoose connected successfully");
-    } catch (mErr) {
-      console.warn("⚠️ Mongoose connection warning:", mErr.message);
-    }
-
-    console.log("✅ MongoDB connected successfully");
+    
+    await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/BharatSurakshaDB");
+    console.log("✅ MongoDB & Mongoose connected successfully");
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
@@ -62,74 +54,63 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-/* -------------------- CLAIMS & POLICY DATA -------------------- */
-// ADDED THIS ENDPOINT TO FIX THE ECARD ISSUE
+/* -------------------- MODELS -------------------- */
+const claimSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  claimType: String,
+  claimCycle: String,
+  hospitalizationType: String,
+  referenceId: String,
+  dependentId: String,
+  dependentName: String,
+  claimedAmount: Number,
+  admissionDate: String,
+  dischargeDate: String,
+  hospitalAddress: String,
+  diagnosis: String,
+  dayCare: String,
+  status: { type: String, default: "Pending" }
+}, { timestamps: true });
+
+const Claim = mongoose.models.Claim || mongoose.model("Claim", claimSchema);
+
+const kycSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
+const Kyc = mongoose.models.Kyc || mongoose.model("Kyc", kycSchema);
+
+/* -------------------- CLAIMS ROUTES -------------------- */
+
 app.get("/api/claims", authenticateToken, async (req, res) => {
   try {
-    // Returning mock claims so the frontend doesn't hit the 'catch' block
-    const mockClaims = [
-      { id: "CLM-001", status: "Completed", claimedAmount: 0, date: "2026-01-10" }
-    ];
-    res.status(200).json(mockClaims);
+    const userClaims = await Claim.find({ userId: req.userId }).sort({ createdAt: -1 });
+    res.status(200).json(userClaims);
   } catch (err) {
+    console.error("GET /api/claims error:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-/* -------------------- KYC / MEDICAL / BANK ROUTES -------------------- */
-const kycSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
-const Kyc = mongoose.models.Kyc || mongoose.model("Kyc", kycSchema);
+app.post("/api/claims", authenticateToken, async (req, res) => {
+  try {
+    const payload = { 
+      ...req.body, 
+      userId: req.userId,
+      claimedAmount: Number(req.body.claimedAmount)
+    };
+    const saved = await Claim.create(payload);
+    res.status(201).json({ success: true, data: { claimId: saved._id } });
+  } catch (err) {
+    console.error("POST /api/claims error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/* -------------------- KYC & AUTH ROUTES -------------------- */
 
 app.post("/api/kyc", async (req, res) => {
   try {
     const saved = await Kyc.create(req.body);
     res.status(200).json({ success: true, data: { kycId: saved._id } });
   } catch (err) {
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-const medicalSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
-const Medical = mongoose.models.Medical || mongoose.model("Medical", medicalSchema);
-
-app.post("/api/medical", async (req, res) => {
-  try {
-    const saved = await Medical.create(req.body);
-    res.status(200).json({ success: true, data: { medicalInfoId: saved._id } });
-  } catch (err) {
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-const bankInfoSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
-const BankInfo = mongoose.models.BankInfo || mongoose.model("BankInfo", bankInfoSchema);
-
-app.post('/api/bank', async (req, res) => {
-  try {
-    const saved = await BankInfo.create(req.body);
-    const orderSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
-    const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
-    await Order.create({ bankDetailsRef: saved._id, planData: req.body.planData });
-    res.status(200).json({ success: true, data: { bankDetailsId: saved._id } });
-  } catch (err) {
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-/* -------------------- AUTH ROUTES -------------------- */
-app.post("/register", async (req, res) => {
-  try {
-    const { email, password, mobile, name } = req.body;
-    const collection = client.db("AuthDB").collection("users");
-    const existingUser = await collection.findOne({ email });
-    if (existingUser) return res.status(409).json({ error: "User already exists" });
-
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    const result = await collection.insertOne({
-      name: name.trim(), email, mobile, password: hashedPassword, createdAt: new Date(),
-    });
-    res.status(201).json({ message: "User Registered Successfully", userId: result.insertedId });
-  } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -144,10 +125,23 @@ app.post("/login", async (req, res) => {
     }
     const token = jwt.sign({ userId: user._id }, SECRET, { expiresIn: "1d" });
     res.json({
-      jwtToken: token, userId: user._id,
+      jwtToken: token, 
+      userId: user._id,
       userData: { name: user.name, email: user.email, mobile: user.mobile },
     });
   } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// FETCH SINGLE CLAIM BY ID
+app.get("/api/claims/:id", authenticateToken, async (req, res) => {
+  try {
+    const claim = await Claim.findOne({ _id: req.params.id, userId: req.userId });
+    if (!claim) return res.status(404).json({ error: "Claim not found" });
+    res.status(200).json(claim);
+  } catch (err) {
+    console.error("GET /api/claim/:id error:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
