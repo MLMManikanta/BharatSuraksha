@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../../../utils/api";
 import CustomDatePicker from "../../common/CustomDatePicker";
@@ -15,74 +15,9 @@ const DEPENDENT_DATA = [
   { id: "DEP005", name: "Eswar Gupta", label: "Eswar Gupta (Son)" },
 ];
 
-const RaiseClaim = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { dependentId: urlDependentId } = useParams();
-
-  // REMOVED: const [loading, setLoading] = useState(false); 
-  const [claimType, setClaimType] = useState("");
-  const [form, setForm] = useState({
-    claimCycle: "",
-    dependentId: urlDependentId || "",
-    dependentName: "",
-    dayCare: "No",
-    admissionDate: "",
-    dischargeDate: "",
-    hospitalAddress: "",
-    diagnosis: "",
-    claimedAmount: "",
-    referenceId: "",
-    consentSummary: false,
-    consentTerms: false,
-    hospitalizationType: "",
-  });
-
-  const [submitting, setSubmitting] = useState(false);
-  const [stepReady, setStepReady] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true); // TRIGGER: This now invokes the TabLoader
-    setSubmitError("");
-
-    try {
-      const payload = {
-        ...form,
-        claimType,
-        claimedAmount: Number(form.claimedAmount),
-        status: "Pending"
-      };
-
-      await api.post("/api/claims", payload, { auth: true }); //
-      navigate("/claims/my-claims");
-    } catch (err) {
-      setSubmitError(err.response?.data?.error || "Submission failed");
-      setSubmitting(false); // HIDE: Loader stops so user can see the error
-    }
-  };
-
-  // Simplified navigation: instant switch without loader
-  const handleNav = (path) => {
-    if (location.pathname === path) return;
-    navigate(path);
-  };
-
-  return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="no-print"><ClaimsTopLinks /></div>
-
-      <AnimatePresence>
-        {/* Only shows during the POST request to MongoDB */}
-        {submitting && <TabLoader />} 
-      </AnimatePresence>
-
-      {/* ... rest of UI ... */}
-    </div>
-  );
-};
-
+/**
+ * INTERNAL COMPONENT: CustomSelect
+ */
 const CustomSelect = ({ label, value, onChange, options, buttonClassName }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -163,7 +98,6 @@ const RaiseClaim = () => {
   const navigate = useNavigate();
   const { dependentId: urlDependentId } = useParams();
 
-  // State Management
   const [claimType, setClaimType] = useState("");
   const [form, setForm] = useState({
     claimCycle: "",
@@ -217,7 +151,7 @@ const RaiseClaim = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitting(true); // Triggers the TabLoader only on Submit
+    setSubmitting(true);
     setSubmitError("");
 
     try {
@@ -234,7 +168,7 @@ const RaiseClaim = () => {
       console.error("Claim submission failed:", err);
       const serverMsg = err.response?.data?.error || err.message || "Request failed";
       setSubmitError(serverMsg);
-      setSubmitting(false); // Hide loader if there is an error
+      setSubmitting(false);
     }
   };
 
@@ -242,7 +176,6 @@ const RaiseClaim = () => {
     return claimType && form.claimCycle;
   }, [claimType, form.claimCycle]);
 
-  // handleNav: Standard navigation without a loader
   const handleNav = (path) => {
     if (location.pathname === path) return;
     navigate(path);
@@ -255,7 +188,6 @@ const RaiseClaim = () => {
       </div>
 
       <AnimatePresence>
-        {/* Loader strictly for submission */}
         {submitting && <TabLoader />}
       </AnimatePresence>
 

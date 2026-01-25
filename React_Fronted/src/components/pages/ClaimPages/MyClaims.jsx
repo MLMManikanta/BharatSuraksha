@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../../context/AuthContext";
 import { api } from "../../../utils/api";
 import CustomDatePicker from "../../common/CustomDatePicker";
 import ClaimsTopLinks from "../../common/ClaimsTopLinks";
-import TabLoader from "../../common/TabLoader";
+import ViewClaim from "./ViewClaim"; // Ensure this component is created as a Dialog
 
 /**
  * CONSTANTS & MAPPINGS
@@ -36,7 +36,7 @@ const CustomSelect = ({ value, onChange, options, buttonClassName }) => {
 
   const formattedOptions =
     options?.map((opt) =>
-      typeof opt === "string" ? { value: opt, label: opt } : opt,
+      typeof opt === "string" ? { value: opt, label: opt } : opt
     ) || [];
 
   const currentLabel =
@@ -54,7 +54,9 @@ const CustomSelect = ({ value, onChange, options, buttonClassName }) => {
       >
         <span className="truncate">{currentLabel}</span>
         <span
-          className={`text-[10px] transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+          className={`text-[10px] transition-transform duration-300 ${
+            isOpen ? "rotate-180" : ""
+          }`}
         >
           ▼
         </span>
@@ -91,11 +93,16 @@ const CustomSelect = ({ value, onChange, options, buttonClassName }) => {
   );
 };
 
+/**
+ * MAIN COMPONENT: MyClaims
+ */
 const MyClaims = () => {
+  // HOOKS: Correctly placed inside the function component
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // STATE: Search, Filters, and Pagination
   const [claimSearch, setClaimSearch] = useState("");
   const [raisedOn, setRaisedOn] = useState("");
   const [status, setStatus] = useState("");
@@ -103,12 +110,22 @@ const MyClaims = () => {
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // STATE: View Dialog and Toast
+  const [selectedClaimId, setSelectedClaimId] = useState(null);
+  const [isViewClaimOpen, setIsViewClaimOpen] = useState(false);
+  const [showToast, setShowToast] = useState(!!location.state?.toast);
+
   const rowsPerPage = 10;
   const hasActivePolicy = Boolean(
-    user?.hasActivePolicy || localStorage.getItem("latestPolicyNumber"),
+    user?.hasActivePolicy || localStorage.getItem("latestPolicyNumber")
   );
 
-  // UPDATED: handleNav no longer triggers global loading for tab switching
+  // Logic to open Dialog
+  const handleViewDetails = (id) => {
+    setSelectedClaimId(id);
+    setIsViewClaimOpen(true);
+  };
+
   const handleNav = (path) => {
     if (location.pathname === path) return;
     navigate(path);
@@ -128,14 +145,15 @@ const MyClaims = () => {
             Array.isArray(response)
               ? response.map((claim, index) => ({
                   id: claim._id,
-                  displayId: `Claim_2026-${String(index + 1).padStart(3, "0")}`,
+                  // Newest claims get the highest display ID number
+                  displayId: `Claim_2026-${String(response.length - index).padStart(3, "0")}`,
                   name: claim.dependentName || "Primary Member",
                   claimType: claim.claimType || "Health",
                   claimedAmount: Number(claim.claimedAmount) || 0,
                   raisedOn: claim.createdAt || null,
                   status: claim.status || "Pending",
                 }))
-              : [],
+              : []
           );
         }
       } catch (error) {
@@ -170,7 +188,28 @@ const MyClaims = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-blue-100 selection:text-blue-900">
-      {/* LOADING OVERLAY: Removed from tab switching, logic remains for initial data fetch if needed */}
+      
+      {/* SUCCESS TOAST */}
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="fixed top-24 right-8 z-[100] bg-emerald-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 font-bold"
+          >
+            <span>✅</span>
+            {location.state?.toast || "Claim Submitted Successfully"}
+            <button
+              onClick={() => setShowToast(false)}
+              className="ml-4 opacity-70 hover:opacity-100 text-lg"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="no-print">
         <ClaimsTopLinks />
       </div>
@@ -346,7 +385,10 @@ const MyClaims = () => {
                       </td>
                       <td className="px-10 py-6">
                         <span
-                          className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ring-1 ring-inset ${STATUS_CLASSES[claim.status] || "bg-slate-50 text-slate-600"}`}
+                          className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ring-1 ring-inset ${
+                            STATUS_CLASSES[claim.status] ||
+                            "bg-slate-50 text-slate-600"
+                          }`}
                         >
                           ● {claim.status}
                         </span>
@@ -359,14 +401,14 @@ const MyClaims = () => {
                                 day: "2-digit",
                                 month: "short",
                                 year: "numeric",
-                              },
+                              }
                             )
                           : "Pending"}
                       </td>
                       <td className="px-10 py-6 text-right">
                         <button
-                          onClick={() => navigate(`/claims/view/${claim.id}`)} 
-                          className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 text-lg hover:bg-slate-900 transition-all shadow-sm"
+                          onClick={() => handleViewDetails(claim.id)}
+                          className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 text-lg hover:bg-slate-900 hover:text-white transition-all shadow-sm"
                         >
                           <span>👁️</span>
                         </button>
@@ -411,6 +453,13 @@ const MyClaims = () => {
           </div>
         </section>
       </div>
+
+      {/* DIALOG COMPONENT */}
+      <ViewClaim
+        claimId={selectedClaimId}
+        isOpen={isViewClaimOpen}
+        onClose={() => setIsViewClaimOpen(false)}
+      />
     </div>
   );
 };

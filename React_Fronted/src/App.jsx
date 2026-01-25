@@ -31,6 +31,7 @@ import PaymentSuccessPage from "./components/pages/PaymentSuccessPage";
 import MyClaims from "./components/pages/ClaimPages/MyClaims";
 import EntitlementDependents from "./components/pages/ClaimPages/EntitlementDependents";
 import RaiseClaim from "./components/pages/ClaimPages/RaiseClaim";
+import ViewClaim from "./components/pages/ClaimPages/ViewClaim";
 
 // --- UTILITIES (Sub-features of Claim Control) ---
 import ECard from "./components/pages/Utilities/ECard";
@@ -90,11 +91,13 @@ function App() {
         <Route path="/claims/my-claims" element={<Layout><MyClaims /></Layout>} />
         <Route path="/claims/entitlement-dependents" element={<Layout><EntitlementDependents /></Layout>} />
         <Route path="/claims/entitlement" element={<Navigate to="/claims/entitlement-dependents" replace />} />
-        
+        <Route path="/claims/view/:id" element={<ViewClaim />} />
+
         {/* Dynamic Claim Raising */}
         <Route path="/claims/raise-claim" element={<Layout><RaiseClaim /></Layout>} />
         <Route path="/claims/raise-claim/:dependentId" element={<Layout><RaiseClaim /></Layout>} />
         <Route path="/claims/raise-new" element={<Navigate to="/claims/raise-claim" replace />} />
+        <Route path="/claims/view/:id" element={<ViewClaim />} />
 
         {/* --- UTILITY TOOLS --- 
             These are grouped here because they are logically part of the 
