@@ -42,8 +42,9 @@ const CustomSelect = ({ value, onChange, options, buttonClassName }) => {
   const currentLabel = formattedOptions.find((o) => o.value === value)?.label || "Select Status";
 
   return (
-    <div className="relative w-full space-y-2" ref={containerRef}>
-      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Filter Status</label>
+    <div className="relative w-full space-y-3" ref={containerRef}>
+      {/* Updated Label Styling */}
+      <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Filter Status</label>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -184,8 +185,8 @@ const MyClaims = () => {
 
         {/* Filter Section */}
         <section className="bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 p-8 mb-10 border border-slate-100 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Search ID</label>
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Search ID</label>
             <input
               type="text" value={claimId}
               onChange={(e) => { setClaimId(e.target.value); setCurrentPage(1); }}
@@ -193,8 +194,8 @@ const MyClaims = () => {
               className="w-full h-14 rounded-2xl border border-slate-200 bg-slate-50 px-5 text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Filing Date</label>
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Filing Date</label>
             <CustomDatePicker
               value={raisedOn}
               onChange={(val) => { setRaisedOn(val); setCurrentPage(1); }}
@@ -220,15 +221,17 @@ const MyClaims = () => {
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead>
-                <tr className="bg-slate-50/50">
+                <tr className="bg-blue-50/50">
                   {["Ref ID", "Beneficiary", "Category", "Amount", "Status", "Raised On", "Action"].map((head) => (
-                    <th key={head} className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">{head}</th>
+                    <th key={head} className="px-10 py-6 text-left text-sm font-semibold text-blue-700 border-b border-slate-100">
+                      {head}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {loading ? (
-                  <tr><td colSpan={7} className="py-32 text-center text-[10px] font-black uppercase tracking-widest text-slate-400 animate-pulse">Syncing database...</td></tr>
+                  <tr><td colSpan={7} className="py-32 text-center text-sm font-semibold text-blue-700 animate-pulse">Syncing database...</td></tr>
                 ) : currentClaims.length > 0 ? (
                   currentClaims.map((claim, idx) => (
                     <motion.tr 
@@ -262,7 +265,7 @@ const MyClaims = () => {
                     </motion.tr>
                   ))
                 ) : (
-                  <tr><td colSpan={7} className="py-32 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">No records found</td></tr>
+                  <tr><td colSpan={7} className="py-32 text-center text-sm font-semibold text-blue-700">No records found</td></tr>
                 )}
               </tbody>
             </table>
@@ -270,7 +273,7 @@ const MyClaims = () => {
 
           {/* Pagination */}
           <div className="px-10 py-8 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Page {currentPage} of {totalPages}</p>
+            <p className="text-sm font-semibold text-blue-700">Page {currentPage} of {totalPages}</p>
             <div className="flex gap-3">
               <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-200 bg-white disabled:opacity-30 hover:bg-slate-50 transition-all">Previous</button>
               <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl bg-slate-900 text-white disabled:opacity-30 hover:bg-blue-600 transition-all shadow-lg shadow-slate-200">Next Page</button>
