@@ -14,6 +14,9 @@ const DEPENDENT_DATA = [
   { id: "DEP005", name: "Eswar Gupta", label: "Eswar Gupta (Son)" },
 ];
 
+/**
+ * INTERNAL COMPONENT: CustomSelect
+ */
 const CustomSelect = ({ label, value, onChange, options, buttonClassName }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -28,13 +31,11 @@ const CustomSelect = ({ label, value, onChange, options, buttonClassName }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const formattedOptions =
-    options?.map((opt) =>
-      typeof opt === "string" ? { value: opt, label: opt } : opt,
-    ) || [];
+  const formattedOptions = options?.map((opt) =>
+    typeof opt === "string" ? { value: opt, label: opt } : opt
+  ) || [];
 
-  const currentLabel =
-    formattedOptions.find((o) => o.value === value)?.label || "Select Option";
+  const currentLabel = formattedOptions.find((o) => o.value === value)?.label || "Select Option";
 
   return (
     <div className="relative w-full space-y-3" ref={containerRef}>
@@ -52,8 +53,8 @@ const CustomSelect = ({ label, value, onChange, options, buttonClassName }) => {
         }
       >
         <span className="truncate">{currentLabel}</span>
-        <span className="text-[12px] transition-all duration-300">
-          {isOpen ? "🔼" : "🔽"}
+        <span className={`text-[12px] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+          ▼
         </span>
       </button>
 
@@ -88,17 +89,21 @@ const CustomSelect = ({ label, value, onChange, options, buttonClassName }) => {
   );
 };
 
+/**
+ * MAIN COMPONENT: RaiseClaim
+ */
 const RaiseClaim = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { dependentId: urlDependentId } = useParams();
 
+  // State Management
   const [claimType, setClaimType] = useState("");
   const [form, setForm] = useState({
     claimCycle: "",
     dependentId: urlDependentId || "",
     dependentName: "",
-    dayCare: "",
+    dayCare: "No",
     admissionDate: "",
     dischargeDate: "",
     hospitalAddress: "",
@@ -114,9 +119,11 @@ const RaiseClaim = () => {
   const [submitError, setSubmitError] = useState("");
   const todayString = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
+  // Helper to update form fields
   const updateField = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
+  // Handle Date Logic (Syncing for Day Care)
   const handleDateChange = (field, value) => {
     if (form.dayCare === "Yes") {
       setForm((prev) => ({
@@ -129,13 +136,13 @@ const RaiseClaim = () => {
     }
   };
 
+  // Pre-submission validation
   const validate = () => {
     const admission = form.admissionDate ? new Date(form.admissionDate) : null;
     const discharge = form.dischargeDate ? new Date(form.dischargeDate) : null;
 
-    if (!claimType || !form.claimCycle || !form.dependentId || !form.dayCare) return false;
+    if (!claimType || !form.claimCycle || !form.dependentId) return false;
     if (!form.admissionDate || !form.dischargeDate || !form.hospitalAddress.trim()) return false;
-    if (form.dayCare === "Yes" && form.admissionDate !== form.dischargeDate) return false;
     if (form.dayCare === "No" && admission && discharge && discharge < admission) return false;
     if (!form.claimedAmount || Number(form.claimedAmount) <= 0) return false;
     if (!form.consentSummary || !form.consentTerms) return false;
@@ -143,26 +150,38 @@ const RaiseClaim = () => {
     return true;
   };
 
+  // Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setSubmitError("");
+
     try {
-      await api.post("/api/claims", { claimType, ...form }, { auth: true });
-      navigate("/claims/my-claims", { state: { toast: "Success" } });
+      // Ensure numeric amount and default status before sending
+      const payload = {
+        ...form,
+        claimType,
+        claimedAmount: Number(form.claimedAmount),
+        status: "Pending"
+      };
+
+      await api.post("/api/claims", payload, { auth: true });
+      
+      // Navigate on success
+      navigate("/claims/my-claims", { state: { toast: "Claim Submitted Successfully" } });
     } catch (err) {
-      setSubmitError(err.message || "Submission failed");
+      console.error("Claim submission failed:", err);
+      // Enhanced error reporting
+      const serverMsg = err.response?.data?.error || err.message || "Request failed";
+      setSubmitError(serverMsg);
     } finally {
       setSubmitting(false);
     }
   };
 
   const isCategoryComplete = useMemo(() => {
-    if (claimType === "Pre-Post Hospitalization") {
-      return claimType && form.claimCycle && form.hospitalizationType;
-    }
     return claimType && form.claimCycle;
-  }, [claimType, form.claimCycle, form.hospitalizationType]);
+  }, [claimType, form.claimCycle]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans pb-20">
@@ -182,6 +201,7 @@ const RaiseClaim = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12">
+        {/* Navigation Tabs */}
         <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-[2rem] mb-12 max-w-2xl border border-white/20 relative no-print shadow-xl">
           <nav className="flex relative z-10">
             {[
@@ -229,7 +249,7 @@ const RaiseClaim = () => {
             <CustomSelect
               label="Claim Type"
               value={claimType}
-              onChange={(v) => { setClaimType(v); setStepReady(false); updateField("hospitalizationType", ""); }}
+              onChange={(v) => { setClaimType(v); setStepReady(false); }}
               options={["Hospitalization", "Pre-Post Hospitalization", "Preventive Health Check-up"]}
             />
             <CustomSelect
@@ -305,7 +325,7 @@ const RaiseClaim = () => {
                   </div>
 
                   <div className="md:col-span-2 space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Hospital Address</label>
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Hospital Name and Address</label>
                     <textarea
                       rows="3"
                       className="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-700 border resize-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
@@ -326,7 +346,6 @@ const RaiseClaim = () => {
                     />
                   </div>
 
-                  {/* Primary Diagnosis - SWAPPED TO LEFT */}
                   <div className="md:col-span-2 space-y-3">
                     <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Primary Diagnosis</label>
                     <textarea
@@ -338,7 +357,6 @@ const RaiseClaim = () => {
                     />
                   </div>
 
-                  {/* Day Care Procedure - SWAPPED TO RIGHT */}
                   <div className="flex flex-col items-start space-y-3">
                     <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
                       Day Care Procedure?
@@ -367,9 +385,17 @@ const RaiseClaim = () => {
                   </div>
                 </div>
 
-                {/* CONSENT */}
+                {/* CONSENT & ERRORS */}
                 <div className="mt-10 pt-8 border-t border-slate-50 space-y-4">
-                  {submitError && <div className="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-bold mb-4">⚠️ {submitError}</div>}
+                  {submitError && (
+                    <motion.div 
+                      initial={{ opacity: 0 }} 
+                      animate={{ opacity: 1 }} 
+                      className="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-bold mb-4 border border-red-100"
+                    >
+                      ⚠️ Error: {submitError}
+                    </motion.div>
+                  )}
                   <label className="flex items-start gap-4 cursor-pointer">
                     <input
                       type="checkbox"
@@ -400,7 +426,7 @@ const RaiseClaim = () => {
                   type="submit"
                   disabled={submitting || !validate()}
                   className={`w-full sm:w-80 h-16 rounded-[2rem] font-black uppercase text-[11px] transition-all shadow-2xl ${
-                    validate() 
+                    validate() && !submitting
                     ? "bg-blue-600 text-white shadow-blue-200 hover:scale-105 active:scale-95" 
                     : "bg-slate-200 text-slate-400 cursor-not-allowed"
                   }`}

@@ -14,7 +14,9 @@ const CustomDatePicker = ({ label, value, onChange, error, placeholder = 'DD MMM
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
+      // If click was inside a portal-based dropdown (e.g. PlanSelect), ignore it
+      const clickedInPortal = e?.target && e.target.closest && e.target.closest('[data-portal-dropdown]');
+      if (containerRef.current && !containerRef.current.contains(e.target) && !clickedInPortal) setIsOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
