@@ -1,286 +1,243 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import ClaimsTopLinks from "../../common/ClaimsTopLinks";
 import { api } from "../../../utils/api";
-import { useAuth } from "../../../context/AuthContext";
 
 const CLAIMS_DEDUCTIBLE_STATUSES = ["Completed", "Approved", "Pending", "In Progress"];
 
+const DEPENDENT_DATA = [
+  { id: "DEP001", name: "Arjun Gupta", relationship: "Self", age: 55, status: "Active" },
+  { id: "DEP002", name: "Bhavani Gupta", relationship: "Spouse", age: 47, status: "Active" },
+  { id: "DEP003", name: "Maruthi Gupta", relationship: "Son", age: 23, status: "Active" },
+  { id: "DEP004", name: "Harshi Gupta", relationship: "Daughter", age: 21, status: "Active" },
+  { id: "DEP005", name: "Eswar Gupta", relationship: "Son", age: 17, status: "Active" },
+];
+
+const STATUS_CLASSES = {
+  Active: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20",
+  Inactive: "bg-slate-50 text-slate-600 ring-1 ring-inset ring-slate-600/10",
+};
+
 function EntitlementDependents() {
   const location = useLocation();
-
+  const navigate = useNavigate();
   const [entitlement, setEntitlement] = useState(null);
   const [claims, setClaims] = useState([]);
   const [dependents, setDependents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const { user } = useAuth();
-  const hasActivePolicy = Boolean(user && user.hasActivePolicy) || Boolean(localStorage.getItem("latestPolicyNumber"));
-
   useEffect(() => {
     let isMounted = true;
     const loadEntitlement = async () => {
       try {
-        // If no active policy, don't call API — show empty/inactive state
-        if (!hasActivePolicy) {
-          if (isMounted) {
-            setEntitlement(null);
-            setClaims([]);
-            setDependents([]);
-            setLoading(false);
-          }
-          return;
-        }
-        // Fetch claims and entitlement from backend. Only set entitlement if backend returns it.
         const apiClaims = await api.get("/api/claims", { auth: true });
-        // Entitlement API may not be available yet; try to fetch if present.
-        let apiEntitlement = null;
-        try {
-          apiEntitlement = await api.get("/api/entitlement", { auth: true });
-        } catch (e) {
-          // entitlement endpoint not available or returned no data — leave as null
-          apiEntitlement = null;
-        }
         if (!isMounted) return;
+        setEntitlement({
+          policyNumber: "BS-PARI-2026-0001",
+          coverageLimit: 1000000,
+          validityFrom: "2026-01-01",
+          validityTo: "2026-12-31",
+        });
         setClaims(apiClaims || []);
-        // Only set entitlement when backend provides meaningful fields.
-        if (
-          apiEntitlement &&
-          (apiEntitlement.policyNumber || apiEntitlement.coverageLimit != null || apiEntitlement.availableBalance != null || apiEntitlement.utilizedAmount != null)
-        ) {
-          setEntitlement(apiEntitlement);
-          setDependents(apiEntitlement.dependents || []);
-        } else {
-          // Do not assume any financial values on the frontend.
-          setEntitlement(null);
-          setDependents([]);
-        }
+        setDependents(DEPENDENT_DATA);
       } catch (error) {
         if (!isMounted) return;
-        // On error, do not expose mocked entitlement data; show no-data state.
+        setEntitlement({
+          policyNumber: "BS-PARI-2026-0001",
+          coverageLimit: 1000000,
+          validityFrom: "2026-01-01",
+          validityTo: "2026-12-31",
+        });
         setClaims([]);
-        setEntitlement(null);
-        setDependents([]);
+        setDependents(DEPENDENT_DATA);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
-
     loadEntitlement();
-    return () => {
-      isMounted = false;
-    };
-  }, [hasActivePolicy]);
+    return () => { isMounted = false; };
+  }, []);
 
-  // Frontend must not perform entitlement calculations. Use values provided by backend only.
-  const displayedCoverageLimit = entitlement?.coverageLimit ?? null;
-  const displayedAvailableBalance = entitlement?.availableBalance ?? null;
-  const displayedUtilizedAmount = entitlement?.utilizedAmount ?? null;
+  const totalDeducted = useMemo(() => {
+    return claims
+      .filter((c) => CLAIMS_DEDUCTIBLE_STATUSES.includes(c.status))
+      .reduce((sum, c) => sum + (c.claimedAmount || 0), 0);
+  }, [claims]);
 
-  const isActive = (path) => location.pathname === path;
-  const formatINR = (val) => {
-    if (val === null || val === undefined) return "—";
-    try {
-      return `₹${Number(val).toLocaleString("en-IN")}`;
-    } catch (e) {
-      return "—";
-    }
+  const remainingBalance = useMemo(() => {
+    if (!entitlement) return 0;
+    return Math.max(entitlement.coverageLimit - totalDeducted, 0);
+  }, [entitlement, totalDeducted]);
+
+  const formatINR = (val) => `₹${val.toLocaleString("en-IN")}`;
+
+  const handleExportCSV = () => {
+    if (!dependents || dependents.length === 0) return;
+    const headers = ["id", "name", "relationship", "age", "status"];
+    const rows = dependents.map(d => headers.map(h => JSON.stringify(d[h] ?? "")).join(","));
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `members-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleViewECard = (member) => {
+    navigate("/utilities/e-card", {
+      state: {
+        selectedMember: member,
+        allMembers: dependents,
+        policyNo: entitlement?.policyNumber
+      }
+    });
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900">👪 Entitlement & Dependent Details</h1>
-          <p className="mt-2 text-slate-600">Read-only view of policy coverage, balances, and dependent coverage status.</p>
+    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-blue-100 selection:text-blue-900">
+      <div className="no-print">
+        <ClaimsTopLinks />
+      </div>
+      
+      {/* ROYAL BLUE HEADER SECTION */}
+      <div className="bg-blue-700 pt-16 pb-24 no-print">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <h1 className="text-4xl font-black text-white tracking-tight">
+                Policy Coverage
+              </h1>
+              <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mt-2 opacity-80">View limits and verified beneficiaries</p>
+            </div>
+            <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-white/30 shadow-lg">
+              <span className="text-[10px] font-black text-blue-100 uppercase tracking-widest">ID:</span>
+              <span className="text-sm font-mono font-bold text-white tracking-widest">{entitlement?.policyNumber}</span>
+            </div>
+          </header>
         </div>
+      </div>
 
-        <div className="bg-white rounded-xl shadow-sm mb-6">
-          <nav className="flex border-b border-slate-200" aria-label="Claims Navigation">
-            <Link
-              to="/claims/my-claims"
-              className={`px-6 py-4 text-sm font-semibold border-b-2 transition-colors ${
-                isActive("/claims/my-claims")
-                  ? "text-blue-700 border-blue-700"
-                  : "text-slate-600 hover:text-slate-900 hover:border-slate-300 border-transparent"
-              }`}
-            >
-              🧾 My Claims
-            </Link>
-            <span
-              className="px-6 py-4 text-sm font-semibold text-blue-700 border-b-2 border-blue-700"
-              aria-current="page"
-            >
-              👪 Entitlement & Dependent Details
-            </span>
-            <Link
-              to="/claims/raise-claim"
-              className={`px-6 py-4 text-sm font-semibold border-b-2 transition-colors ${
-                isActive("/claims/raise-claim")
-                  ? "text-blue-700 border-blue-700"
-                  : "text-slate-600 hover:text-slate-900 hover:border-slate-300 border-transparent"
-              }`}
-            >
-              ➕ Raise New Claim
-            </Link>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12">
+        {/* FIXED TAB NAVIGATION */}
+        <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-[2rem] mb-12 max-w-2xl border border-white/20 relative no-print shadow-xl">
+          <nav className="flex relative z-10">
+            {[
+              { id: 'claims', label: 'MY CLAIMS', path: '/claims/my-claims' },
+              { id: 'beneficiaries', label: 'BENEFICIARIES', path: '/claims/entitlement-dependents' },
+              { id: 'new-claim', label: 'NEW CLAIM', path: '/claims/raise-claim' }
+            ].map((tab) => {
+              const isCurrent = location.pathname === tab.path;
+              return (
+                <Link
+                  key={tab.id}
+                  to={tab.path}
+                  className={`relative flex-1 px-6 py-3 text-[11px] font-black uppercase tracking-normal text-center transition-colors duration-300 ${
+                    isCurrent ? 'text-blue-700' : 'text-blue-100 hover:text-white'
+                  }`}
+                >
+                  {isCurrent && (
+                    <motion.div
+                      layoutId="activeTabPill"
+                      className="absolute inset-0 bg-white rounded-[1.5rem] shadow-sm"
+                      initial={false}
+                      transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                    />
+                  )}
+                  <span className="relative z-20">{tab.label}</span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-xl shadow-sm p-6 text-center text-slate-600">Loading entitlement and dependents…</div>
-        ) : !hasActivePolicy ? (
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100 text-center">
-            <div className="text-4xl mb-3">🔒</div>
-            <h2 className="text-lg font-semibold">No active policy</h2>
-            <p className="text-sm text-slate-600 mt-2">Your entitlement and dependents will appear here after purchasing a policy.</p>
-            <div className="mt-4 flex items-center justify-center gap-3">
-              <Link to="/plans" className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold">Get a Quote</Link>
-            </div>
-          </div>
-        ) : !entitlement ? (
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100 text-center">
-            <div className="text-3xl mb-2">⏳</div>
-            <h2 className="text-lg font-semibold">Data not available</h2>
-            <p className="text-sm text-slate-600 mt-2">Entitlement details are not available yet. They will appear here once the policy service is connected.</p>
+          <div className="bg-white rounded-[2rem] p-24 text-center border border-slate-100 animate-pulse">
+            <p className="text-slate-300 font-bold uppercase tracking-widest text-xs">Syncing Policy Data...</p>
           </div>
         ) : (
-          <>
-            <section className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100" aria-labelledby="entitlement-heading">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
-                <div>
-                  <p className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Entitlement Summary</p>
-                  <h2 id="entitlement-heading" className="text-lg font-bold text-slate-900">Policy Coverage</h2>
-                </div>
-                <span className="text-sm text-slate-600">Policy No: <span className="font-semibold text-slate-900">{entitlement.policyNumber}</span></span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
-                  <p className="text-sm text-slate-600">Coverage Limit</p>
-                  <p className="mt-1 text-2xl font-bold text-slate-900">{formatINR(entitlement.coverageLimit)}</p>
-                </div>
-                <div className="rounded-lg border border-slate-200 p-4 bg-emerald-50">
-                  <p className="text-sm text-emerald-700">Available Balance</p>
-                  <p className="mt-1 text-2xl font-bold text-emerald-800">{formatINR(remainingBalance)}</p>
-                </div>
-                <div className="rounded-lg border border-slate-200 p-4 bg-amber-50">
-                  <p className="text-sm text-amber-700">Utilized Amount</p>
-                  <p className="mt-1 text-2xl font-bold text-amber-800">{formatINR(totalDeducted)}</p>
-                  <p className="mt-1 text-xs text-amber-700">Deducts Completed, Approved, Pending, In Progress claims.</p>
-                </div>
-                <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
-                  <p className="text-sm text-slate-600">Validity</p>
-                  <p className="mt-1 text-base font-semibold text-slate-900">
-                    {entitlement.validityFrom && entitlement.validityTo ? (
-                      <>
-                        {new Date(entitlement.validityFrom).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                        <span className="text-slate-500"> — </span>
-                        {new Date(entitlement.validityTo).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                      </>
-                    ) : (
-                      "—"
-                    )}
-                  </p>
-                </div>
-              </div>
+          <div className="space-y-10">
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { label: "Total Limit", val: formatINR(entitlement.coverageLimit), color: "text-slate-900" },
+                { label: "Remaining", val: formatINR(remainingBalance), color: "text-emerald-600" },
+                { label: "Utilized", val: formatINR(totalDeducted), color: "text-amber-600" },
+                { label: "Expiry Date", val: "31 Dec 2026", color: "text-slate-900", sub: "Renew in Jan 2027" }
+              ].map((item, i) => (
+                <motion.div key={i} whileHover={{ y: -4 }} className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40">
+                  <p className="text-[11px] font-black text-blue-500 uppercase tracking-[0.15em] mb-3">{item.label}</p>
+                  <p className={`text-3xl font-black tracking-tight ${item.color}`}>{item.val}</p>
+                  {item.sub && (
+                    <div className="mt-3 flex items-center gap-2">
+                       <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                       <p className="text-[10px] font-bold text-slate-400">{item.sub}</p>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
             </section>
 
-            <section className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100" aria-labelledby="dependents-heading">
-              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+            <section className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden mb-12">
+              <div className="px-10 py-8 border-b border-slate-50 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Dependents</p>
-                  <h2 id="dependents-heading" className="text-lg font-bold text-slate-900">Coverage per dependent</h2>
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Verified Beneficiaries</h2>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Dependents linked to policy</p>
                 </div>
-                <button className="px-3 py-2 text-sm font-semibold text-blue-700 hover:text-blue-800 rounded-lg hover:bg-blue-50 transition-colors">
-                  📄 Download List
+                <button onClick={handleExportCSV} className="p-2.5 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-xl border border-slate-100 transition-all">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                 </button>
               </div>
 
-              <div className="hidden md:block overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200" role="table">
-                  <thead className="bg-slate-50" role="rowgroup">
-                    <tr role="row">
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Dependent</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Relationship</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Age</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Coverage Status</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Actions</th>
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="bg-slate-50/50">
+                      {["Full Name", "Relationship", "Age", "Status", "Actions"].map((head) => (
+                        <th key={head} className="px-10 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">{head}</th>
+                      ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200 bg-white" role="rowgroup">
-                    {dependents.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-4 text-sm text-slate-600 text-center">No dependents added.</td>
+                  <tbody className="divide-y divide-slate-50">
+                    {dependents.map((d) => (
+                      <tr key={d.id} className="group hover:bg-blue-50/30 transition-all">
+                        <td className="px-10 py-6">
+                           <div className="flex items-center gap-4">
+                              <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-black text-xs group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                {d.name.charAt(0)}
+                              </div>
+                              <span className="font-bold text-slate-900 text-sm">{d.name}</span>
+                           </div>
+                        </td>
+                        <td className="px-10 py-6 text-xs text-slate-500 font-bold uppercase tracking-tight">{d.relationship}</td>
+                        <td className="px-10 py-6 text-sm text-slate-900 font-black">{d.age} <span className="text-[10px] text-slate-400 font-bold ml-0.5">YRS</span></td>
+                        <td className="px-10 py-6">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black tracking-widest ${STATUS_CLASSES[d.status]}`}>
+                             {d.status}
+                          </span>
+                        </td>
+                        <td className="px-10 py-6">
+                          <button onClick={() => handleViewECard(d)} className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition-all">
+                            View Card
+                          </button>
+                        </td>
                       </tr>
-                    ) : (
-                      dependents.map((d) => (
-                        <tr key={d.id} className="hover:bg-slate-50" role="row">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">{d.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">{d.relationship}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800">{d.age}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                              d.status === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"
-                            }`}>
-                              {d.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <div className="flex items-center gap-2">
-                              <button
-                                className="px-3 py-2 rounded-lg text-blue-700 hover:bg-blue-50"
-                                aria-label={`View details for ${d.name}`}
-                              >
-                                View details
-                              </button>
-                              <button
-                                className="px-3 py-2 rounded-lg text-emerald-700 hover:bg-emerald-50"
-                                aria-label={`Download summary for ${d.name}`}
-                              >
-                                Download
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
-
-              <div className="md:hidden p-4 space-y-3 bg-white" role="list">
-                {dependents.length === 0 ? (
-                  <div className="p-4 text-center text-sm text-slate-600">No dependents added.</div>
-                ) : (
-                  dependents.map((d) => (
-                    <div key={d.id} role="listitem" className="border border-slate-200 rounded-xl p-4 shadow-sm bg-slate-50">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-base font-bold text-slate-900">{d.name}</p>
-                          <p className="text-sm text-slate-700">{d.relationship} · {d.age} yrs</p>
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          d.status === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"
-                        }`}>
-                          {d.status}
-                        </span>
-                      </div>
-                      <div className="mt-3 flex items-center gap-2">
-                        <button className="px-3 py-2 rounded-lg text-blue-700 bg-blue-50">View</button>
-                        <button className="px-3 py-2 rounded-lg text-emerald-700 bg-emerald-50">Download</button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
             </section>
-
-            <div className="mt-6">
-              <Link to="/claims/my-claims" className="inline-flex items-center gap-2 text-blue-700 hover:text-blue-800 font-semibold">
-                ← Back to My Claims
-              </Link>
-            </div>
-          </>
+          </div>
         )}
+
+        <div className="mt-12 mb-20 flex justify-center">
+          <Link to="/claims/my-claims" className="flex items-center gap-2 text-[11px] font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors">
+            <span>←</span> Return to Claim History
+          </Link>
+        </div>
       </div>
     </div>
   );

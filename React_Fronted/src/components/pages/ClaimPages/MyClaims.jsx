@@ -1,461 +1,281 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState, useRef } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../../context/AuthContext";
 import { api } from "../../../utils/api";
-
-const getDateOnly = (value) => {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toISOString().slice(0, 10);
-};
+import CustomDatePicker from "../../common/CustomDatePicker";
+import ClaimsTopLinks from "../../common/ClaimsTopLinks";
 
 const DEPENDENT_NAME_MAP = {
-  DEP001: "Priya Sharma",
-  DEP002: "Aarav Sharma",
-  DEP003: "Meera Sharma",
+  DEP001: "Arjun Gupta",
+  DEP002: "Bhavani Gupta",
+  DEP003: "Maruthi Gupta", 
+  DEP004: "Harshi Gupta",
+  DEP005: "Eswar Gupta",
 };
-
-const formatClaim = (claim) => ({
-  id: claim._id,
-  displayId: claim.dependentId || claim._id,
-  name:
-    claim.dependentName ||
-    (claim.dependentId ? DEPENDENT_NAME_MAP[claim.dependentId] : "") ||
-    claim.dependentId ||
-    "Policyholder",
-  claimType: claim.claimType || "",
-  claimedAmount: claim.claimedAmount,
-  amountPaid: 0,
-  raisedOn: claim.createdAt,
-  remarks: claim.remarks || "",
-  status: claim.status || "Pending",
-  claimCycle: claim.claimCycle,
-  raw: claim,
-});
 
 const STATUS_CLASSES = {
-  Completed: "bg-emerald-50 text-emerald-700",
-  Pending: "bg-amber-50 text-amber-700",
-  "In Progress": "bg-blue-50 text-blue-700",
-  Cancelled: "bg-rose-50 text-rose-700",
+  Completed: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  Pending: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  "In Progress": "bg-blue-50 text-blue-700 ring-blue-600/20",
+  Cancelled: "bg-rose-50 text-rose-700 ring-rose-600/20",
 };
 
-const EDITABLE_STATUSES = ["Pending", "In Progress"];
-const CANCELLABLE_STATUSES = ["Pending", "In Progress"];
+const CustomSelect = ({ value, onChange, options, buttonClassName }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const formattedOptions = options?.map((opt) =>
+    typeof opt === "string" ? { value: opt, label: opt } : opt
+  ) || [];
+
+  const currentLabel = formattedOptions.find((o) => o.value === value)?.label || "Select Status";
+
+  return (
+    <div className="relative w-full space-y-2" ref={containerRef}>
+      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Filter Status</label>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={buttonClassName}
+      >
+        <span className="truncate">{currentLabel}</span>
+        <span className={`text-[10px] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>▼</span>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+            className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden"
+          >
+            {formattedOptions.map((opt) => (
+              <div
+                key={opt.value}
+                className={`px-5 py-3 text-sm cursor-pointer transition-colors ${
+                  value === opt.value ? "bg-blue-50 text-blue-700 font-bold" : "text-slate-600 hover:bg-slate-50"
+                }`}
+                onClick={() => { onChange(opt.value); setIsOpen(false); }}
+              >
+                {opt.label}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 const MyClaims = () => {
-  const navigate = useNavigate();
-
+  const location = useLocation();
   const { user } = useAuth();
-  const hasActivePolicy = Boolean(user && user.hasActivePolicy) || Boolean(localStorage.getItem("latestPolicyNumber"));
+  const hasActivePolicy = Boolean(user?.hasActivePolicy || localStorage.getItem("latestPolicyNumber"));
 
   const [claimId, setClaimId] = useState("");
   const [raisedOn, setRaisedOn] = useState("");
   const [status, setStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const rowsPerPage = 10;
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const baseClaims = useMemo(() => claims || [], [claims]);
 
   useEffect(() => {
     let isMounted = true;
     const loadClaims = async () => {
+      setLoading(true);
       try {
-        // If there's no active policy yet, don't call claims API — keep empty state
         if (!hasActivePolicy) {
-          if (isMounted) setClaims([]);
+          setClaims([]);
           return;
         }
-
-        const claims = await api.get("/api/claims", { auth: true });
-        const formattedClaims = claims.map(formatClaim);
-        const dedupedClaims = Object.values(
-          formattedClaims.reduce((acc, claim) => {
-            const key = claim.displayId;
-            if (!acc[key]) {
-              acc[key] = claim;
-              return acc;
-            }
-            const currentDate = new Date(acc[key].raisedOn || 0);
-            const nextDate = new Date(claim.raisedOn || 0);
-            if (nextDate > currentDate) {
-              acc[key] = claim;
-            }
-            return acc;
-          }, {})
-        );
+        const response = await api.get("/api/claims", { auth: true });
         if (isMounted) {
-          setClaims(dedupedClaims);
+          setClaims(Array.isArray(response) ? response.map(claim => ({
+            id: claim._id || Math.random().toString(36).substr(2, 9),
+            displayId: String(claim.dependentId || claim._id || ""),
+            name: claim.dependentName || DEPENDENT_NAME_MAP[claim.dependentId] || "Primary Member",
+            claimType: claim.claimType || "Health",
+            claimedAmount: Number(claim.claimedAmount) || 0,
+            raisedOn: claim.createdAt || null,
+            status: claim.status || "Pending",
+          })) : []);
         }
       } catch (error) {
-        if (isMounted) {
-          setClaims([]);
-        }
+        if (isMounted) setClaims([]);
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
-
     loadClaims();
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [hasActivePolicy]);
 
   const filteredClaims = useMemo(() => {
-    return baseClaims.filter((claim) => {
-      const matchesClaimId = !claimId || claim.id.toLowerCase().includes(claimId.toLowerCase());
-      const matchesDate = !raisedOn || getDateOnly(claim.raisedOn) === raisedOn;
+    return claims.filter((claim) => {
+      const matchesId = !claimId || claim.displayId.toLowerCase().includes(claimId.toLowerCase());
+      const matchesDate = !raisedOn || (claim.raisedOn && claim.raisedOn.startsWith(raisedOn));
       const matchesStatus = !status || claim.status === status;
-      return matchesClaimId && matchesDate && matchesStatus;
+      return matchesId && matchesDate && matchesStatus;
     });
-  }, [baseClaims, claimId, raisedOn, status]);
+  }, [claims, claimId, raisedOn, status]);
 
-  const indexOfLastClaim = currentPage * rowsPerPage;
-  const indexOfFirstClaim = indexOfLastClaim - rowsPerPage;
-  const currentClaims = filteredClaims.slice(indexOfFirstClaim, indexOfLastClaim);
-  const totalPages = Math.max(1, Math.ceil(filteredClaims.length / rowsPerPage) || 1);
-
-  const handleSearch = () => setCurrentPage(1);
-
-  const handleReset = () => {
-    setClaimId("");
-    setRaisedOn("");
-    setStatus("");
-    setCurrentPage(1);
-  };
-
-  const handleEdit = (claim) => {
-    navigate(`/claims/raise-claim/${claim.displayId}?id=${claim.id}`, {
-      state: { mode: "edit", claim: claim.raw },
-    });
-  };
-
-  const handleCancel = async (claim) => {
-    if (!canCancelClaim(claim.status)) return;
-    try {
-      const updated = await api.patch(`/api/claims/${claim.id}/cancel`, {}, { auth: true });
-      setClaims((prev) =>
-        prev.map((c) => (c.id === claim.id ? { ...c, status: updated.status } : c))
-      );
-    } catch (error) {
-      // keep silent for now
-    }
-  };
-
-  const canEditClaim = (claimStatus) => EDITABLE_STATUSES.includes(claimStatus);
-  const canCancelClaim = (claimStatus) => CANCELLABLE_STATUSES.includes(claimStatus);
-  const isFinalStatus = (claimStatus) => claimStatus === "Cancelled" || claimStatus === "Completed";
-
-  const getStatusClass = (claimStatus) => STATUS_CLASSES[claimStatus] || "bg-slate-100 text-slate-700";
+  const totalPages = Math.ceil(filteredClaims.length / rowsPerPage) || 1;
+  const currentClaims = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    return filteredClaims.slice(start, start + rowsPerPage);
+  }, [filteredClaims, currentPage]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-wrap items-center justify-end gap-4 text-sm">
-            <Link to="/utilities/e-card" className="flex items-center gap-2 text-blue-700 hover:text-blue-800 transition-colors">
-              <span aria-hidden>🎫</span>
-              <span>Download E-Card</span>
-            </Link>
-            <Link to="/utilities/hospitals" className="flex items-center gap-2 text-blue-700 hover:text-blue-800 transition-colors">
-              <span aria-hidden>🏥</span>
-              <span>Hospital List</span>
-            </Link>
-            <Link to="/utilities/justification-letter" className="flex items-center gap-2 text-blue-700 hover:text-blue-800 transition-colors">
-              <span aria-hidden>📄</span>
-              <span>Justification Letter</span>
-            </Link>
-            <Link to="/utilities/claim-instructions" className="flex items-center gap-2 text-blue-700 hover:text-blue-800 transition-colors">
-              <span aria-hidden>📘</span>
-              <span>Claim Instructions</span>
-            </Link>
-          </div>
+    <div className="min-h-screen bg-[#F8FAFC] font-sans">
+      <ClaimsTopLinks />
+
+      {/* ROYAL BLUE HEADER SECTION */}
+      <div className="bg-blue-700 pt-16 pb-24 no-print">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <header>
+            <h1 className="text-4xl font-black text-white tracking-tight">🧾 My Claims</h1>
+            <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mt-2 opacity-80">Manage and track your reimbursement history</p>
+          </header>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900">🧾 My Claims</h1>
-          <p className="mt-2 text-slate-600">View, filter, track, and manage all submitted insurance claims.</p>
-        </div>
-
-        {!hasActivePolicy && (
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100 text-center">
-            <div className="text-4xl mb-3">🔒</div>
-            <h2 className="text-lg font-semibold">No active policy</h2>
-            <p className="text-sm text-slate-600 mt-2">Claims will appear here once you purchase a policy.</p>
-            <div className="mt-4 flex items-center justify-center gap-3">
-              <button onClick={() => navigate('/plans')} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold">Get a Quote</button>
-              <Link to="/claims/raise-claim" className="px-4 py-2 border border-slate-200 rounded-xl text-slate-700">Raise Claim (Policy holder)</Link>
-            </div>
-          </div>
-        )}
-
-        <div className="bg-white rounded-xl shadow-sm mb-6">
-          <nav className="flex border-b border-slate-200" aria-label="Claims Navigation">
-            <span className="px-6 py-4 text-sm font-semibold text-blue-700 border-b-2 border-blue-700" aria-current="page">
-              🧾 My Claims
-            </span>
-            <Link
-              to="/claims/entitlement-dependents"
-              className="px-6 py-4 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:border-slate-300 border-b-2 border-transparent transition-colors"
-            >
-              👪 Entitlement & Dependent Details
-            </Link>
-            <Link
-              to="/claims/raise-claim"
-              className="px-6 py-4 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:border-slate-300 border-b-2 border-transparent transition-colors"
-            >
-              ➕ Raise New Claim
-            </Link>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12">
+        {/* FIXED TAB NAVIGATION */}
+        <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-[2rem] mb-12 max-w-2xl border border-white/20 relative no-print shadow-xl">
+          <nav className="flex relative z-10">
+            {[
+              { id: 'claims', label: 'MY CLAIMS', path: '/claims/my-claims' },
+              { id: 'beneficiaries', label: 'BENEFICIARIES', path: '/claims/entitlement-dependents' },
+              { id: 'new-claim', label: 'NEW CLAIM', path: '/claims/raise-claim' }
+            ].map((tab) => {
+              const isCurrent = location.pathname === tab.path;
+              return (
+                <Link
+                  key={tab.id} to={tab.path}
+                  className={`relative flex-1 px-6 py-3 text-[11px] font-black uppercase tracking-normal text-center transition-colors duration-300 ${
+                    isCurrent ? 'text-blue-700' : 'text-blue-50 hover:text-white'
+                  }`}
+                >
+                  {isCurrent && (
+                    <motion.div
+                      layoutId="activeTabPill"
+                      className="absolute inset-0 bg-white rounded-[1.5rem] shadow-sm"
+                      initial={false}
+                      transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                    />
+                  )}
+                  <span className="relative z-20">{tab.label}</span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
-        <section className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-slate-100">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">🔎 Filters</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label htmlFor="claimId" className="block text-sm font-semibold text-slate-700 mb-2">Claim ID</label>
-              <input
-                id="claimId"
-                type="text"
-                value={claimId}
-                onChange={(e) => setClaimId(e.target.value)}
-                placeholder="Search by Claim ID"
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 shadow-inner focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-            <div>
-              <label htmlFor="raisedOn" className="block text-sm font-semibold text-slate-700 mb-2">Raised On</label>
-              <input
-                id="raisedOn"
-                type="date"
-                value={raisedOn}
-                onChange={(e) => setRaisedOn(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 shadow-inner focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-            <div>
-              <label htmlFor="status" className="block text-sm font-semibold text-slate-700 mb-2">Status</label>
-              <select
-                id="status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 shadow-inner bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">All</option>
-                <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
-            <div className="flex items-end gap-3">
-              <button
-                onClick={handleSearch}
-                className="flex-1 inline-flex justify-center items-center gap-2 px-4 py-3 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"
-              >
-                🔍 Search
-              </button>
-              <button
-                onClick={handleReset}
-                className="inline-flex justify-center items-center gap-2 px-4 py-3 rounded-lg bg-slate-100 text-slate-800 font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-1"
-              >
-                ♻️ Reset
-              </button>
-            </div>
+        {/* Filter Section */}
+        <section className="bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 p-8 mb-10 border border-slate-100 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Search ID</label>
+            <input
+              type="text" value={claimId}
+              onChange={(e) => { setClaimId(e.target.value); setCurrentPage(1); }}
+              placeholder="e.g., #001A"
+              className="w-full h-14 rounded-2xl border border-slate-200 bg-slate-50 px-5 text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+            />
           </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Filing Date</label>
+            <CustomDatePicker
+              value={raisedOn}
+              onChange={(val) => { setRaisedOn(val); setCurrentPage(1); }}
+              inputClassName="w-full h-14 rounded-2xl border border-slate-200 bg-slate-50 px-5 text-sm font-bold text-slate-700 focus:bg-white transition-all"
+            />
+          </div>
+          <CustomSelect
+            value={status}
+            onChange={(val) => { setStatus(val); setCurrentPage(1); }}
+            options={[{ value: "", label: "All Statuses" }, "Pending", "In Progress", "Completed", "Cancelled"]}
+            buttonClassName="w-full h-14 rounded-2xl border border-slate-200 bg-slate-50 px-5 text-sm font-bold text-slate-700 flex items-center justify-between hover:bg-slate-100 transition-all"
+          />
+          <button
+            onClick={() => { setClaimId(""); setRaisedOn(""); setStatus(""); setCurrentPage(1); }}
+            className="h-14 rounded-2xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-slate-200"
+          >
+            Clear Filters
+          </button>
         </section>
 
-        <section className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="overflow-x-auto hidden md:block">
-            <table className="min-w-full divide-y divide-slate-200" role="table">
-              <thead className="bg-slate-50" role="rowgroup">
-                <tr role="row">
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Claim ID</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Name</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Claim Type</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Claimed Amount</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Amount Paid</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Raised On</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Remarks</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Status</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">Actions</th>
+        {/* Results Table */}
+        <section className="bg-white rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="bg-slate-50/50">
+                  {["Ref ID", "Beneficiary", "Category", "Amount", "Status", "Raised On", "Action"].map((head) => (
+                    <th key={head} className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">{head}</th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 bg-white" role="rowgroup">
-                      {loading ? (
-                        <tr role="row">
-                          <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
-                            <div className="text-2xl font-semibold">Loading claims…</div>
-                          </td>
-                        </tr>
-                      ) : currentClaims.length > 0 ? (
-                  currentClaims.map((claim) => (
-                    <tr key={claim.id} className="hover:bg-slate-50" role="row">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-700">
-                        <button
-                          onClick={() => handleEdit(claim)}
-                          className="hover:underline"
-                          aria-label={`Edit claim ${claim.id}`}
-                        >
-                          {claim.displayId}
-                        </button>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{claim.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{claim.claimType || "-"}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">₹{claim.claimedAmount.toLocaleString("en-IN")}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{claim.amountPaid ? `₹${claim.amountPaid.toLocaleString("en-IN")}` : "-"}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{new Date(claim.raisedOn).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" })}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600 max-w-xs truncate" title={claim.remarks}>{claim.remarks}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${getStatusClass(claim.status)}`}>
-                          {claim.status}
+              <tbody className="divide-y divide-slate-50">
+                {loading ? (
+                  <tr><td colSpan={7} className="py-32 text-center text-[10px] font-black uppercase tracking-widest text-slate-400 animate-pulse">Syncing database...</td></tr>
+                ) : currentClaims.length > 0 ? (
+                  currentClaims.map((claim, idx) => (
+                    <motion.tr 
+                      initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
+                      key={claim.id} className="group hover:bg-blue-50/30 transition-all"
+                    >
+                      <td className="px-10 py-6">
+                        <span className="font-mono text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                          #{claim.displayId ? claim.displayId.slice(-4).toUpperCase() : '----'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {isFinalStatus(claim.status) ? (
-                          <span className="text-sm text-slate-400">No actions</span>
-                        ) : (
-                          <div className="flex items-center gap-4 text-sm font-semibold">
-                            <button
-                              disabled={!canCancelClaim(claim.status)}
-                              onClick={() => handleCancel(claim)}
-                              className={`text-rose-700 hover:underline focus:outline-none disabled:text-slate-300 disabled:cursor-not-allowed`}
-                              aria-label={`Cancel claim ${claim.id}`}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        )}
+                      <td className="px-10 py-6">
+                        <div className="text-sm font-bold text-slate-900 leading-none mb-1">{claim.name}</div>
+                        <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Verified Beneficiary</div>
                       </td>
-                    </tr>
+                      <td className="px-10 py-6 font-bold text-xs text-slate-500">{claim.claimType}</td>
+                      <td className="px-10 py-6 font-black text-slate-900 text-sm">₹{claim.claimedAmount.toLocaleString("en-IN")}</td>
+                      <td className="px-10 py-6">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ring-1 ring-inset ${STATUS_CLASSES[claim.status] || "bg-slate-50 text-slate-600"}`}>
+                          ● {claim.status}
+                        </span>
+                      </td>
+                      <td className="px-10 py-6 text-[11px] font-bold text-slate-400 italic">
+                        {claim.raisedOn ? new Date(claim.raisedOn).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }) : 'Pending'}
+                      </td>
+                      <td className="px-10 py-6 text-right">
+                        <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                      </td>
+                    </motion.tr>
                   ))
                 ) : (
-                  <tr role="row">
-                    <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
-                      <div className="text-5xl mb-3" aria-hidden>📂</div>
-                      <p className="text-lg font-semibold">No claims found</p>
-                      <p className="text-sm text-slate-600">Adjust filters or raise a new claim.</p>
-                    </td>
-                  </tr>
+                  <tr><td colSpan={7} className="py-32 text-center text-[10px] font-black uppercase tracking-widest text-slate-400">No records found</td></tr>
                 )}
               </tbody>
             </table>
           </div>
 
-          <div className="md:hidden p-4 space-y-3 bg-white">
-            {loading ? (
-              <div className="text-center text-slate-500 text-sm">Loading claims…</div>
-            ) : currentClaims.length > 0 ? (
-              currentClaims.map((claim) => (
-                <div key={claim.id} className="border border-slate-200 rounded-xl p-4 shadow-sm bg-slate-50">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <button
-                        onClick={() => handleEdit(claim)}
-                        className="text-sm font-bold text-blue-700 hover:underline"
-                      >
-                        {claim.displayId}
-                      </button>
-                      <p className="text-sm text-slate-900 font-semibold">{claim.name}</p>
-                      <p className="text-xs text-slate-600">{claim.claimType || "-"}</p>
-                      <p className="text-xs text-slate-600">Raised on {new Date(claim.raisedOn).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}</p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusClass(claim.status)}`}>
-                      {claim.status}
-                    </span>
-                  </div>
-                  <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-slate-800">
-                    <div>
-                      <p className="text-xs text-slate-500">Claimed</p>
-                      <p className="font-semibold">₹{claim.claimedAmount.toLocaleString("en-IN")}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500">Paid</p>
-                      <p className="font-semibold">{claim.amountPaid ? `₹${claim.amountPaid.toLocaleString("en-IN")}` : "-"}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-xs text-slate-500">Remarks</p>
-                      <p className="font-semibold text-slate-800">{claim.remarks}</p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex items-center gap-3 text-sm font-semibold">
-                    {isFinalStatus(claim.status) ? (
-                      <span className="text-slate-400">No actions</span>
-                    ) : (
-                      <button
-                        disabled={!canCancelClaim(claim.status)}
-                        onClick={() => handleCancel(claim)}
-                        className={`text-rose-700 hover:underline focus:outline-none disabled:text-slate-300 disabled:cursor-not-allowed`}
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-slate-500 text-sm">No claims found for this cycle.</p>
-            )}
-          </div>
-
-          {filteredClaims.length > 0 && (
-            <div className="bg-white px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2 text-sm text-slate-700">
-                <label htmlFor="rowsPerPage" className="font-semibold">Rows per page:</label>
-                <select
-                  id="rowsPerPage"
-                  value={rowsPerPage}
-                  onChange={(e) => {
-                    setRowsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="rounded-lg border border-slate-300 px-3 py-1 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                </select>
-              </div>
-
-              <div className="flex items-center gap-4 text-sm text-slate-700">
-                <span>
-                  Showing {indexOfFirstClaim + 1} to {Math.min(indexOfLastClaim, filteredClaims.length)} of {filteredClaims.length}
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-lg ${
-                      currentPage === 1 ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-blue-600 text-white hover:bg-blue-700"
-                    }`}
-                  >
-                    Previous
-                  </button>
-                  <span className="px-3 py-1">Page {currentPage} of {totalPages}</span>
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage >= totalPages}
-                    className={`px-3 py-1 rounded-lg ${
-                      currentPage >= totalPages
-                        ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
-                    }`}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+          {/* Pagination */}
+          <div className="px-10 py-8 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Page {currentPage} of {totalPages}</p>
+            <div className="flex gap-3">
+              <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-200 bg-white disabled:opacity-30 hover:bg-slate-50 transition-all">Previous</button>
+              <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl bg-slate-900 text-white disabled:opacity-30 hover:bg-blue-600 transition-all shadow-lg shadow-slate-200">Next Page</button>
             </div>
-          )}
+          </div>
         </section>
       </div>
     </div>

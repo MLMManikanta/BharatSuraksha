@@ -190,13 +190,6 @@ const PaymentSuccessPage = () => {
           >
             🖨️ Download Receipt
           </button>
-
-          <button
-            onClick={() => navigate('/register', { state: { policyNumber, planName } })}
-            className="flex-1 py-4 px-6 bg-white border border-emerald-200 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-50 hover:border-emerald-300 transition-all shadow-sm"
-          >
-            Create Account
-          </button>
           <button
             onClick={() => navigate('/claims/entitlement-dependents', { state: { policyNumber, planName, fromPayment: true } })}
             className="flex-1 py-4 px-6 bg-white border border-emerald-200 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-50 hover:border-emerald-300 transition-all shadow-sm"
