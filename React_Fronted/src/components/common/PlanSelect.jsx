@@ -13,6 +13,7 @@ const PlanSelect = ({
   requiresPurchase = false,
   disabledText = "Login required",
   className = "",
+  compact = false,
 }) => {
   const { isAuthenticated, user } = useAuth();
   const hasPurchase = Boolean(user?.hasActivePolicy);
@@ -133,15 +134,12 @@ const PlanSelect = ({
         aria-expanded={open}
         onClick={() => (open ? closeList() : openList())}
         onKeyDown={handleKeyDown}
-        className="
-          w-full min-h-[44px]
-          rounded-xl border-2 border-slate-200
-          bg-white px-4 py-3
-          text-sm font-semibold text-left
-          flex items-center justify-between
-          group
-          focus:outline-none focus:ring-4 focus:ring-blue-500/10
-        "
+        className={
+          `w-full min-h-[44px] px-4 py-3 text-sm font-semibold text-left flex items-center justify-between group focus:outline-none focus:ring-4 focus:ring-blue-500/10 ` +
+          (compact
+            ? `rounded-lg border border-slate-200 bg-white`
+            : `rounded-xl border-2 border-slate-200 bg-white`)
+        }
       >
         <span className={selectedIdx >= 0 ? "text-slate-800" : "text-slate-400"}>
           {selectedIdx >= 0 ? normalized[selectedIdx].label : placeholder}

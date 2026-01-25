@@ -1,7 +1,7 @@
 import React from "react";
 import PlanSelect from "./PlanSelect";
 
-const CustomSelect = ({ label, value, onChange, options = [], placeholder = "Select...", className = "" }) => {
+const CustomSelect = ({ label, value, onChange, options = [], placeholder = "Select...", className = "", compact = false }) => {
   const normalized = options.map((o) =>
     typeof o === "string" || typeof o === "number"
       ? { value: String(o), label: String(o) }
@@ -16,6 +16,7 @@ const CustomSelect = ({ label, value, onChange, options = [], placeholder = "Sel
       options={normalized}
       placeholder={placeholder}
       className={className}
+      compact={compact}
     />
   );
 };
