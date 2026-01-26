@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import LoadingSpinner from '../common/LoadingSpinner';
+import { Link } from 'react-router-dom';
 
 function ContactUs() {
-  const [isLoading, setIsLoading] = useState(true);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -28,9 +21,7 @@ function ContactUs() {
     setStatusMessage('Thank you! Your message has been sent. We will get back to you soon.');
   };
   
-  if (isLoading) {
-    return <LoadingSpinner message="Loading Contact Page..." />;
-  }
+  
 
   return (
     <main
@@ -99,10 +90,10 @@ function ContactUs() {
             <div className={`absolute top-0 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply blur-3xl opacity-30 ${prefersReducedMotion ? '' : 'animate-float'}`}></div>
             <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md relative z-10 transform rotate-1 hover:rotate-0 transition duration-500">
                <img 
-                src="./images/contact_us/support_team.jpeg"
+                src="/images/contact_us/support_team.jpeg"
                 alt="Customer support team"
                 className="rounded-2xl w-full h-72 object-cover shadow-lg"
-                onError={(e) => {e.target.src='https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';}}
+                onError={(e) => { e.target.onerror = null; e.target.src = '/images/contact_us/support_team_placeholder.svg'; }}
               />
             </div>
           </div>
@@ -134,13 +125,13 @@ function ContactUs() {
             </div>
             <h3 className="text-xl font-bold text-gray-900">Claims Support</h3>
             <p className="text-gray-600 mt-2 text-sm">Track existing claims or file a new one instantly.</p>
-            <button
-              type="button"
+            <Link
+              to="/claims"
               className="inline-flex items-center gap-2 mt-4 text-[#1A5EDB] font-semibold hover:underline focus-visible:focus-outline"
               aria-label="Go to claims"
             >
               Go to Claims →
-            </button>
+            </Link>
           </div>
 
           {/* Call Us Card */}
@@ -206,7 +197,7 @@ function ContactUs() {
             <div>
               <h3 className="font-bold text-lg text-gray-800">Nearest Branch</h3>
               <p className="text-sm text-gray-500 mb-2">Visit us for face-to-face assistance</p>
-              <button className="text-[#1A5EDB] text-sm font-semibold hover:underline focus-visible:focus-outline">Locate Now</button>
+              <Link to="/utilities/hospitals" className="text-[#1A5EDB] text-sm font-semibold hover:underline focus-visible:focus-outline">Locate Now</Link>
             </div>
           </div>
 
@@ -215,7 +206,7 @@ function ContactUs() {
             <div>
               <h3 className="font-bold text-lg text-gray-800">Network Hospitals</h3>
               <p className="text-sm text-gray-500 mb-2">Find cashless hospitals nearby</p>
-              <button className="text-[#1A5EDB] text-sm font-semibold hover:underline focus-visible:focus-outline">Locate Now</button>
+              <Link to="/utilities/hospitals" className="text-[#1A5EDB] text-sm font-semibold hover:underline focus-visible:focus-outline">Locate Now</Link>
             </div>
           </div>
         </div>

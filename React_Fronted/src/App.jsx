@@ -87,17 +87,17 @@ function App() {
         <Route path="/payment-success" element={<Layout><PaymentSuccessPage /></Layout>} />
 
         {/* --- CLAIM CONTROL & MANAGEMENT --- */}
-        <Route path="/claims" element={<Navigate to="/claims/my-claims" replace />} />
-        <Route path="/claims/my-claims" element={<Layout><MyClaims /></Layout>} />
-        <Route path="/claims/entitlement-dependents" element={<Layout><EntitlementDependents /></Layout>} />
-        <Route path="/claims/entitlement" element={<Navigate to="/claims/entitlement-dependents" replace />} />
-        <Route path="/claims/view/:id" element={<ViewClaim />} />
+        <Route path="/claims" element={<ProtectedRoute><Navigate to="/claims/my-claims" replace /></ProtectedRoute>} />
+        <Route path="/claims/my-claims" element={<ProtectedRoute><Layout><MyClaims /></Layout></ProtectedRoute>} />
+        <Route path="/claims/entitlement-dependents" element={<ProtectedRoute><Layout><EntitlementDependents /></Layout></ProtectedRoute>} />
+        <Route path="/claims/entitlement" element={<ProtectedRoute><Navigate to="/claims/entitlement-dependents" replace /></ProtectedRoute>} />
+        <Route path="/claims/view/:id" element={<ProtectedRoute><Layout><ViewClaim /></Layout></ProtectedRoute>} />
 
         {/* Dynamic Claim Raising */}
-        <Route path="/claims/raise-claim" element={<Layout><RaiseClaim /></Layout>} />
-        <Route path="/claims/raise-claim/:dependentId" element={<Layout><RaiseClaim /></Layout>} />
-        <Route path="/claims/raise-new" element={<Navigate to="/claims/raise-claim" replace />} />
-        <Route path="/claims/view/:id" element={<ViewClaim />} />
+        <Route path="/claims/raise-claim" element={<ProtectedRoute><Layout><RaiseClaim /></Layout></ProtectedRoute>} />
+        <Route path="/claims/raise-claim/:dependentId" element={<ProtectedRoute><Layout><RaiseClaim /></Layout></ProtectedRoute>} />
+        <Route path="/claims/raise-new" element={<ProtectedRoute><Navigate to="/claims/raise-claim" replace /></ProtectedRoute>} />
+        <Route path="/claims/view/:id" element={<ProtectedRoute><Layout><ViewClaim /></Layout></ProtectedRoute>} />
 
         {/* --- UTILITY TOOLS --- 
             These are grouped here because they are logically part of the 
