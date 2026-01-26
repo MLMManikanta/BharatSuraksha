@@ -12,6 +12,11 @@ import Register from "./components/pages/Register";
 import Home from "./components/pages/Home";
 import Aboutus from "./components/pages/Aboutus";
 import ContactUs from "./components/pages/ContactUs";
+import PrivacyPolicy from "./components/pages/PrivacyPolicy";
+import TermsOfService from "./components/pages/TermsOfService";
+import FAQ from "./components/pages/faq";
+
+
 import NotFoundPage from './NotFoundPage';
 
 // --- INSURANCE PLANS FLOW ---
@@ -52,6 +57,9 @@ function App() {
         <Route path="/home" element={<Layout><Home /></Layout>} />
         <Route path="/about" element={<Layout><Aboutus /></Layout>} />
         <Route path="/contact" element={<Layout><ContactUs /></Layout>} />
+        <Route path="/privacy" element={<Layout><PrivacyPolicy /></Layout>} />
+        <Route path="/terms" element={<Layout><TermsOfService /></Layout>} />
+        <Route path="/faqs" element={<Layout><FAQ /></Layout>} />
         
         {/* --- PURCHASE FLOW: Step-by-Step --- */}
         <Route path="/plans" element={<Layout><PlanDetails /></Layout>} />
@@ -87,22 +95,19 @@ function App() {
         <Route path="/payment-success" element={<Layout><PaymentSuccessPage /></Layout>} />
 
         {/* --- CLAIM CONTROL & MANAGEMENT --- */}
-        <Route path="/claims" element={<Navigate to="/claims/my-claims" replace />} />
-        <Route path="/claims/my-claims" element={<Layout><MyClaims /></Layout>} />
-        <Route path="/claims/entitlement-dependents" element={<Layout><EntitlementDependents /></Layout>} />
-        <Route path="/claims/entitlement" element={<Navigate to="/claims/entitlement-dependents" replace />} />
-        <Route path="/claims/view/:id" element={<ViewClaim />} />
+        <Route path="/claims" element={<ProtectedRoute><Navigate to="/claims/my-claims" replace /></ProtectedRoute>} />
+        <Route path="/claims/my-claims" element={<ProtectedRoute><Layout><MyClaims /></Layout></ProtectedRoute>} />
+        <Route path="/claims/entitlement-dependents" element={<ProtectedRoute><Layout><EntitlementDependents /></Layout></ProtectedRoute>} />
+        <Route path="/claims/entitlement" element={<ProtectedRoute><Navigate to="/claims/entitlement-dependents" replace /></ProtectedRoute>} />
+        <Route path="/claims/view/:id" element={<ProtectedRoute><Layout><ViewClaim /></Layout></ProtectedRoute>} />
 
         {/* Dynamic Claim Raising */}
-        <Route path="/claims/raise-claim" element={<Layout><RaiseClaim /></Layout>} />
-        <Route path="/claims/raise-claim/:dependentId" element={<Layout><RaiseClaim /></Layout>} />
-        <Route path="/claims/raise-new" element={<Navigate to="/claims/raise-claim" replace />} />
-        <Route path="/claims/view/:id" element={<ViewClaim />} />
+        <Route path="/claims/raise-claim" element={<ProtectedRoute><Layout><RaiseClaim /></Layout></ProtectedRoute>} />
+        <Route path="/claims/raise-claim/:dependentId" element={<ProtectedRoute><Layout><RaiseClaim /></Layout></ProtectedRoute>} />
+        <Route path="/claims/raise-new" element={<ProtectedRoute><Navigate to="/claims/raise-claim" replace /></ProtectedRoute>} />
+        <Route path="/claims/view/:id" element={<ProtectedRoute><Layout><ViewClaim /></Layout></ProtectedRoute>} />
 
-        {/* --- UTILITY TOOLS --- 
-            These are grouped here because they are logically part of the 
-            "Claim Control" user experience.
-        */}
+        {/* --- UTILITY TOOLS ---  */}
         <Route path="/utilities" element={<Navigate to="/utilities/e-card" replace />} />
         <Route path="/utilities/e-card" element={<Layout><ECard /></Layout>} />
         <Route path="/utilities/hospitals" element={<Layout><HospitalList /></Layout>} />

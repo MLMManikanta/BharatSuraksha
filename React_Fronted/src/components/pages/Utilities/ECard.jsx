@@ -10,7 +10,7 @@ function ECard() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const logoPath = "./Logo-circle.png";
+  const logoPath = logo;
   const basePolicyNo = "BS-PARI-2026-0001";
   const sumInsured = 1000000;
   const helpline = "9063807489";
@@ -44,14 +44,7 @@ function ECard() {
     const win = window.open("", "", "height=800,width=600");
     win.document.write(`
       <html>
-        <head>
-          <title>Bharat Suraksha E-Card - ${activeMember.name}</title>
-          <style>
-            body { font-family: sans-serif; padding: 40px; display: flex; justify-content: center; }
-            .card { background: #1e3a8a; color: white; padding: 30px; border-radius: 20px; width: 400px; }
-          </style>
-        </head>
-        <body><div class="card">${printContents}</div></body>
+        <body>${printContents}</body>
       </html>
     `);
     win.document.close();
@@ -65,10 +58,9 @@ function ECard() {
         {/* Left Sidebar */}
         <aside className="w-full md:w-80 bg-slate-50 border-r border-slate-200 p-6 flex flex-col">
           <div className="mb-8 flex items-center gap-3">
-            <img src={logoPath} alt="Logo" className="w-12 h-12 object-contain" />
             <div>
-              <h1 className="text-lg font-black text-blue-900 leading-none">BHARAT</h1>
-              <h1 className="text-lg font-black text-slate-800 leading-none">SURAKSHA</h1>
+              <h1 className="text-lg font-black text-blue-900 leading-none">E-Cards</h1>
+              <p className="text-sm text-slate-500 font-medium">Digital member cards & quick actions</p>
             </div>
           </div>
 
@@ -129,10 +121,10 @@ function ECard() {
                 
                 <div className="relative z-10 flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <img src={logoPath} alt="Bharat Suraksha" className="w-10 h-10 object-contain brightness-0 invert" />
+                    <img src={logoPath} alt="Bharat Suraksha" className="w-10 h-10 object-contain" />
                     <div>
                       <p className="text-[10px] font-black leading-none tracking-tight">BHARAT</p>
-                      <p className="text-[10px] font-black leading-none tracking-tight text-blue-300">SURAKSHA</p>
+                      <p className="text-[10px] font-black leading-none tracking-tight text-black">SURAKSHA</p>
                     </div>
                   </div>
                   <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-[0.15em]">

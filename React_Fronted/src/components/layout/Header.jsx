@@ -201,9 +201,9 @@ function Header() {
                         </div>
                         <button
                           onClick={() => { logout(); setProfileOpen(false); }}
-                          className="w-full text-left py-2 px-2 rounded-lg hover:bg-slate-50 font-semibold text-[#1A5EDB]"
+                          className="w-full text-left py-2 px-2 rounded-lg hover:bg-slate-150 text-[#1A5EDB]"
                         >
-                          Logout
+                          Logout ➜]
                         </button>
                       </div>
                     )}
