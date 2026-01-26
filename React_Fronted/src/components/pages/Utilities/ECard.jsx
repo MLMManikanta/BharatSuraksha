@@ -10,7 +10,7 @@ function ECard() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const logoPath = "./Logo-circle.png";
+  const logoPath = logo;
   const basePolicyNo = "BS-PARI-2026-0001";
   const sumInsured = 1000000;
   const helpline = "9063807489";
@@ -129,10 +129,10 @@ function ECard() {
                 
                 <div className="relative z-10 flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <img src={logoPath} alt="Bharat Suraksha" className="w-10 h-10 object-contain brightness-0 invert" />
+                    <img src={logoPath} alt="Bharat Suraksha" className="w-10 h-10 object-contain" />
                     <div>
                       <p className="text-[10px] font-black leading-none tracking-tight">BHARAT</p>
-                      <p className="text-[10px] font-black leading-none tracking-tight text-blue-300">SURAKSHA</p>
+                      <p className="text-[10px] font-black leading-none tracking-tight text-black">SURAKSHA</p>
                     </div>
                   </div>
                   <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-[0.15em]">
