@@ -6,11 +6,8 @@ const PrivacyPolicy = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     document.title = "Privacy Policy | Bharat Suraksha";
-
-    // 1. Observer for standard scrolling (Works for sections 1-10)
     const observer = new IntersectionObserver(
       (entries) => {
-        // Only run observer logic if we are NOT at the very bottom
         if (window.innerHeight + window.scrollY < document.documentElement.scrollHeight - 50) {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
@@ -25,7 +22,6 @@ const PrivacyPolicy = () => {
     const sections = document.querySelectorAll("section[id], footer[id]");
     sections.forEach((section) => observer.observe(section));
 
-    // 2. Specific Listener for Section 11 (Contact)
     const handleScroll = () => {
       const isAtBottom = 
         window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50;
@@ -59,13 +55,11 @@ const PrivacyPolicy = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      {/* Accessibility Skip Link */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-[#1A5EDB] focus:text-white">
         Skip to main content
       </a>
 
       <main id="main-content" className="flex-grow">
-        {/* HERO SECTION */}
         <header className="bg-slate-950 text-white py-24 px-6 border-b-8 border-[#1A5EDB]">
           <div className="max-w-6xl mx-auto">
             <h1 className="text-5xl md:text-8xl font-black mb-6 tracking-tight">
@@ -78,11 +72,9 @@ const PrivacyPolicy = () => {
         </header>
 
         <div className="max-w-6xl mx-auto py-20 px-6 grid grid-cols-1 lg:grid-cols-4 gap-16">
-          
-          {/* SIDEBAR NAVIGATION */}
           <aside className="hidden lg:block sticky top-24 h-[calc(100vh-120px)] pr-8 border-r border-slate-100">
             <nav aria-label="Policy Sections" className="space-y-1">
-              <p className="text-xl text-[#1A5EDB] font-bold mb-8">Policy Guide</p>
+              <p className="text-xl text-[#021567] font-bold mb-8 undeline">Policy Guide</p>
               {sections.map((section, index) => (
                 <a 
                   key={section.id}
@@ -101,13 +93,11 @@ const PrivacyPolicy = () => {
               ))}
             </nav>
           </aside>
-
-          {/* POLICY BODY CONTENT */}
           <article className="lg:col-span-3 prose prose-slate prose-lg max-w-none">
             
-            {/* 01. INTRODUCTION */}
+            {/* . INTRODUCTION */}
             <section id="introduction" className="mb-24 scroll-mt-28">
-              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">01. Introduction</h2>
+              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">Introduction</h2>
               <p className="text-black">
                 At Bharat Suraksha, we recognize that privacy is essential. This Privacy Policy governs how we collect, store, and process your data across our insurance platforms. Our commitment is built on three pillars: <strong>Transparency, Your Consent, and Data Safety.</strong>
               </p>
@@ -118,7 +108,7 @@ const PrivacyPolicy = () => {
 
             {/* 02. DATA COLLECTION */}
             <section id="data-collection" className="mb-24 scroll-mt-28">
-              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">02. What We Collect</h2>
+              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">What We Collect</h2>
               <p className="text-black">We only collect data that you choose to give us. We focus on two main types of information:</p>
               <div className="space-y-6 mt-8">
                 <div className="p-8 bg-slate-50 rounded-2xl border border-slate-100">
@@ -132,9 +122,9 @@ const PrivacyPolicy = () => {
               </div>
             </section>
 
-            {/* 03. USAGE & PURPOSE */}
+            {/* USAGE & PURPOSE */}
             <section id="usage-purpose" className="mb-24 scroll-mt-28">
-              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">03. How We Use Data</h2>
+              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">How We Use Data</h2>
               <p className="text-black">We use your information only for the following business needs:</p>
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 list-none p-0">
                 <li className="flex items-start gap-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100/50">
@@ -156,16 +146,16 @@ const PrivacyPolicy = () => {
               </ul>
             </section>
 
-            {/* 04. MEDICAL CONFIDENTIALITY */}
+            {/* MEDICAL CONFIDENTIALITY */}
             <section id="medical-confidentiality" className="mb-24 scroll-mt-28">
-              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">04. Medical Privacy</h2>
+              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">Medical Privacy</h2>
               <p className="text-black">Your health records are treated with the highest level of confidentiality. Unlike basic contact info, medical data is only accessible to those who absolutely need it.</p>
               <p className="text-black">Access to health records is always recorded. No one at Bharat Suraksha has permanent access to your raw medical files; they can only view them during the short window when your insurance is being approved or if you file a claim.</p>
             </section>
 
-            {/* 05. SHARING & DISCLOSURE */}
+            {/* SHARING & DISCLOSURE */}
             <section id="sharing-disclosure" className="mb-24 scroll-mt-28">
-              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">05. Data Sharing</h2>
+              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">Data Sharing</h2>
               <p className="text-black">We <strong>never</strong> sell, rent, or trade your personal data to outside marketing companies. Information sharing is limited to:</p>
               <ul className="text-black">
                 <li><strong>Insurance Partners:</strong> To get you quotes and issue your policies.</li>
@@ -174,14 +164,14 @@ const PrivacyPolicy = () => {
               </ul>
             </section>
 
-            {/* 06. DATA RETENTION */}
+            {/* DATA RETENTION */}
             <section id="data-retention" className="mb-24 scroll-mt-28">
-              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">06. Storage Rules</h2>
+              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">Storage Rules</h2>
               <p className="text-black">We only keep your data for as long as it is needed. We store your data while you are a customer and for <strong>10 years</strong> afterward, as required by Indian tax and insurance laws.</p>
               <p className="text-black">Once this time period ends, your data is permanently deleted using secure methods so it can never be recovered.</p>
             </section>
 
-            {/* 07. SECURITY PROTOCOLS */}
+            {/* SECURITY PROTOCOLS */}
             <section id="security-protocols" className="mb-24 scroll-mt-28 bg-slate-900 text-white p-12 rounded-[3rem] shadow-2xl">
               <h2 className="text-3xl font-bold text-[#4A8EFF] mt-0 mb-6">Security Protocols</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-slate-300">
@@ -196,9 +186,9 @@ const PrivacyPolicy = () => {
               </div>
             </section>
 
-            {/* 08. YOUR LEGAL RIGHTS */}
+            {/* YOUR LEGAL RIGHTS */}
             <section id="user-rights" className="mb-24 scroll-mt-28">
-              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">08. Your Legal Rights</h2>
+              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">Your Legal Rights</h2>
               <p className="text-black">Under India's Privacy Laws (DPDP Act), you have the right to:</p>
               <div className="grid grid-cols-1 gap-4">
                 {['Right to Correction (Fix wrong info)', 'Right to Erasure (Ask us to delete data)', 'Right to Grievance (File a complaint)', 'Right to Nominate (Assign a representative)'].map((right) => (
@@ -207,9 +197,9 @@ const PrivacyPolicy = () => {
               </div>
             </section>
 
-            {/* 09. COOKIE POLICY */}
+            {/* COOKIE POLICY */}
             <section id="cookie-policy" className="mb-24 scroll-mt-28">
-              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">09. Cookie Policy</h2>
+              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">Cookie Policy</h2>
               <p className="text-black">
                 We use "cookies" to keep you logged in and make our website work properly. You can turn them off in your browser, but some features might stop working. 
               </p>
@@ -218,17 +208,17 @@ const PrivacyPolicy = () => {
               </p>
             </section>
 
-            {/* 10. REGULATORY COMPLIANCE */}
+            {/* REGULATORY COMPLIANCE */}
             <section id="compliance" className="mb-24 scroll-mt-28">
-              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">10. Compliance</h2>
+              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">Compliance</h2>
               <p className="text-black">
                 Bharat Suraksha operates in full compliance with Indian Information Technology laws. we perform security checks every three months to make sure our systems stay resilient against new threats.
               </p>
             </section>
 
-            {/* 11. CONTACT (Footer) */}
+            {/* CONTACT (Footer) */}
             <footer id="contact" className="pt-16 border-t border-slate-100 scroll-mt-28">
-              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">11. Contact Us</h2>
+              <h2 className="text-4xl font-black text-black mb-8 tracking-tight">Contact Us</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 p-10 rounded-3xl border border-slate-200">
                 <div>
                   <p className="text-xs font-bold text-[#1A5EDB] uppercase tracking-widest mb-2">Grievance Officer</p>
