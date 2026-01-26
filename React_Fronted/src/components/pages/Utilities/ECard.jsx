@@ -44,14 +44,7 @@ function ECard() {
     const win = window.open("", "", "height=800,width=600");
     win.document.write(`
       <html>
-        <head>
-          <title>Bharat Suraksha E-Card - ${activeMember.name}</title>
-          <style>
-            body { font-family: sans-serif; padding: 40px; display: flex; justify-content: center; }
-            .card { background: #1e3a8a; color: white; padding: 30px; border-radius: 20px; width: 400px; }
-          </style>
-        </head>
-        <body><div class="card">${printContents}</div></body>
+        <body>${printContents}</body>
       </html>
     `);
     win.document.close();
@@ -65,10 +58,10 @@ function ECard() {
         {/* Left Sidebar */}
         <aside className="w-full md:w-80 bg-slate-50 border-r border-slate-200 p-6 flex flex-col">
           <div className="mb-8 flex items-center gap-3">
-            <img src={logoPath} alt="Logo" className="w-12 h-12 object-contain" />
+           
             <div>
-              <h1 className="text-lg font-black text-blue-900 leading-none">BHARAT</h1>
-              <h1 className="text-lg font-black text-slate-800 leading-none">SURAKSHA</h1>
+              <h1 className="text-lg font-black text-blue-900 leading-none">E-Cards</h1>
+          
             </div>
           </div>
 
