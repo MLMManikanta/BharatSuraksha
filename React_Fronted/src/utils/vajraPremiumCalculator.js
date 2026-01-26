@@ -1,12 +1,4 @@
-/**
- * VAJRA Premium Calculator Utility
- * Shared premium calculation functions for VAJRA Suraksha (Custom Plan)
- * Used across: paymentSummary.jsx, CustomizeHealthPage.jsx, Backend services
- */
 
-// ====================================================================
-// VAJRA AGE MULTIPLIERS
-// ====================================================================
 export const VAJRA_AGE_MULTIPLIERS = {
   '18-25': 1.00,
   '26-35': 1.20,
@@ -17,9 +9,7 @@ export const VAJRA_AGE_MULTIPLIERS = {
   '65+': 2.60
 };
 
-// ====================================================================
-// VAJRA FEATURE COSTS (Base rate for 18-25 age group)
-// ====================================================================
+
 export const VAJRA_FEATURE_COSTS_BASE = {
   'pre_hosp_30': { '10L': 110, '15L': 130, '20L': 150, '30L': 170, '50L': 220, '1Cr': 310, '1.5Cr': 380, '2Cr': 440, '3Cr': 530, '5Cr': 650, 'Unlimited': 750 },
   'pre_hosp_60': { '10L': 200, '15L': 230, '20L': 260, '30L': 310, '50L': 390, '1Cr': 550, '1.5Cr': 670, '2Cr': 780, '3Cr': 950, '5Cr': 1170, 'Unlimited': 1350 },
@@ -42,9 +32,6 @@ export const VAJRA_FEATURE_COSTS_BASE = {
   'domiciliary': { '10L': 1290, '15L': 1520, '20L': 1700, '30L': 2000, '50L': 2520, '1Cr': 3610, '1.5Cr': 4390, '2Cr': 5100, '3Cr': 6190, '5Cr': 7610, 'Unlimited': 8770 }
 };
 
-// ====================================================================
-// VAJRA CHRONIC CARE COSTS (Per condition, base 18-25)
-// ====================================================================
 export const VAJRA_CHRONIC_COSTS_BASE = {
   'diabetes': { '10L': 1170, '15L': 1390, '20L': 1550, '30L': 1820, '50L': 2290, '1Cr': 3290, '1.5Cr': 3990, '2Cr': 4640, '3Cr': 5640, '5Cr': 6930, 'Unlimited': 7980 },
   'high_cholesterol': { '10L': 1170, '15L': 1390, '20L': 1550, '30L': 1820, '50L': 2290, '1Cr': 3290, '1.5Cr': 3990, '2Cr': 4640, '3Cr': 5640, '5Cr': 6930, 'Unlimited': 7980 },
@@ -54,9 +41,7 @@ export const VAJRA_CHRONIC_COSTS_BASE = {
   'asthma': { '10L': 1170, '15L': 1390, '20L': 1550, '30L': 1820, '50L': 2290, '1Cr': 3290, '1.5Cr': 3990, '2Cr': 4640, '3Cr': 5640, '5Cr': 6930, 'Unlimited': 7980 }
 };
 
-// ====================================================================
-// VAJRA RIDER COSTS (Base 18-25)
-// ====================================================================
+
 export const VAJRA_RIDER_COSTS_BASE = {
   'unlimited_care': { '10L': 610, '15L': 940, '20L': 1270, '30L': 1610, '50L': 1940, '1Cr': 2270, '1.5Cr': 2600, '2Cr': 2940, '3Cr': 3270, '5Cr': 3600, 'Unlimited': 0 },
   'inflation_shield': { '10L': 150, '15L': 180, '20L': 200, '30L': 230, '50L': 290, '1Cr': 420, '1.5Cr': 510, '2Cr': 590, '3Cr': 720, '5Cr': 880, 'Unlimited': 0 },
@@ -70,9 +55,6 @@ export const VAJRA_RIDER_COSTS_BASE = {
   'specific_wait': { '10L': 1580, '15L': 1870, '20L': 2090, '30L': 2450, '50L': 3080, '1Cr': 4430, '1.5Cr': 5380, '2Cr': 6240, '3Cr': 7590, '5Cr': 9330, 'Unlimited': 10750 }
 };
 
-// ====================================================================
-// FEATURE AND RIDER LABELS FOR DISPLAY
-// ====================================================================
 export const VAJRA_FEATURE_LABELS = {
   'pre_hosp_30': 'Pre-Hospitalization (30 days)',
   'pre_hosp_60': 'Pre-Hospitalization (60 days)',
@@ -110,13 +92,7 @@ export const VAJRA_RIDER_LABELS = {
   'specific_wait': 'Specific Illness Wait Reduction'
 };
 
-// ====================================================================
-// HELPER FUNCTIONS
-// ====================================================================
 
-/**
- * Get VAJRA age bracket from age
- */
 export const getVajraAgeBracket = (age) => {
   const a = parseFloat(age);
   if (isNaN(a) || a < 18) return '18-25';
@@ -129,9 +105,7 @@ export const getVajraAgeBracket = (age) => {
   return '65+';
 };
 
-/**
- * Get coverage key from sum insured value/label
- */
+
 export const getVajraCoverageKey = (si) => {
   if (!si) return '10L';
   
@@ -153,17 +127,12 @@ export const getVajraCoverageKey = (si) => {
   return '10L';
 };
 
-/**
- * Normalize ID for comparison
- */
 export const normalizeId = (id) => {
   if (!id) return '';
   return String(id).toLowerCase().replace(/[\s_-]+/g, '');
 };
 
-/**
- * Get VAJRA feature cost with age multiplier applied
- */
+
 export const getVajraFeatureCost = (featureId, coverageKey, age) => {
   const normalizedId = normalizeId(featureId);
   const featureKey = Object.keys(VAJRA_FEATURE_COSTS_BASE).find(
@@ -180,9 +149,7 @@ export const getVajraFeatureCost = (featureId, coverageKey, age) => {
   return Math.round(baseCost * multiplier);
 };
 
-/**
- * Get VAJRA chronic condition cost with age multiplier
- */
+
 export const getVajraChronicCost = (conditionId, coverageKey, age) => {
   const conditionKey = String(conditionId).toLowerCase().replace(/\s+/g, '_');
   const baseCosts = VAJRA_CHRONIC_COSTS_BASE[conditionKey];
@@ -196,19 +163,15 @@ export const getVajraChronicCost = (conditionId, coverageKey, age) => {
   return Math.round(baseCost * multiplier);
 };
 
-/**
- * Get VAJRA rider cost with age multiplier
- */
+
 export const getVajraRiderCost = (riderId, coverageKey, age, tenure = 1) => {
-  // Handle smart aggregate based on tenure
   let effectiveRiderId = riderId;
   if (riderId === 'smart_agg' || riderId === 'smartagg') {
     effectiveRiderId = tenure === 2 ? 'smart_agg_2y' : 'smart_agg_3y';
   }
   
-  // Handle PED wait variants
   if (riderId === 'ped_wait' || riderId === 'pedwait') {
-    effectiveRiderId = 'ped_wait_1y'; // Default to 1 year reduction
+    effectiveRiderId = 'ped_wait_1y'; 
   }
   
   const normalizedId = normalizeId(effectiveRiderId);
@@ -226,9 +189,6 @@ export const getVajraRiderCost = (riderId, coverageKey, age, tenure = 1) => {
   return Math.round(baseCost * multiplier);
 };
 
-/**
- * Calculate total VAJRA premium for a configuration
- */
 export const calculateVajraPremium = ({
   coverageKey,
   ages = [],
@@ -251,7 +211,6 @@ export const calculateVajraPremium = ({
     items: []
   };
   
-  // Calculate base premium per member (hosp_mandatory)
   ages.forEach(age => {
     const baseCost = getVajraFeatureCost('hosp_mandatory', effectiveCoverageKey, age);
     breakdown.basePremium += baseCost;
@@ -262,7 +221,6 @@ export const calculateVajraPremium = ({
     });
   });
   
-  // Add pre-hospitalization feature based on selection
   const preHospKey = `pre_hosp_${preHosp}`;
   if (VAJRA_FEATURE_COSTS_BASE[preHospKey]) {
     const cost = getVajraFeatureCost(preHospKey, effectiveCoverageKey, eldestAge);
@@ -274,7 +232,6 @@ export const calculateVajraPremium = ({
     });
   }
   
-  // Add post-hospitalization feature based on selection
   const postHospKey = `post_hosp_${postHosp}`;
   if (VAJRA_FEATURE_COSTS_BASE[postHospKey]) {
     const cost = getVajraFeatureCost(postHospKey, effectiveCoverageKey, eldestAge);
@@ -293,7 +250,6 @@ export const calculateVajraPremium = ({
     
     if (!isActive) return;
     
-    // Skip hosp_mandatory (already in base) and pre/post hosp (handled separately)
     const normalizedFeatId = normalizeId(featId);
     if (normalizedFeatId === 'hospmandatory' || 
         normalizedFeatId.startsWith('prehosp') || 
@@ -312,7 +268,6 @@ export const calculateVajraPremium = ({
     }
   });
   
-  // Add selected riders
   riders.forEach(rider => {
     const riderId = typeof rider === 'string' ? rider : (rider.id || rider.name || '');
     const isActive = typeof rider === 'object' ? rider.active !== false : true;
@@ -330,7 +285,6 @@ export const calculateVajraPremium = ({
     }
   });
   
-  // Add chronic conditions
   chronicConditions.forEach(condition => {
     const condId = typeof condition === 'string' ? condition : (condition.id || condition.name || '');
     const cost = getVajraChronicCost(condId, effectiveCoverageKey, eldestAge);
@@ -346,7 +300,7 @@ export const calculateVajraPremium = ({
   
   totalPremium = breakdown.basePremium + breakdown.featureCost + breakdown.riderCost + breakdown.chronicCost;
   
-  // Apply tenure discount
+
   let discountPercent = 0;
   if (tenure === 2) discountPercent = 5;
   if (tenure === 3) discountPercent = 10;
@@ -369,7 +323,6 @@ export const calculateVajraPremium = ({
   };
 };
 
-// Default export with all functions
 export default {
   VAJRA_AGE_MULTIPLIERS,
   VAJRA_FEATURE_COSTS_BASE,
