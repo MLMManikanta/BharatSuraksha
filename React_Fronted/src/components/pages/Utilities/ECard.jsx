@@ -58,10 +58,9 @@ function ECard() {
         {/* Left Sidebar */}
         <aside className="w-full md:w-80 bg-slate-50 border-r border-slate-200 p-6 flex flex-col">
           <div className="mb-8 flex items-center gap-3">
-           
             <div>
               <h1 className="text-lg font-black text-blue-900 leading-none">E-Cards</h1>
-          
+              <p className="text-sm text-slate-500 font-medium">Digital member cards & quick actions</p>
             </div>
           </div>
 
