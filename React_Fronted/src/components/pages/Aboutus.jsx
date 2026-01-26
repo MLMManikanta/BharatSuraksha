@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import LoadingSpinner from '../common/LoadingSpinner';
+import { Link } from 'react-router-dom';
 
 // --- DATA: TERMS & DEFINITIONS ---
 const TERMS_DATA = {
@@ -21,15 +21,8 @@ const TERMS_DATA = {
 
 function Aboutus() {
   const [activeTab, setActiveTab] = useState('intro');
-  const [isLoading, setIsLoading] = useState(true);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 600);
-      return () => clearTimeout(timer);
-    }, []);
 
     useEffect(() => {
       const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -39,9 +32,7 @@ function Aboutus() {
       return () => mediaQuery.removeEventListener('change', handler);
     }, []);
 
-    if (isLoading) {
-      return <LoadingSpinner message="Loading About Us..." />;
-    }
+  
 
   return (
     <main id="main-content" className="bg-gray-50 text-gray-900 font-sans" role="main" tabIndex={-1}>
@@ -95,13 +86,13 @@ function Aboutus() {
               and 100% cashless support so your family stays protected without financial worry.
             </p>
             <div className="mt-8 flex gap-4">
-              <button
-                type="button"
-                className="px-8 py-3.5 bg-[#1A5EDB] text-white rounded-xl text-lg font-semibold hover:bg-[#1149AE] hover:shadow-lg transition transform hover:-translate-y-1 focus-ring"
+              <Link
+                to="/plans"
+                className="inline-block px-8 py-3.5 bg-[#1A5EDB] text-white rounded-xl text-lg font-semibold hover:bg-[#1149AE] hover:shadow-lg transition transform hover:-translate-y-1 focus-ring"
                 aria-label="Explore our health insurance plans"
               >
                 Explore Plans
-              </button>
+              </Link>
             </div>
           </div>
 

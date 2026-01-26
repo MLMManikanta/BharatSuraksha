@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import CustomSelect from '../common/CustomSelect';
 
 function ContactUs() {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [queryType, setQueryType] = useState('');
+
 
 
   useEffect(() => {
@@ -20,12 +23,21 @@ function ContactUs() {
     form.reset();
     setStatusMessage('Thank you! Your message has been sent. We will get back to you soon.');
   };
+
+  const copyToClipboard = async (text, label) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      // intentionally silent
+    } catch (err) {
+      // fail silently
+    }
+  };
   
   
 
   return (
     <main
-      className="relative min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50 text-gray-900"
+      className="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-slate-50 via-white to-blue-50 text-gray-900"
       role="main"
       tabIndex={-1}
     >
@@ -74,7 +86,7 @@ function ContactUs() {
                 href="tel:9063807489"
                 className="inline-flex items-center gap-2 px-4 py-3 rounded-lg bg-[#1A5EDB] text-white font-semibold shadow-lg transition hover:shadow-xl focus-visible:focus-outline"
               >
-                <span aria-hidden="true">📞</span> Call Us Now
+                <span aria-hidden="true"> 👤</span> Call Us Now
               </a>
               <a
                 href="mailto:support@bharatsuraksha.com"
@@ -117,11 +129,8 @@ function ContactUs() {
             role="article"
             aria-label="Claims support"
           >
-            <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-4 text-[#1A5EDB]">
-              {/* Clipboard Icon SVG */}
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
-              </svg>
+            <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-4 text-[#1A5EDB] text-2xl">
+              📋
             </div>
             <h3 className="text-xl font-bold text-gray-900">Claims Support</h3>
             <p className="text-gray-600 mt-2 text-sm">Track existing claims or file a new one instantly.</p>
@@ -141,21 +150,17 @@ function ContactUs() {
             role="article"
             aria-label="Call us"
           >
-             <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-4 text-[#1A5EDB]">
-              {/* Phone Icon SVG */}
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-              </svg>
-            </div>
+            <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-4 text-[#1A5EDB] text-2xl">📞</div>
             <h3 className="text-xl font-bold text-gray-900">Call Us 24/7</h3>
             <p className="text-gray-600 mt-2 text-sm">Speak directly with our expert agents.</p>
-            <a
-              href="tel:9063807489"
+            <button
+              type="button"
+              onClick={() => copyToClipboard('9063807489', 'Phone number')}
               className="inline-block mt-4 text-2xl font-bold text-[#1A5EDB] focus-visible:focus-outline"
-              aria-label="Call 90638 07489"
+              aria-label="Copy phone number"
             >
               90638 07489
-            </a>
+            </button>
           </div>
 
           {/* Email Card */}
@@ -165,20 +170,16 @@ function ContactUs() {
             role="article"
             aria-label="Email support"
           >
-             <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-4 text-[#1A5EDB]">
-              {/* Mail Icon SVG */}
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-              </svg>
-            </div>
+            <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-4 text-[#1A5EDB] text-2xl">✉️</div>
             <h3 className="text-xl font-bold text-gray-900">Email Support</h3>
             <p className="text-gray-600 mt-2 text-sm">Get a response within 24 hours.</p>
-            <a
-              href="mailto:support@bharatsuraksha.com"
+            <button
+              type="button"
+              onClick={() => copyToClipboard('mlmmanikanta@outlook.com', 'Email')}
               className="inline-block mt-4 text-[#1A5EDB] font-semibold break-all focus-visible:focus-outline"
             >
               mlmmanikanta@outlook.com
-            </a>
+            </button>
           </div>
 
         </div>
@@ -269,24 +270,13 @@ function ContactUs() {
               {/* QUERY TYPE */}
               <div>
                 <label htmlFor="queryType" className="block text-sm font-semibold text-gray-800 mb-2">Query Type</label>
-                <div className="relative">
-                  <select 
-                    id="queryType" 
-                    name="queryType"
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1A5EDB] focus:bg-white outline-none appearance-none transition"
-                    defaultValue=""
-                    aria-required="true"
-                  >
-                    <option value="" disabled>Select Query Type</option>
-                    <option>Claim Issue</option>
-                    <option>Policy Update</option>
-                    <option>New Policy Inquiry</option>
-                    <option>Branch Info</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                  </div>
-                </div>
+                <CustomSelect
+                  value={queryType}
+                  onChange={(v) => setQueryType(v)}
+                  options={["Claim Issue", "Policy Update", "New Policy Inquiry", "Branch Info"]}
+                  placeholder="Select Query Type"
+                  className="w-full"
+                />
               </div>
             </div>
 
