@@ -591,7 +591,7 @@ const BankInformationPage = () => {
             <span className="text-2xl">🔒</span>
             <div>
               <p className="text-sm font-semibold text-green-800">Your data is secure</p>
-              <p className="text-xs text-green-600">Bank details are encrypted using 256-bit SSL encryption</p>
+              <p className="text-sm text-green-700">We use bank-grade encryption to protect your information.</p>
             </div>
           </div>
 

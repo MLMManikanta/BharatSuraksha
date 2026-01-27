@@ -77,6 +77,33 @@ const Claim = mongoose.models.Claim || mongoose.model("Claim", claimSchema);
 const kycSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
 const Kyc = mongoose.models.Kyc || mongoose.model("Kyc", kycSchema);
 
+const medicalInfoSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  kycId: { type: mongoose.Schema.Types.ObjectId, ref: "Kyc" }
+}, { strict: false, timestamps: true });
+
+const MedicalInfo = mongoose.models.MedicalInfo || mongoose.model("MedicalInfo", medicalInfoSchema);
+
+const bankDetailsSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  kycId: { type: mongoose.Schema.Types.ObjectId, ref: "Kyc" },
+  medicalInfoId: { type: mongoose.Schema.Types.ObjectId, ref: "MedicalInfo" }
+}, { strict: false, timestamps: true });
+
+const BankDetails = mongoose.models.BankDetails || mongoose.model("BankDetails", bankDetailsSchema);
+
+// Decode JWT when provided but do not force auth for medical submission
+const getUserIdFromAuthHeader = (authHeader) => {
+  if (!authHeader) return null;
+  const token = authHeader.split(" ")[1];
+  try {
+    const payload = jwt.verify(token, SECRET);
+    return payload.userId;
+  } catch (err) {
+    return null;
+  }
+};
+
 /* -------------------- CLAIMS ROUTES -------------------- */
 
 app.get("/api/claims", authenticateToken, async (req, res) => {
@@ -111,6 +138,82 @@ app.post("/api/kyc", async (req, res) => {
     const saved = await Kyc.create(req.body);
     res.status(200).json({ success: true, data: { kycId: saved._id } });
   } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/* -------------------- MEDICAL ROUTES -------------------- */
+
+app.post("/api/medical", async (req, res) => {
+  try {
+    const userId = getUserIdFromAuthHeader(req.headers.authorization) || req.body.userId || null;
+    const payload = { ...req.body, ...(userId ? { userId } : {}) };
+    const saved = await MedicalInfo.create(payload);
+
+    res.status(201).json({ success: true, data: { medicalInfoId: saved._id } });
+  } catch (err) {
+    console.error("POST /api/medical error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+/* -------------------- BANK DETAILS ROUTES -------------------- */
+
+app.post("/api/bank", async (req, res) => {
+  try {
+    const userId = getUserIdFromAuthHeader(req.headers.authorization) || req.body.userId || null;
+    const payload = { ...req.body, ...(userId ? { userId } : {}) };
+    const saved = await BankDetails.create(payload);
+    res.status(201).json({ success: true, data: { bankDetailsId: saved._id } });
+  } catch (err) {
+    console.error("POST /api/bank error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/api/bank", authenticateToken, async (req, res) => {
+  try {
+    const bankDocs = await BankDetails.find({ userId: req.userId }).sort({ createdAt: -1 });
+    res.status(200).json(bankDocs);
+  } catch (err) {
+    console.error("GET /api/bank error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/api/bank/:id", async (req, res) => {
+  try {
+    const doc = await BankDetails.findById(req.params.id);
+    if (!doc) return res.status(404).json({ error: "Bank details not found" });
+    res.status(200).json(doc);
+  } catch (err) {
+    console.error("GET /api/bank/:id error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/api/bank/kyc/:kycId", async (req, res) => {
+  try {
+    const doc = await BankDetails.findOne({ kycId: req.params.kycId }).sort({ createdAt: -1 });
+    if (!doc) return res.status(404).json({ error: "Bank details not found" });
+    res.status(200).json(doc);
+  } catch (err) {
+    console.error("GET /api/bank/kyc/:kycId error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.patch("/api/bank/:id", authenticateToken, async (req, res) => {
+  try {
+    const updated = await BankDetails.findOneAndUpdate(
+      { _id: req.params.id, userId: req.userId },
+      { $set: req.body },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ error: "Bank details not found" });
+    res.status(200).json({ success: true, data: updated });
+  } catch (err) {
+    console.error("PATCH /api/bank/:id error:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
