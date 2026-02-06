@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 dotenv.config();
 
@@ -24,10 +25,14 @@ let client;
 /* -------------------- DB CONNECTION -------------------- */
 const initializeDBAndServer = async () => {
   try {
-    client = new MongoClient(process.env.MONGODB_URI || "mongodb://localhost:27017");
+    client = new MongoClient(
+      process.env.MONGODB_URI || "mongodb://localhost:27017",
+    );
     await client.connect();
-    
-    await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/BharatSurakshaDB");
+
+    await mongoose.connect(
+      process.env.MONGODB_URI || "mongodb://localhost:27017/BharatSurakshaDB",
+    );
     console.log("✅ MongoDB & Mongoose connected successfully");
 
     app.listen(PORT, () => {
@@ -55,42 +60,67 @@ const authenticateToken = (req, res, next) => {
 };
 
 /* -------------------- MODELS -------------------- */
-const claimSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  claimType: String,
-  claimCycle: String,
-  hospitalizationType: String,
-  referenceId: String,
-  dependentId: String,
-  dependentName: String,
-  claimedAmount: Number,
-  admissionDate: String,
-  dischargeDate: String,
-  hospitalAddress: String,
-  diagnosis: String,
-  dayCare: String,
-  status: { type: String, default: "Pending" }
-}, { timestamps: true });
+const claimSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    policyNumber: String,
+    patientName: String,
+    claimType: String,
+    claimCycle: String,
+    hospitalizationType: String,
+    referenceId: String,
+    dependentId: String,
+    dependentName: String,
+    hospitalName: String,
+    hospitalType: String,
+    hospitalAddress: String,
+    nation: { type: String, default: "India" },
+    claimedAmount: Number,
+    admissionDate: String,
+    dischargeDate: String,
+    numberOfDays: Number,
+    diagnosis: String,
+    treatmentType: String,
+    preExistingCondition: { type: String, default: "No" },
+    dayCare: String,
+    status: { type: String, default: "Pending" },
+  },
+  { timestamps: true },
+);
 
 const Claim = mongoose.models.Claim || mongoose.model("Claim", claimSchema);
 
 const kycSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
 const Kyc = mongoose.models.Kyc || mongoose.model("Kyc", kycSchema);
 
-const medicalInfoSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  kycId: { type: mongoose.Schema.Types.ObjectId, ref: "Kyc" }
-}, { strict: false, timestamps: true });
+const medicalInfoSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    kycId: { type: mongoose.Schema.Types.ObjectId, ref: "Kyc" },
+  },
+  { strict: false, timestamps: true },
+);
 
-const MedicalInfo = mongoose.models.MedicalInfo || mongoose.model("MedicalInfo", medicalInfoSchema);
+const MedicalInfo =
+  mongoose.models.MedicalInfo ||
+  mongoose.model("MedicalInfo", medicalInfoSchema);
 
-const bankDetailsSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  kycId: { type: mongoose.Schema.Types.ObjectId, ref: "Kyc" },
-  medicalInfoId: { type: mongoose.Schema.Types.ObjectId, ref: "MedicalInfo" }
-}, { strict: false, timestamps: true });
+const bankDetailsSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    kycId: { type: mongoose.Schema.Types.ObjectId, ref: "Kyc" },
+    medicalInfoId: { type: mongoose.Schema.Types.ObjectId, ref: "MedicalInfo" },
+  },
+  { strict: false, timestamps: true },
+);
 
-const BankDetails = mongoose.models.BankDetails || mongoose.model("BankDetails", bankDetailsSchema);
+const BankDetails =
+  mongoose.models.BankDetails ||
+  mongoose.model("BankDetails", bankDetailsSchema);
 
 // Decode JWT when provided but do not force auth for medical submission
 const getUserIdFromAuthHeader = (authHeader) => {
@@ -108,7 +138,9 @@ const getUserIdFromAuthHeader = (authHeader) => {
 
 app.get("/api/claims", authenticateToken, async (req, res) => {
   try {
-    const userClaims = await Claim.find({ userId: req.userId }).sort({ createdAt: -1 });
+    const userClaims = await Claim.find({ userId: req.userId }).sort({
+      createdAt: -1,
+    });
     res.status(200).json(userClaims);
   } catch (err) {
     console.error("GET /api/claims error:", err);
@@ -118,10 +150,10 @@ app.get("/api/claims", authenticateToken, async (req, res) => {
 
 app.post("/api/claims", authenticateToken, async (req, res) => {
   try {
-    const payload = { 
-      ...req.body, 
+    const payload = {
+      ...req.body,
       userId: req.userId,
-      claimedAmount: Number(req.body.claimedAmount)
+      claimedAmount: Number(req.body.claimedAmount),
     };
     const saved = await Claim.create(payload);
     res.status(201).json({ success: true, data: { claimId: saved._id } });
@@ -146,7 +178,10 @@ app.post("/api/kyc", async (req, res) => {
 
 app.post("/api/medical", async (req, res) => {
   try {
-    const userId = getUserIdFromAuthHeader(req.headers.authorization) || req.body.userId || null;
+    const userId =
+      getUserIdFromAuthHeader(req.headers.authorization) ||
+      req.body.userId ||
+      null;
     const payload = { ...req.body, ...(userId ? { userId } : {}) };
     const saved = await MedicalInfo.create(payload);
 
@@ -161,7 +196,10 @@ app.post("/api/medical", async (req, res) => {
 
 app.post("/api/bank", async (req, res) => {
   try {
-    const userId = getUserIdFromAuthHeader(req.headers.authorization) || req.body.userId || null;
+    const userId =
+      getUserIdFromAuthHeader(req.headers.authorization) ||
+      req.body.userId ||
+      null;
     const payload = { ...req.body, ...(userId ? { userId } : {}) };
     const saved = await BankDetails.create(payload);
     res.status(201).json({ success: true, data: { bankDetailsId: saved._id } });
@@ -173,7 +211,9 @@ app.post("/api/bank", async (req, res) => {
 
 app.get("/api/bank", authenticateToken, async (req, res) => {
   try {
-    const bankDocs = await BankDetails.find({ userId: req.userId }).sort({ createdAt: -1 });
+    const bankDocs = await BankDetails.find({ userId: req.userId }).sort({
+      createdAt: -1,
+    });
     res.status(200).json(bankDocs);
   } catch (err) {
     console.error("GET /api/bank error:", err);
@@ -194,7 +234,9 @@ app.get("/api/bank/:id", async (req, res) => {
 
 app.get("/api/bank/kyc/:kycId", async (req, res) => {
   try {
-    const doc = await BankDetails.findOne({ kycId: req.params.kycId }).sort({ createdAt: -1 });
+    const doc = await BankDetails.findOne({ kycId: req.params.kycId }).sort({
+      createdAt: -1,
+    });
     if (!doc) return res.status(404).json({ error: "Bank details not found" });
     res.status(200).json(doc);
   } catch (err) {
@@ -208,12 +250,46 @@ app.patch("/api/bank/:id", authenticateToken, async (req, res) => {
     const updated = await BankDetails.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
       { $set: req.body },
-      { new: true }
+      { new: true },
     );
-    if (!updated) return res.status(404).json({ error: "Bank details not found" });
+    if (!updated)
+      return res.status(404).json({ error: "Bank details not found" });
     res.status(200).json({ success: true, data: updated });
   } catch (err) {
     console.error("PATCH /api/bank/:id error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.post("/register", async (req, res) => {
+  try {
+    const { name, email, password, mobile } = req.body;
+    if (!name || !email || !password || !mobile) {
+      return res
+        .status(400)
+        .json({ error: "Name, email, password, and mobile are required" });
+    }
+
+    const collection = client.db("AuthDB").collection("users");
+    const normalizedEmail = String(email).trim().toLowerCase();
+
+    const existing = await collection.findOne({ email: normalizedEmail });
+    if (existing) {
+      return res.status(409).json({ error: "User already exists" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+    const result = await collection.insertOne({
+      name: String(name).trim(),
+      email: normalizedEmail,
+      password: hashed,
+      mobile: String(mobile).trim(),
+      createdAt: new Date(),
+    });
+
+    res.status(201).json({ success: true, userId: result.insertedId });
+  } catch (error) {
+    console.error("POST /register error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -228,7 +304,7 @@ app.post("/login", async (req, res) => {
     }
     const token = jwt.sign({ userId: user._id }, SECRET, { expiresIn: "1d" });
     res.json({
-      jwtToken: token, 
+      jwtToken: token,
       userId: user._id,
       userData: { name: user.name, email: user.email, mobile: user.mobile },
     });
@@ -237,10 +313,107 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.post("/forgot-password", async (req, res) => {
+  try {
+    const email = String(req.body.email || "")
+      .trim()
+      .toLowerCase();
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const collection = client.db("AuthDB").collection("users");
+    const user = await collection.findOne({ email });
+
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message: "If the email exists, a reset link has been sent.",
+      });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+    const resetTokenExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+    await collection.updateOne(
+      { _id: user._id },
+      { $set: { resetTokenHash, resetTokenExpires } },
+    );
+
+    const response = {
+      success: true,
+      message: "If the email exists, a reset link has been sent.",
+    };
+
+    if (process.env.NODE_ENV !== "production") {
+      response.resetToken = resetToken;
+      response.resetLink = `http://localhost:5173/reset-password?token=${resetToken}`;
+    }
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("POST /forgot-password error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.post("/reset-password", async (req, res) => {
+  try {
+    const token = String(req.body.token || "").trim();
+    const password = String(req.body.password || "");
+
+    if (!token || !password) {
+      return res
+        .status(400)
+        .json({ error: "Token and new password are required" });
+    }
+
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+    const collection = client.db("AuthDB").collection("users");
+
+    const user = await collection.findOne({
+      resetTokenHash,
+      resetTokenExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ error: "Reset token is invalid or expired" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+    await collection.updateOne(
+      { _id: user._id },
+      {
+        $set: { password: hashed },
+        $unset: { resetTokenHash: "", resetTokenExpires: "" },
+      },
+    );
+
+    res
+      .status(200)
+      .json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    console.error("POST /reset-password error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // FETCH SINGLE CLAIM BY ID
 app.get("/api/claims/:id", authenticateToken, async (req, res) => {
   try {
-    const claim = await Claim.findOne({ _id: req.params.id, userId: req.userId });
+    const claim = await Claim.findOne({
+      _id: req.params.id,
+      userId: req.userId,
+    });
     if (!claim) return res.status(404).json({ error: "Claim not found" });
     res.status(200).json(claim);
   } catch (err) {

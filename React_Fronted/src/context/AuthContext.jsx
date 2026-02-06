@@ -27,39 +27,42 @@ export const AuthProvider = ({ children }) => {
 
   /* -------------------- LOGIN -------------------- */
   const login = async ({ identifier, password }) => {
-  try {
-    const res = await api.post("/login", {
-      email: identifier.trim().toLowerCase(),
-      password,
-    });
+    try {
+      const res = await api.post("/login", {
+        email: identifier.trim().toLowerCase(),
+        password,
+      });
 
-    // 🔥 SUPPORT BOTH AXIOS MODES
-    const data = res?.data ?? res;
+      // 🔥 SUPPORT BOTH AXIOS MODES
+      const data = res?.data ?? res;
 
-    if (!data || !data.jwtToken || !data.userId) {
-      throw new Error("Invalid login response from server");
+      if (!data || !data.jwtToken || !data.userId) {
+        throw new Error("Invalid login response from server");
+      }
+
+      const authUser = {
+        id: data.userId,
+        name: data.userData?.name || null,
+        email: data.userData?.email || null,
+        mobile: data.userData?.mobile || null,
+      };
+
+      localStorage.setItem("authToken", data.jwtToken);
+      localStorage.setItem("authUser", JSON.stringify(authUser));
+
+      setToken(data.jwtToken);
+      setUser(authUser);
+
+      return authUser;
+    } catch (err) {
+      console.error("LOGIN ERROR:", err.response?.data || err.message);
+      const errorMessage =
+        err.status === 401
+          ? "Invalid username or password"
+          : err.data?.error || err.message || "Login failed";
+      throw new Error(errorMessage);
     }
-
-    const authUser = {
-      id: data.userId,
-      name: data.userData?.name || null,
-      email: data.userData?.email || null,
-      mobile: data.userData?.mobile || null,
-    };
-
-    localStorage.setItem("authToken", data.jwtToken);
-    localStorage.setItem("authUser", JSON.stringify(authUser));
-
-    setToken(data.jwtToken);
-    setUser(authUser);
-
-    return authUser;
-  } catch (err) {
-    console.error("LOGIN ERROR:", err.response?.data || err.message);
-    throw new Error(err.response?.data?.error || err.message || "Login failed");
-  }
-};
-
+  };
 
   /* -------------------- LOGOUT -------------------- */
   const logout = () => {
@@ -91,11 +94,7 @@ export const AuthProvider = ({ children }) => {
     [user, token, loading]
   );
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 /* -------------------- HOOK -------------------- */

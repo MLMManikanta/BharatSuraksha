@@ -1,31 +1,28 @@
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { Link } from "react-router-dom";
+import { api } from "../../utils/api";
 
-function Login() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { login } = useAuth();
-  const [formData, setFormData] = useState({ identifier: "", password: "" });
-  const [showPassword, setShowPassword] = useState(false);
+function ForgotPassword() {
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const [success, setSuccess] = useState("");
+  const [devLink, setDevLink] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
+    setDevLink("");
+
     try {
-      const identifier = formData.identifier.trim();
-      await login({ identifier, password: formData.password });
-      const redirectTo = location.state?.from || "/";
-      navigate(redirectTo, { replace: true });
+      const payload = { email: email.trim().toLowerCase() };
+      const res = await api.post("/forgot-password", payload);
+      setSuccess(res.message || "If the email exists, a reset link has been sent.");
+      if (res.resetLink) setDevLink(res.resetLink);
     } catch (err) {
-      setError(err.message || "Login failed");
+      setError(err.data?.error || err.message || "Request failed");
     } finally {
       setLoading(false);
     }
@@ -33,11 +30,9 @@ function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-[#E8F1FF] via-[#F0F6FF] to-[#E8F1FF] font-sans">
-      <div className="w-full max-w-5xl bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-blue-100 transition-all duration-500 animate-in fade-in zoom-in duration-500">
-        <div className="grid md:grid-cols-2 min-h-[600px]">
-          {/* Left Side - Brand Visual */}
+      <div className="w-full max-w-3xl bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-blue-100 transition-all duration-500 animate-in fade-in zoom-in duration-500">
+        <div className="grid md:grid-cols-2 min-h-[520px]">
           <div className="hidden md:flex bg-gradient-to-br from-[#1A5EDB] to-[#0F4BA8] text-white px-10 py-12 flex-col justify-center items-center relative overflow-hidden">
-            {/* Background Decorations */}
             <div className="absolute top-[-20%] left-[-20%] w-80 h-80 bg-white opacity-10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-[-20%] right-[-20%] w-80 h-80 bg-blue-300 opacity-10 rounded-full blur-3xl"></div>
 
@@ -45,7 +40,7 @@ function Login() {
               <div className="p-6 bg-white/10 backdrop-blur-md rounded-full shadow-lg border border-white/20">
                 <img
                   src="/images/Logo-circle.png"
-                  className="w-32 h-auto drop-shadow-xl"
+                  className="w-28 h-auto drop-shadow-xl"
                   alt="Bharat Suraksha Logo"
                 />
               </div>
@@ -54,15 +49,13 @@ function Login() {
                   Bharat Suraksha
                 </h1>
                 <p className="text-blue-100 text-lg font-medium max-w-xs mx-auto leading-relaxed">
-                  Your trusted partner for comprehensive insurance protection.
+                  Reset your password securely to regain account access.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Right Side - Login Form */}
           <div className="px-6 sm:px-10 md:px-16 py-12 bg-white flex flex-col justify-center">
-            {/* Mobile Brand Header */}
             <div className="flex md:hidden items-center gap-3 mb-8">
               <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
                 <img src="/images/Logo-circle.png" className="w-8 brightness-200" alt="Logo" />
@@ -77,9 +70,11 @@ function Login() {
 
             <div className="mb-8">
               <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">
-                Welcome Back! 👋
+                Forgot password?
               </h2>
-              <p className="text-slate-500 text-sm">Please login to access your dashboard.</p>
+              <p className="text-slate-500 text-sm">
+                Enter your email and we will send a reset link.
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -88,62 +83,39 @@ function Login() {
                   {error}
                 </div>
               )}
+              {success && (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700">
+                  <p className="font-bold">{success}</p>
+                  <p className="text-emerald-600 text-xs mt-1">
+                    If you do not see it, check your spam folder.
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Email / Mobile <span className="text-red-500">*</span>
+                  Email <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="text"
-                  name="identifier"
-                  value={formData.identifier}
-                  onChange={handleChange}
-                  placeholder="Enter email or mobile number"
-                  autoComplete="username"
+                  type="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  autoComplete="email"
                   className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                   required
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Password <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Enter password"
-                    autoComplete="current-password"
-                    className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium pr-14 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 px-4 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-wide"
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
+              {devLink && (
+                <div className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-xs text-blue-700">
+                  <p className="font-bold">Dev reset link</p>
+                  <a href={devLink} className="underline font-semibold">
+                    Open reset page
+                  </a>
                 </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-500 font-medium">Remember me</span>
-                </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-sm font-bold text-blue-600 hover:text-blue-800 hover:underline"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
+              )}
 
               <div className="space-y-3 pt-4">
                 <button
@@ -154,29 +126,22 @@ function Login() {
                   {loading ? (
                     <>
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                      Logging In...
+                      Sending reset link...
                     </>
                   ) : (
-                    "Login Securely"
+                    "Send reset link"
                   )}
-                </button>
-
-                <button
-                  type="button"
-                  className="w-full rounded-xl border-2 border-slate-200 text-slate-600 font-bold py-3.5 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-[0.98]"
-                >
-                  Login with OTP
                 </button>
               </div>
             </form>
 
             <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-              <p className="text-sm text-slate-500 mb-2">New to Bharat Suraksha?</p>
+              <p className="text-sm text-slate-500 mb-2">Remembered your password?</p>
               <Link
-                to="/plans"
+                to="/login"
                 className="inline-flex items-center gap-2 text-blue-600 font-black text-lg hover:text-blue-800 transition-colors group"
               >
-                Get a Quote{" "}
+                Back to Login{" "}
                 <span className="group-hover:translate-x-1 transition-transform">→</span>
               </Link>
             </div>
@@ -186,4 +151,5 @@ function Login() {
     </div>
   );
 }
-export default Login;
+
+export default ForgotPassword;

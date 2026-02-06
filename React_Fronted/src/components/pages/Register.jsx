@@ -16,6 +16,15 @@ function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!isSuccess) return;
+    const timer = setTimeout(() => {
+      navigate("/login", { state: { from: location.state?.from || "/plans" } });
+    }, 1800);
+    return () => clearTimeout(timer);
+  }, [isSuccess, navigate, location.state]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,40 +34,38 @@ function Register() {
     }));
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
-  setSuccess("");
+    try {
+      // Basic client-side validation for name
+      const name = (formData.name || "").trim();
+      if (!name || name.length < 2 || name.length > 50) {
+        setError("Full Name is required (2-50 characters)");
+        setLoading(false);
+        return;
+      }
 
-  try {
-    // Basic client-side validation for name
-    const name = (formData.name || "").trim();
-    if (!name || name.length < 2 || name.length > 50) {
-      setError("Full Name is required (2-50 characters)");
+      const payload = {
+        name,
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        mobile: formData.mobileNumber.trim(),
+      };
+
+      await api.post("/register", payload);
+      setFormData({ name: "", email: "", mobileNumber: "", password: "" });
+      setSuccess("Account created successfully. Redirecting to login...");
+      setIsSuccess(true);
+    } catch (err) {
+      setError(err.data?.error || err.message || "Registration failed");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const payload = {
-      name,
-      email: formData.email.trim().toLowerCase(),
-      password: formData.password,
-      mobile: formData.mobileNumber.trim(),
-    };
-
-    const res = await api.post("/register", payload);
-
-    setSuccess("Registration successful.");
-  } catch (err) {
-    console.error("REGISTER ERROR:", err.response?.data || err.message);
-    setError(err.response?.data?.error || "Registration failed");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-[#E8F1FF] via-[#F0F6FF] to-[#E8F1FF] font-sans">
@@ -70,10 +77,16 @@ function Register() {
 
             <div className="relative z-10 flex flex-col gap-6 justify-center items-center text-center">
               <div className="p-6 bg-white/10 backdrop-blur-md rounded-full shadow-lg border border-white/20">
-                <img src="/images/Logo-circle.png" className="w-32 h-auto drop-shadow-xl" alt="Bharat Suraksha Logo" />
+                <img
+                  src="/images/Logo-circle.png"
+                  className="w-32 h-auto drop-shadow-xl"
+                  alt="Bharat Suraksha Logo"
+                />
               </div>
               <div>
-                <h1 className="text-3xl lg:text-4xl font-black tracking-tight mb-2 drop-shadow-md">Bharat Suraksha</h1>
+                <h1 className="text-3xl lg:text-4xl font-black tracking-tight mb-2 drop-shadow-md">
+                  Bharat Suraksha
+                </h1>
                 <p className="text-blue-100 text-lg font-medium max-w-xs mx-auto leading-relaxed">
                   Create your account to access claims, utilities, and policy services.
                 </p>
@@ -87,38 +100,66 @@ function Register() {
                 <img src="/images/Logo-circle.png" className="w-8 brightness-200" alt="Logo" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Welcome to</p>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                  Welcome to
+                </p>
                 <h1 className="text-xl font-black text-slate-800">Bharat Suraksha</h1>
               </div>
             </div>
 
+            {isSuccess && (
+              <div className="fixed top-6 right-6 z-50">
+                <div className="rounded-2xl border border-emerald-200 bg-white px-5 py-4 shadow-xl shadow-emerald-200/30 animate-in fade-in slide-in-from-top-2">
+                  <p className="text-sm font-bold text-emerald-700">
+                    Account created successfully.
+                  </p>
+                  <p className="text-xs text-emerald-600">Redirecting to login...</p>
+                </div>
+              </div>
+            )}
+
             <div className="mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">Create your account ✅</h2>
-              <p className="text-slate-500 text-sm">Create an account to continue with your policy journey.</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">
+                {isSuccess ? "Account created" : "Create your account ✅"}
+              </h2>
+              <p className="text-slate-500 text-sm">
+                {isSuccess
+                  ? "You are all set. Redirecting you to login."
+                  : "Create an account to continue with your policy journey."}
+              </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form
+              onSubmit={handleSubmit}
+              className={`space-y-5 ${isSuccess ? "opacity-40 pointer-events-none" : ""}`}
+              aria-hidden={isSuccess}
+            >
               {error && (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {error}
                 </div>
               )}
               {success && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                  {success}
-                  <div className="mt-2 flex items-center gap-3">
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-emerald-700 font-bold">{success}</p>
+                      <p className="text-emerald-600 text-xs mt-1">
+                        You will be redirected automatically.
+                      </p>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => navigate('/login', { state: { from: location.state?.from || '/plans' } })}
-                      className="px-3 py-1 bg-white border border-slate-200 text-slate-800 rounded-xl text-sm font-bold"
+                      onClick={() =>
+                        navigate("/login", { state: { from: location.state?.from || "/plans" } })
+                      }
+                      className="px-4 py-2 bg-white border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold"
                     >
-                      Proceed to Login
+                      Login now
                     </button>
                   </div>
                 </div>
               )}
-
-              {/* Policy Number removed from registration so users can create an account without one */}
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -130,6 +171,7 @@ function Register() {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Your full name"
+                  autoComplete="name"
                   className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                   required
                 />
@@ -143,6 +185,7 @@ function Register() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="name@example.com"
+                  autoComplete="email"
                   className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                   required
                 />
@@ -158,6 +201,7 @@ function Register() {
                   value={formData.mobileNumber}
                   onChange={handleChange}
                   placeholder="+91XXXXXXXXXX"
+                  autoComplete="tel"
                   className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                   required
                 />
@@ -182,8 +226,8 @@ function Register() {
               <div className="space-y-3 pt-4">
                 <button
                   type="submit"
-                  disabled={loading}
-                  className={`w-full rounded-xl bg-[#1A5EDB] hover:bg-[#0F4BA8] text-white font-bold py-3.5 shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${loading ? "opacity-80 cursor-wait" : ""}`}
+                  disabled={loading || isSuccess}
+                  className={`w-full rounded-xl bg-[#1A5EDB] hover:bg-[#0F4BA8] text-white font-bold py-3.5 shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${loading || isSuccess ? "opacity-60 cursor-not-allowed" : ""}`}
                 >
                   {loading ? (
                     <>
@@ -201,7 +245,7 @@ function Register() {
               <p className="text-sm text-slate-500 mb-2">Already registered?</p>
               <Link
                 to="/login"
-                state={{ from: location.state?.from || '/plans' }}
+                state={{ from: location.state?.from || "/plans" }}
                 className="inline-flex items-center gap-2 text-blue-600 font-black text-lg hover:text-blue-800 transition-colors group"
               >
                 Login <span className="group-hover:translate-x-1 transition-transform">→</span>

@@ -32,18 +32,15 @@ const CustomSelect = ({ label, value, onChange, options, buttonClassName }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const formattedOptions = options?.map((opt) =>
-    typeof opt === "string" ? { value: opt, label: opt } : opt
-  ) || [];
+  const formattedOptions =
+    options?.map((opt) => (typeof opt === "string" ? { value: opt, label: opt } : opt)) || [];
 
   const currentLabel = formattedOptions.find((o) => o.value === value)?.label || "Select Option";
 
   return (
     <div className="relative w-full space-y-3" ref={containerRef}>
       {label && (
-        <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-          {label}
-        </label>
+        <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">{label}</label>
       )}
       <button
         type="button"
@@ -54,7 +51,9 @@ const CustomSelect = ({ label, value, onChange, options, buttonClassName }) => {
         }
       >
         <span className="truncate">{currentLabel}</span>
-        <span className={`text-[12px] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+        <span
+          className={`text-[12px] transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+        >
           ▼
         </span>
       </button>
@@ -106,7 +105,10 @@ const RaiseClaim = () => {
     dayCare: "No",
     admissionDate: "",
     dischargeDate: "",
+    hospitalName: "",
+    hospitalType: "",
     hospitalAddress: "",
+    nation: "India",
     diagnosis: "",
     claimedAmount: "",
     referenceId: "",
@@ -120,8 +122,7 @@ const RaiseClaim = () => {
   const [submitError, setSubmitError] = useState("");
   const todayString = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
-  const updateField = (key, value) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const updateField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const handleDateChange = (field, value) => {
     if (form.dayCare === "Yes") {
@@ -140,7 +141,11 @@ const RaiseClaim = () => {
     const discharge = form.dischargeDate ? new Date(form.dischargeDate) : null;
 
     if (!claimType || !form.claimCycle || !form.dependentId) return false;
-    if (claimType === "Pre-Post Hospitalization" && (!form.hospitalizationType || !form.referenceId.trim())) return false;
+    if (
+      claimType === "Pre-Post Hospitalization" &&
+      (!form.hospitalizationType || !form.referenceId.trim())
+    )
+      return false;
     if (!form.admissionDate || !form.dischargeDate || !form.hospitalAddress.trim()) return false;
     if (form.dayCare === "No" && admission && discharge && discharge < admission) return false;
     if (!form.claimedAmount || Number(form.claimedAmount) <= 0) return false;
@@ -158,8 +163,9 @@ const RaiseClaim = () => {
       const payload = {
         ...form,
         claimType,
+        treatmentType: claimType,
         claimedAmount: Number(form.claimedAmount),
-        status: "Pending"
+        status: "Pending",
       };
 
       await api.post("/api/claims", payload, { auth: true });
@@ -187,9 +193,7 @@ const RaiseClaim = () => {
         <ClaimsTopLinks />
       </div>
 
-      <AnimatePresence>
-        {submitting && <TabLoader />}
-      </AnimatePresence>
+      <AnimatePresence>{submitting && <TabLoader />}</AnimatePresence>
 
       <div className="bg-blue-700 pt-16 pb-24 no-print">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -207,7 +211,11 @@ const RaiseClaim = () => {
           <nav className="flex relative z-10">
             {[
               { id: "claims", label: "MY CLAIMS", path: "/claims/my-claims" },
-              { id: "beneficiaries", label: "BENEFICIARIES", path: "/claims/entitlement-dependents" },
+              {
+                id: "beneficiaries",
+                label: "BENEFICIARIES",
+                path: "/claims/entitlement-dependents",
+              },
               { id: "new-claim", label: "NEW CLAIM", path: "/claims/raise-claim" },
             ].map((tab) => {
               const isCurrent = location.pathname === tab.path;
@@ -243,7 +251,9 @@ const RaiseClaim = () => {
             </div>
             <div>
               <h2 className="text-xl font-black text-slate-900">Claim Category</h2>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identify your request type</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Identify your request type
+              </p>
             </div>
           </div>
 
@@ -251,13 +261,23 @@ const RaiseClaim = () => {
             <CustomSelect
               label="Claim Type"
               value={claimType}
-              onChange={(v) => { setClaimType(v); setStepReady(false); }}
-              options={["Hospitalization", "Pre-Post Hospitalization", "Preventive Health Check-up"]}
+              onChange={(v) => {
+                setClaimType(v);
+                setStepReady(false);
+              }}
+              options={[
+                "Hospitalization",
+                "Pre-Post Hospitalization",
+                "Preventive Health Check-up",
+              ]}
             />
             <CustomSelect
               label="Claim Cycle"
               value={form.claimCycle}
-              onChange={(v) => { updateField("claimCycle", v); setStepReady(false); }}
+              onChange={(v) => {
+                updateField("claimCycle", v);
+                setStepReady(false);
+              }}
               options={["Fresh Claim", "Reimbursement", "Follow-up / Continuation"]}
             />
             <div className="flex items-end">
@@ -266,7 +286,9 @@ const RaiseClaim = () => {
                 onClick={() => setStepReady(true)}
                 disabled={!isCategoryComplete}
                 className={`w-full h-14 rounded-2xl font-black uppercase tracking-normal text-[10px] transition-all ${
-                  isCategoryComplete ? "bg-slate-900 text-white shadow-xl active:scale-95" : "bg-slate-100 text-slate-300"
+                  isCategoryComplete
+                    ? "bg-slate-900 text-white shadow-xl active:scale-95"
+                    : "bg-slate-100 text-slate-300"
                 }`}
               >
                 {stepReady ? "✓ Category Set" : "Next Step"}
@@ -291,7 +313,9 @@ const RaiseClaim = () => {
                   </div>
                   <div>
                     <h2 className="text-xl font-black text-slate-900">Hospital & Member Details</h2>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verify beneficiary and facility</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Verify beneficiary and facility
+                    </p>
                   </div>
                 </div>
 
@@ -310,7 +334,9 @@ const RaiseClaim = () => {
                   {claimType === "Pre-Post Hospitalization" && (
                     <>
                       <div className="space-y-3">
-                        <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Type</label>
+                        <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                          Type
+                        </label>
                         <div className="flex gap-2">
                           {["Pre", "Post"].map((type) => (
                             <button
@@ -330,7 +356,9 @@ const RaiseClaim = () => {
                       </div>
 
                       <div className="space-y-3">
-                        <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Reference ID</label>
+                        <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                          Reference ID
+                        </label>
                         <input
                           type="text"
                           className="w-full h-14 rounded-2xl border-slate-200 bg-slate-50 px-5 font-bold text-slate-700 border focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
@@ -343,7 +371,9 @@ const RaiseClaim = () => {
                   )}
 
                   <div className="space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Admission Date</label>
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                      Admission Date
+                    </label>
                     <CustomDatePicker
                       value={form.admissionDate}
                       onChange={(val) => handleDateChange("admissionDate", val)}
@@ -352,7 +382,9 @@ const RaiseClaim = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Discharge Date</label>
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                      Discharge Date
+                    </label>
                     <CustomDatePicker
                       value={form.dischargeDate}
                       onChange={(val) => handleDateChange("dischargeDate", val)}
@@ -361,8 +393,53 @@ const RaiseClaim = () => {
                     />
                   </div>
 
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                      Hospital Name
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full h-14 rounded-2xl border-slate-200 bg-slate-50 px-5 font-bold text-slate-700 border focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      value={form.hospitalName}
+                      onChange={(e) => updateField("hospitalName", e.target.value)}
+                      placeholder="Enter hospital name..."
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                      Hospital Type
+                    </label>
+                    <CustomSelect
+                      value={form.hospitalType}
+                      onChange={(v) => updateField("hospitalType", v)}
+                      options={[
+                        "General Hospital",
+                        "Multi-specialty Hospital",
+                        "Private Hospital",
+                        "Government Hospital",
+                        "Nursing Home",
+                      ]}
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                      Nation
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full h-14 rounded-2xl border-slate-200 bg-slate-50 px-5 font-bold text-slate-700 border focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      value={form.nation}
+                      onChange={(e) => updateField("nation", e.target.value)}
+                      placeholder="Country name..."
+                    />
+                  </div>
+
                   <div className="md:col-span-2 space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Hospital Address</label>
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                      Hospital Address
+                    </label>
                     <textarea
                       rows="3"
                       className="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-700 border resize-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
@@ -373,7 +450,9 @@ const RaiseClaim = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Amount (INR)</label>
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                      Amount (INR)
+                    </label>
                     <input
                       type="number"
                       className="w-full h-14 rounded-2xl border-slate-200 bg-slate-50 px-5 font-black text-slate-900 border focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
@@ -384,7 +463,9 @@ const RaiseClaim = () => {
                   </div>
 
                   <div className="md:col-span-2 space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Diagnosis</label>
+                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                      Diagnosis
+                    </label>
                     <textarea
                       rows="3"
                       className="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-700 border resize-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
@@ -406,7 +487,11 @@ const RaiseClaim = () => {
                           onClick={() => {
                             updateField("dayCare", opt);
                             if (opt === "Yes" && form.admissionDate) {
-                              setForm((prev) => ({ ...prev, dayCare: opt, dischargeDate: prev.admissionDate }));
+                              setForm((prev) => ({
+                                ...prev,
+                                dayCare: opt,
+                                dischargeDate: prev.admissionDate,
+                              }));
                             }
                           }}
                           className={`w-20 h-9 rounded-lg border font-bold text-[10px] uppercase transition-all ${
@@ -424,9 +509,9 @@ const RaiseClaim = () => {
 
                 <div className="mt-10 pt-8 border-t border-slate-50 space-y-4">
                   {submitError && (
-                    <motion.div 
-                      initial={{ opacity: 0 }} 
-                      animate={{ opacity: 1 }} 
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       className="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-bold mb-4 border border-red-100"
                     >
                       ⚠️ Error: {submitError}
@@ -463,8 +548,8 @@ const RaiseClaim = () => {
                   disabled={submitting || !validate()}
                   className={`w-full sm:w-80 h-16 rounded-[2rem] font-black uppercase text-[11px] transition-all shadow-2xl ${
                     validate() && !submitting
-                    ? "bg-blue-600 text-white shadow-blue-200 hover:scale-105 active:scale-95" 
-                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                      ? "bg-blue-600 text-white shadow-blue-200 hover:scale-105 active:scale-95"
+                      : "bg-slate-200 text-slate-400 cursor-not-allowed"
                   }`}
                 >
                   {submitting ? "Processing..." : "Submit Claim Request"}

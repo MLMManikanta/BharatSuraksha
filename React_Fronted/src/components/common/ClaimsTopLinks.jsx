@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const NAV_LINKS = [
   { to: '/utilities/e-card', label: 'E-CARD', icon: '📇' },
@@ -16,7 +16,6 @@ const ClaimsTopLinks = () => {
       aria-label="Claims Utilities"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Increased vertical padding (py-4) to double the bar height */}
         <div className="flex items-center justify-end gap-x-8 py-4">
           {NAV_LINKS.map(({ to, label, icon }) => (
             <NavLink
@@ -29,7 +28,6 @@ const ClaimsTopLinks = () => {
             >
               {({ isActive }) => (
                 <>
-                  {/* Increased icon container size to match the height increase */}
                   <span 
                     className={`
                       flex items-center justify-center w-7 h-7 rounded-lg text-sm transition-colors
@@ -40,16 +38,13 @@ const ClaimsTopLinks = () => {
                     {icon}
                   </span>
                   
-                  {/* Small, bold label with normal tracking */}
                   <span className="text-[11px] font-black uppercase tracking-normal">
                     {label}
                   </span>
-
-                  {/* Active indicator bar - positioned at the very bottom of the nav */}
                   {isActive && (
-                    <motion.div 
+                    <Motion.div 
                       layoutId="nav-underline"
-                      className="absolute -bottom-[17px] left-0 right-0 h-[3px] bg-blue-600 rounded-t-full"
+                      className="absolute -bottom-4.25 left-0 right-0 h-0.75 bg-blue-600 rounded-t-full"
                       transition={{ type: "spring", bounce: 0, duration: 0.4 }}
                     />
                   )}

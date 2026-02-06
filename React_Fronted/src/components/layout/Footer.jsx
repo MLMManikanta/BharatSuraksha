@@ -2,21 +2,17 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 function Footer() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
   const currentYear = new Date().getFullYear();
-
-  // Check for reduced motion preference (WCAG 2.2)
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
-
     const handleChange = (e) => setPrefersReducedMotion(e.matches);
     mediaQuery.addEventListener("change", handleChange);
 
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
-
-  // Animation class based on reduced motion preference
   const animationClass = prefersReducedMotion
     ? ""
     : "animate-in fade-in slide-in-from-bottom-4 duration-700";
@@ -61,8 +57,6 @@ function Footer() {
       `}</style>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 lg:gap-16">
-        
-        {/* BRAND SECTION */}
         <div className="space-y-6">
           <Link
             to="/"
@@ -87,8 +81,6 @@ function Footer() {
             Protecting what matters most with transparency and care.
           </p>
         </div>
-
-        {/* QUICK LINKS */}
         <nav aria-label="Quick links">
           <h3 className="text-white text-lg font-extrabold mb-6 relative inline-block">
             Quick Links 🔗
@@ -115,8 +107,6 @@ function Footer() {
             ))}
           </ul>
         </nav>
-
-        {/* CONTACT INFO */}
         <div>
           <h3 className="text-white text-lg font-extrabold mb-6 relative inline-block">
             Contact Us 👨🏻‍💻
@@ -158,8 +148,6 @@ function Footer() {
             </div>
           </address>
         </div>
-
-        {/* SOCIAL MEDIA & LEGAL */}
         <div className="space-y-8">
           <div>
             <h3 className="text-white text-lg font-extrabold mb-6 relative inline-block">
@@ -170,13 +158,12 @@ function Footer() {
               ></span>
             </h3>
             <div className="flex items-center gap-4">
-              {/* Instagram */}
               <a
                 href="https://www.instagram.com/m.l.m.manikanta/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Open Instagram"
-                className={`bg-slate-800 p-3.5 rounded-full hover:bg-gradient-to-br hover:from-purple-600 hover:to-pink-600 hover:text-white hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-slate-950 transition-all duration-300 ${prefersReducedMotion ? "" : "social-icon"}`}
+                className={`bg-slate-800 p-3.5 rounded-full hover:bg-linear-to-br hover:from-purple-600 hover:to-pink-600 hover:text-white hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-slate-950 transition-all duration-300 ${prefersReducedMotion ? "" : "social-icon"}`}
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
@@ -184,8 +171,6 @@ function Footer() {
                   <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
                 </svg>
               </a>
-
-              {/* WhatsApp */}
               <a
                 href="https://wa.me/919063807489"
                 target="_blank"
@@ -197,8 +182,6 @@ function Footer() {
                   <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
                 </svg>
               </a>
-
-              {/* LinkedIn */}
               <a
                 href="https://in.linkedin.com/in/mamidi-lakshman-mohan-manikanta-045b45229"
                 target="_blank"
@@ -231,5 +214,4 @@ function Footer() {
     </footer>
   );
 }
-
 export default Footer;

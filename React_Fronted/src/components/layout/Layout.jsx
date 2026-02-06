@@ -5,20 +5,16 @@ import Footer from './Footer';
 
 function Layout({ children }) {
   const { pathname } = useLocation();
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  // 1. Accessibility: Check for reduced motion preference
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
-
     const handleChange = (e) => setPrefersReducedMotion(e.matches);
     mediaQuery.addEventListener("change", handleChange);
 
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
-
-  // 2. UX: Scroll to top on route change
   useEffect(() => {
     if (!prefersReducedMotion) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -29,8 +25,6 @@ function Layout({ children }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 selection:bg-blue-100 selection:text-blue-900">
-      
-      {/* Global Styles Injection */}
       <style>{`
         /* Smooth transitions for main content */
         @media (prefers-reduced-motion: no-preference) {
@@ -56,21 +50,18 @@ function Layout({ children }) {
         }
 
         ::-webkit-scrollbar-track {
-          background: #F1F5F9; /* slate-100 */
+          background: #F1F5F9; 
         }
 
         ::-webkit-scrollbar-thumb {
-          background: #CBD5E1; /* slate-300 */
+          background: #CBD5E1; 
           border-radius: 5px;
           border: 2px solid #F1F5F9;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-          background: #1A5EDB; /* Brand Blue */
-        }
-
-        /* Custom Scrollbar (Firefox) */
-        * {
+          background: #1A5EDB; 
+        } {
           scrollbar-width: thin;
           scrollbar-color: #CBD5E1 #F1F5F9;
         }
@@ -78,10 +69,6 @@ function Layout({ children }) {
 
       <Header />
       
-      {/* Main Content Wrapper
-        - id="main-content" is the target for the "Skip to Content" link in Header
-        - flex-1 ensures it pushes the footer down
-      */}
       <main 
         id="main-content" 
         className="flex-1 flex flex-col relative w-full" 
@@ -95,5 +82,4 @@ function Layout({ children }) {
     </div>
   );
 }
-
 export default Layout;

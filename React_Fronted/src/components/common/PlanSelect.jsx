@@ -52,8 +52,6 @@ const PlanSelect = ({
     setOpen(false);
     setActiveIdx(-1);
   };
-
-  /* ---------------- OUTSIDE CLICK ---------------- */
   useEffect(() => {
     const onDocClick = (e) => {
       if (
@@ -69,7 +67,6 @@ const PlanSelect = ({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  /* ---------------- SCROLL / RESIZE ---------------- */
   useEffect(() => {
     if (!open) return;
     window.addEventListener("scroll", calculatePosition, true);
@@ -95,7 +92,6 @@ const PlanSelect = ({
     return "";
   };
 
-  /* ---------------- KEYBOARD ---------------- */
   const handleKeyDown = (e) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -125,8 +121,6 @@ const PlanSelect = ({
           {label}
         </label>
       )}
-
-      {/* BUTTON */}
       <button
         ref={buttonRef}
         type="button"
@@ -135,7 +129,7 @@ const PlanSelect = ({
         onClick={() => (open ? closeList() : openList())}
         onKeyDown={handleKeyDown}
         className={
-          `w-full min-h-[44px] px-4 py-3 text-sm font-semibold text-left flex items-center justify-between group focus:outline-none focus:ring-4 focus:ring-blue-500/10 ` +
+          `w-full min-h-11 px-4 py-3 text-sm font-semibold text-left flex items-center justify-between group focus:outline-none focus:ring-4 focus:ring-blue-500/10 ` +
           (compact
             ? `rounded-lg border border-slate-200 bg-white`
             : `rounded-xl border-2 border-slate-200 bg-white`)
@@ -145,13 +139,11 @@ const PlanSelect = ({
           {selectedIdx >= 0 ? normalized[selectedIdx].label : placeholder}
         </span>
         <ChevronDown
-          className={`w-4 h-4 text-blue-600 transition-transform transition-colors duration-150 group-hover:text-blue-700 ${
+          className={`w-4 h-4 text-blue-600 transition-transform duration-150 group-hover:text-blue-700 ${
             open ? "rotate-180" : ""
           }`}
         />
       </button>
-
-      {/* DROPDOWN */}
      {open &&
   createPortal(
     <ul
@@ -165,7 +157,7 @@ const PlanSelect = ({
         width: pos.width,
       }}
       className="
-        z-[9999]
+        z-9999
         max-h-64 overflow-auto
         rounded-xl border border-slate-200
         bg-white shadow-xl
@@ -177,8 +169,6 @@ const PlanSelect = ({
         const locked = isLocked(opt);
         const selected = opt.value === value;
         const active = idx === activeIdx;
-
-        // Focus/active state should visually match selected state (blue highlight)
         const stateClass = selected
           ? 'bg-blue-50 text-blue-700 font-semibold'
           : active
@@ -222,5 +212,4 @@ const PlanSelect = ({
     </div>
   );
 };
-
 export default PlanSelect;
