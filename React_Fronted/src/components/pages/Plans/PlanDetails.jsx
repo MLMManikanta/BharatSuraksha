@@ -154,9 +154,6 @@ const PlanDetails = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  /* ============================
-     ✅ FIXED NORMALIZATION LOGIC
-     ============================ */
   const handleContinue = () => {
     if (!validateForm()) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
