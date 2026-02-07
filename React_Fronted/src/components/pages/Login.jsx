@@ -32,12 +32,10 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-[#E8F1FF] via-[#F0F6FF] to-[#E8F1FF] font-sans">
-      <div className="w-full max-w-5xl bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-blue-100 transition-all duration-500 animate-in fade-in zoom-in duration-500">
-        <div className="grid md:grid-cols-2 min-h-[600px]">
-          {/* Left Side - Brand Visual */}
-          <div className="hidden md:flex bg-gradient-to-br from-[#1A5EDB] to-[#0F4BA8] text-white px-10 py-12 flex-col justify-center items-center relative overflow-hidden">
-            {/* Background Decorations */}
+    <div className="min-h-screen flex items-center justify-center px-4 bg-linear-to-br from-[#E8F1FF] via-[#F0F6FF] to-[#E8F1FF] font-sans">
+      <div className="w-full max-w-5xl bg-white rounded-4xl shadow-2xl overflow-hidden border border-blue-100 transition-all duration-500 animate-in fade-in zoom-in">
+        <div className="grid md:grid-cols-2 min-h-150">
+          <div className="hidden md:flex bg-linear-to-br from-[#1A5EDB] to-[#0F4BA8] text-white px-10 py-12 flex-col justify-center items-center relative overflow-hidden">
             <div className="absolute top-[-20%] left-[-20%] w-80 h-80 bg-white opacity-10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-[-20%] right-[-20%] w-80 h-80 bg-blue-300 opacity-10 rounded-full blur-3xl"></div>
 

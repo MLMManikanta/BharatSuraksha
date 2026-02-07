@@ -129,7 +129,7 @@ function JustificationLetter() {
           </button>
         </header>
 
-        <section className="rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-blue-900/5 overflow-hidden no-print">
+        <section className="rounded-4xl border border-slate-200 bg-white shadow-2xl shadow-blue-900/5 overflow-hidden no-print">
           <div className="p-8 space-y-8">
             <div className="flex items-center justify-between border-b border-slate-100 pb-6">
               <div className="space-y-1">
@@ -212,7 +212,7 @@ function JustificationLetter() {
                 </span>
               </div>
 
-              <div className="print-area rounded-[1.5rem] border-2 border-slate-100 bg-slate-50/30 p-8 md:p-12 min-h-[400px] relative">
+              <div className="print-area rounded-3xl border-2 border-slate-100 bg-slate-50/30 p-8 md:p-12 min-h-100 relative">
                 <AnimatePresence>
                   {isRefreshing && (
                     <motion.div
@@ -220,7 +220,7 @@ function JustificationLetter() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-[1.5rem] flex items-center justify-center z-50"
+                      className="absolute inset-0 bg-white/60 backdrop-blur-sm rounded-3xl flex items-center justify-center z-50"
                     >
                       <motion.div
                         animate={{ rotate: 360 }}
