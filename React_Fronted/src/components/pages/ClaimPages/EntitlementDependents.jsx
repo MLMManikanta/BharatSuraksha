@@ -42,7 +42,16 @@ function EntitlementDependents() {
         setClaims(apiClaims || []);
         setDependents(DEPENDENT_DATA);
       } catch (error) {
+        console.error("Error loading entitlement:", error);
         if (!isMounted) return;
+
+        if (error.status === 401) {
+          navigate("/login", {
+            state: { message: "Your session has expired. Please log in again." },
+          });
+          return;
+        }
+
         setEntitlement({
           policyNumber: "BS-PARI-2026-0001",
           coverageLimit: 1000000,
@@ -56,8 +65,10 @@ function EntitlementDependents() {
       }
     };
     loadEntitlement();
-    return () => { isMounted = false; };
-  }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const totalDeducted = useMemo(() => {
     return claims
@@ -75,7 +86,7 @@ function EntitlementDependents() {
   const handleExportCSV = () => {
     if (!dependents || dependents.length === 0) return;
     const headers = ["id", "name", "relationship", "age", "status"];
-    const rows = dependents.map(d => headers.map(h => JSON.stringify(d[h] ?? "")).join(","));
+    const rows = dependents.map((d) => headers.map((h) => JSON.stringify(d[h] ?? "")).join(","));
     const csv = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -93,8 +104,8 @@ function EntitlementDependents() {
       state: {
         selectedMember: member,
         allMembers: dependents,
-        policyNo: entitlement?.policyNumber
-      }
+        policyNo: entitlement?.policyNumber,
+      },
     });
   };
 
@@ -103,20 +114,24 @@ function EntitlementDependents() {
       <div className="no-print">
         <ClaimsTopLinks />
       </div>
-      
+
       {/* ROYAL BLUE HEADER SECTION */}
       <div className="bg-blue-700 pt-16 pb-24 no-print">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <h1 className="text-4xl font-black text-white tracking-tight">
-                Policy Coverage
-              </h1>
-              <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mt-2 opacity-80">View limits and verified beneficiaries</p>
+              <h1 className="text-4xl font-black text-white tracking-tight">Policy Coverage</h1>
+              <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mt-2 opacity-80">
+                View limits and verified beneficiaries
+              </p>
             </div>
             <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-white/30 shadow-lg">
-              <span className="text-[10px] font-black text-blue-100 uppercase tracking-widest">ID:</span>
-              <span className="text-sm font-mono font-bold text-white tracking-widest">{entitlement?.policyNumber}</span>
+              <span className="text-[10px] font-black text-blue-100 uppercase tracking-widest">
+                ID:
+              </span>
+              <span className="text-sm font-mono font-bold text-white tracking-widest">
+                {entitlement?.policyNumber}
+              </span>
             </div>
           </header>
         </div>
@@ -127,9 +142,13 @@ function EntitlementDependents() {
         <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-[2rem] mb-12 max-w-2xl border border-white/20 relative no-print shadow-xl">
           <nav className="flex relative z-10">
             {[
-              { id: 'claims', label: 'MY CLAIMS', path: '/claims/my-claims' },
-              { id: 'beneficiaries', label: 'BENEFICIARIES', path: '/claims/entitlement-dependents' },
-              { id: 'new-claim', label: 'NEW CLAIM', path: '/claims/raise-claim' }
+              { id: "claims", label: "MY CLAIMS", path: "/claims/my-claims" },
+              {
+                id: "beneficiaries",
+                label: "BENEFICIARIES",
+                path: "/claims/entitlement-dependents",
+              },
+              { id: "new-claim", label: "NEW CLAIM", path: "/claims/raise-claim" },
             ].map((tab) => {
               const isCurrent = location.pathname === tab.path;
               return (
@@ -137,7 +156,7 @@ function EntitlementDependents() {
                   key={tab.id}
                   to={tab.path}
                   className={`relative flex-1 px-6 py-3 text-[11px] font-black uppercase tracking-normal text-center transition-colors duration-300 ${
-                    isCurrent ? 'text-blue-700' : 'text-blue-100 hover:text-white'
+                    isCurrent ? "text-blue-700" : "text-blue-100 hover:text-white"
                   }`}
                 >
                   {isCurrent && (
@@ -163,19 +182,32 @@ function EntitlementDependents() {
           <div className="space-y-10">
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { label: "Total Limit", val: formatINR(entitlement.coverageLimit), color: "text-slate-900" },
+                {
+                  label: "Total Limit",
+                  val: formatINR(entitlement.coverageLimit),
+                  color: "text-slate-900",
+                },
                 { label: "Remaining", val: formatINR(remainingBalance), color: "text-emerald-600" },
                 { label: "Utilized", val: formatINR(totalDeducted), color: "text-amber-600" },
-                { label: "Expiry Date", val: "31 Dec 2026", color: "text-slate-900", sub: "Renew in Jan 2027" }
+                {
+                  label: "Expiry Date",
+                  val: "31 Dec 2026",
+                  color: "text-slate-900",
+                  sub: "Renew in Jan 2027",
+                },
               ].map((item, i) => (
-                <motion.div key={i} whileHover={{ y: -4 }} className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40">
+                <motion.div
+                  key={i}
+                  whileHover={{ y: -4 }}
+                  className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/40"
+                >
                   {/* Updated Card Label */}
                   <p className="text-sm font-semibold text-blue-700 mb-3 block">{item.label}</p>
                   <p className={`text-3xl font-black tracking-tight ${item.color}`}>{item.val}</p>
                   {item.sub && (
                     <div className="mt-3 flex items-center gap-2">
-                       <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
-                       <p className="text-[10px] font-bold text-slate-400">{item.sub}</p>
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                      <p className="text-[10px] font-bold text-slate-400">{item.sub}</p>
                     </div>
                   )}
                 </motion.div>
@@ -185,11 +217,25 @@ function EntitlementDependents() {
             <section className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden mb-12">
               <div className="px-10 py-8 border-b border-slate-50 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Verified Beneficiaries</h2>
-                  <p className="text-sm font-semibold text-blue-700 mt-1">Dependents linked to policy</p>
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                    Verified Beneficiaries
+                  </h2>
+                  <p className="text-sm font-semibold text-blue-700 mt-1">
+                    Dependents linked to policy
+                  </p>
                 </div>
-                <button onClick={handleExportCSV} className="p-2.5 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-xl border border-slate-100 transition-all">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <button
+                  onClick={handleExportCSV}
+                  className="p-2.5 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-xl border border-slate-100 transition-all"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    ></path>
+                  </svg>
                 </button>
               </div>
 
@@ -198,7 +244,10 @@ function EntitlementDependents() {
                   <thead>
                     <tr className="bg-blue-50/50">
                       {["Full Name", "Relationship", "Age", "Status", "Actions"].map((head) => (
-                        <th key={head} className="px-10 py-5 text-left text-sm font-semibold text-blue-700">
+                        <th
+                          key={head}
+                          className="px-10 py-5 text-left text-sm font-semibold text-blue-700"
+                        >
                           {head}
                         </th>
                       ))}
@@ -208,22 +257,32 @@ function EntitlementDependents() {
                     {dependents.map((d) => (
                       <tr key={d.id} className="group hover:bg-blue-50/30 transition-all">
                         <td className="px-10 py-6">
-                           <div className="flex items-center gap-4">
-                              <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-black text-xs group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                {d.name.charAt(0)}
-                              </div>
-                              <span className="font-bold text-slate-900 text-sm">{d.name}</span>
-                           </div>
+                          <div className="flex items-center gap-4">
+                            <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-black text-xs group-hover:bg-blue-600 group-hover:text-white transition-all">
+                              {d.name.charAt(0)}
+                            </div>
+                            <span className="font-bold text-slate-900 text-sm">{d.name}</span>
+                          </div>
                         </td>
-                        <td className="px-10 py-6 text-xs text-slate-500 font-bold uppercase tracking-tight">{d.relationship}</td>
-                        <td className="px-10 py-6 text-sm text-slate-900 font-black">{d.age} <span className="text-[10px] text-slate-400 font-bold ml-0.5">YRS</span></td>
+                        <td className="px-10 py-6 text-xs text-slate-500 font-bold uppercase tracking-tight">
+                          {d.relationship}
+                        </td>
+                        <td className="px-10 py-6 text-sm text-slate-900 font-black">
+                          {d.age}{" "}
+                          <span className="text-[10px] text-slate-400 font-bold ml-0.5">YRS</span>
+                        </td>
                         <td className="px-10 py-6">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black tracking-widest ${STATUS_CLASSES[d.status]}`}>
-                             {d.status}
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black tracking-widest ${STATUS_CLASSES[d.status]}`}
+                          >
+                            {d.status}
                           </span>
                         </td>
                         <td className="px-10 py-6">
-                          <button onClick={() => handleViewECard(d)} className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition-all">
+                          <button
+                            onClick={() => handleViewECard(d)}
+                            className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition-all"
+                          >
                             View Card
                           </button>
                         </td>
@@ -237,7 +296,10 @@ function EntitlementDependents() {
         )}
 
         <div className="mt-12 mb-20 flex justify-center">
-          <Link to="/claims/my-claims" className="flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900 transition-colors">
+          <Link
+            to="/claims/my-claims"
+            className="flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900 transition-colors"
+          >
             <span>←</span> Return to Claim History
           </Link>
         </div>

@@ -7,10 +7,18 @@ const getAuthHeaders = () => {
 };
 
 const request = async (path, options = {}) => {
+  const authHeaders = options.auth ? getAuthHeaders() : {};
+
+  // Debug logging for authentication
+  if (options.auth) {
+    const hasToken = !!localStorage.getItem("authToken");
+    console.log(`[API] Authenticated request to ${path}, Token present: ${hasToken}`);
+  }
+
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
-      ...(options.auth ? getAuthHeaders() : {}),
+      ...authHeaders,
       ...(options.headers || {}),
     },
     method: options.method || "GET",
@@ -19,7 +27,15 @@ const request = async (path, options = {}) => {
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const error = new Error(data.message || "Request failed");
+    // Handle authentication errors specifically
+    if (response.status === 401) {
+      console.error("[API] 401 Unauthorized - Token may be missing or invalid");
+      // Clear invalid token
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("authUser");
+    }
+
+    const error = new Error(data.message || data.error || "Request failed");
     error.status = response.status;
     error.data = data;
     throw error;
@@ -30,10 +46,8 @@ const request = async (path, options = {}) => {
 
 export const api = {
   get: (path, options = {}) => request(path, { ...options, method: "GET" }),
-  post: (path, body, options = {}) =>
-    request(path, { ...options, method: "POST", body }),
-  patch: (path, body, options = {}) =>
-    request(path, { ...options, method: "PATCH", body }),
+  post: (path, body, options = {}) => request(path, { ...options, method: "POST", body }),
+  patch: (path, body, options = {}) => request(path, { ...options, method: "PATCH", body }),
 };
 
 // ====================================================================
@@ -46,7 +60,7 @@ export const api = {
  * @returns {Promise<Object>} Premium calculation result
  */
 export const calculateVajraPremium = async (config) => {
-  return api.post('/api/vajra/calculate', config);
+  return api.post("/api/vajra/calculate", config);
 };
 
 /**
@@ -55,7 +69,7 @@ export const calculateVajraPremium = async (config) => {
  * @param {number} age - Member age
  * @returns {Promise<Object>} Features with costs
  */
-export const getVajraFeatures = async (coverage = '10L', age = 30) => {
+export const getVajraFeatures = async (coverage = "10L", age = 30) => {
   return api.get(`/api/vajra/features?coverage=${coverage}&age=${age}`);
 };
 
@@ -66,7 +80,7 @@ export const getVajraFeatures = async (coverage = '10L', age = 30) => {
  * @param {number} tenure - Plan tenure
  * @returns {Promise<Object>} Riders with costs
  */
-export const getVajraRiders = async (coverage = '10L', age = 30, tenure = 1) => {
+export const getVajraRiders = async (coverage = "10L", age = 30, tenure = 1) => {
   return api.get(`/api/vajra/riders?coverage=${coverage}&age=${age}&tenure=${tenure}`);
 };
 
@@ -76,7 +90,7 @@ export const getVajraRiders = async (coverage = '10L', age = 30, tenure = 1) => 
  * @param {number} age - Member age
  * @returns {Promise<Object>} Chronic conditions with costs
  */
-export const getVajraChronicCosts = async (coverage = '10L', age = 30) => {
+export const getVajraChronicCosts = async (coverage = "10L", age = 30) => {
   return api.get(`/api/vajra/chronic?coverage=${coverage}&age=${age}`);
 };
 
@@ -87,7 +101,7 @@ export const getVajraChronicCosts = async (coverage = '10L', age = 30) => {
  * @param {number} tenure - Plan tenure
  * @returns {Promise<Object>} All pricing data
  */
-export const getVajraPricing = async (coverage = '10L', age = 30, tenure = 1) => {
+export const getVajraPricing = async (coverage = "10L", age = 30, tenure = 1) => {
   return api.get(`/api/vajra/pricing?coverage=${coverage}&age=${age}&tenure=${tenure}`);
 };
 
@@ -101,7 +115,7 @@ export const getVajraPricing = async (coverage = '10L', age = 30, tenure = 1) =>
  * @returns {Promise<Object>} Submission result
  */
 export const submitKYC = async (kycData) => {
-  return api.post('/api/kyc', kycData, { auth: true });
+  return api.post("/api/kyc", kycData, { auth: true });
 };
 
 /**
@@ -109,7 +123,7 @@ export const submitKYC = async (kycData) => {
  * @returns {Promise<Object>} KYC data
  */
 export const getKYC = async () => {
-  return api.get('/api/kyc', { auth: true });
+  return api.get("/api/kyc", { auth: true });
 };
 
 /**
@@ -141,7 +155,7 @@ export const updateKYC = async (kycId, updateData) => {
  * @returns {Promise<Object>} Submission result
  */
 export const submitMedicalInfo = async (medicalData) => {
-  return api.post('/api/medical', medicalData);
+  return api.post("/api/medical", medicalData);
 };
 
 /**
@@ -149,7 +163,7 @@ export const submitMedicalInfo = async (medicalData) => {
  * @returns {Promise<Object>} Medical info data
  */
 export const getMedicalInfo = async () => {
-  return api.get('/api/medical', { auth: true });
+  return api.get("/api/medical", { auth: true });
 };
 
 /**
@@ -190,7 +204,7 @@ export const updateMedicalInfo = async (medicalInfoId, updateData) => {
  * @returns {Promise<Object>} Submission result
  */
 export const submitBankDetails = async (bankData) => {
-  return api.post('/api/bank', bankData);
+  return api.post("/api/bank", bankData);
 };
 
 /**
@@ -198,7 +212,7 @@ export const submitBankDetails = async (bankData) => {
  * @returns {Promise<Object>} Bank details data
  */
 export const getBankDetails = async () => {
-  return api.get('/api/bank', { auth: true });
+  return api.get("/api/bank", { auth: true });
 };
 
 /**
@@ -228,4 +242,3 @@ export const getBankDetailsByKycId = async (kycId) => {
 export const updateBankDetails = async (bankDetailsId, updateData) => {
   return api.patch(`/api/bank/${bankDetailsId}`, updateData, { auth: true });
 };
-

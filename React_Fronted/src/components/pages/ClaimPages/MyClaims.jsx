@@ -35,28 +35,17 @@ const CustomSelect = ({ value, onChange, options, buttonClassName }) => {
   }, []);
 
   const formattedOptions =
-    options?.map((opt) =>
-      typeof opt === "string" ? { value: opt, label: opt } : opt
-    ) || [];
+    options?.map((opt) => (typeof opt === "string" ? { value: opt, label: opt } : opt)) || [];
 
-  const currentLabel =
-    formattedOptions.find((o) => o.value === value)?.label || "Select Status";
+  const currentLabel = formattedOptions.find((o) => o.value === value)?.label || "Select Status";
 
   return (
     <div className="relative w-full space-y-3" ref={containerRef}>
-      <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-        Filter Status
-      </label>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={buttonClassName}
-      >
+      <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Filter Status</label>
+      <button type="button" onClick={() => setIsOpen(!isOpen)} className={buttonClassName}>
         <span className="truncate">{currentLabel}</span>
         <span
-          className={`text-[10px] transition-transform duration-300 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`text-[10px] transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
         >
           ▼
         </span>
@@ -112,6 +101,7 @@ const MyClaims = () => {
 
   // STATE: View Dialog and Toast
   const [selectedClaimId, setSelectedClaimId] = useState(null);
+  const [selectedClaimDisplayId, setSelectedClaimDisplayId] = useState(null);
   const [isViewClaimOpen, setIsViewClaimOpen] = useState(false);
   const [showToast, setShowToast] = useState(!!location.state?.toast);
 
@@ -121,8 +111,9 @@ const MyClaims = () => {
   );
 
   // Logic to open Dialog
-  const handleViewDetails = (id) => {
+  const handleViewDetails = (id, displayId) => {
     setSelectedClaimId(id);
+    setSelectedClaimDisplayId(displayId || null);
     setIsViewClaimOpen(true);
   };
 
@@ -137,15 +128,26 @@ const MyClaims = () => {
       try {
         if (!hasActivePolicy) {
           setClaims([]);
+          setLoading(false);
           return;
         }
+
+        // Check if user has a valid token before making the request
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          console.error("[MyClaims] No auth token found, redirecting to login");
+          navigate("/login", {
+            state: { message: "Please log in to view your claims" },
+          });
+          return;
+        }
+
         const response = await api.get("/api/claims", { auth: true });
         if (isMounted) {
           setClaims(
             Array.isArray(response)
               ? response.map((claim, index) => ({
                   id: claim._id,
-                  // Newest claims get the highest display ID number
                   displayId: `Claim_2026-${String(response.length - index).padStart(3, "0")}`,
                   name: claim.dependentName || "Primary Member",
                   claimType: claim.claimType || "Health",
@@ -157,7 +159,17 @@ const MyClaims = () => {
           );
         }
       } catch (error) {
-        if (isMounted) setClaims([]);
+        console.error("[MyClaims] Error loading claims:", error);
+        if (error.status === 401) {
+          // Redirect to login on authentication error
+          if (isMounted) {
+            navigate("/login", {
+              state: { message: "Your session has expired. Please log in again." },
+            });
+          }
+        } else {
+          if (isMounted) setClaims([]);
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -166,15 +178,24 @@ const MyClaims = () => {
     return () => {
       isMounted = false;
     };
-  }, [hasActivePolicy]);
+  }, [hasActivePolicy, navigate]);
+
+  // Auto-hide toast after 3 seconds
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
 
   const filteredClaims = useMemo(() => {
     return claims.filter((claim) => {
       const matchesId =
-        !claimSearch ||
-        claim.displayId.toLowerCase().includes(claimSearch.toLowerCase());
-      const matchesDate =
-        !raisedOn || (claim.raisedOn && claim.raisedOn.startsWith(raisedOn));
+        !claimSearch || claim.displayId.toLowerCase().includes(claimSearch.toLowerCase());
+      const matchesDate = !raisedOn || (claim.raisedOn && claim.raisedOn.startsWith(raisedOn));
       const matchesStatus = !status || claim.status === status;
       return matchesId && matchesDate && matchesStatus;
     });
@@ -188,7 +209,6 @@ const MyClaims = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-blue-100 selection:text-blue-900">
-      
       {/* SUCCESS TOAST */}
       <AnimatePresence>
         {showToast && (
@@ -217,9 +237,7 @@ const MyClaims = () => {
       <div className="bg-blue-700 pt-16 pb-24 no-print">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <header>
-            <h1 className="text-4xl font-black text-white tracking-tight">
-              🧾 My Claims
-            </h1>
+            <h1 className="text-4xl font-black text-white tracking-tight">🧾 My Claims</h1>
             <p className="text-blue-100 text-xs font-bold uppercase tracking-widest mt-2 opacity-80">
               Manage and track your reimbursement history
             </p>
@@ -251,9 +269,7 @@ const MyClaims = () => {
                   type="button"
                   onClick={() => handleNav(tab.path)}
                   className={`relative flex-1 px-6 py-3 text-[11px] font-black uppercase tracking-normal text-center transition-colors duration-300 ${
-                    isCurrent
-                      ? "text-blue-700"
-                      : "text-blue-50 hover:text-white"
+                    isCurrent ? "text-blue-700" : "text-blue-50 hover:text-white"
                   }`}
                 >
                   {isCurrent && (
@@ -278,9 +294,7 @@ const MyClaims = () => {
         {/* SEARCH & FILTERS */}
         <section className="bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 p-8 mb-10 border border-slate-100 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-              Search ID
-            </label>
+            <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">Search ID</label>
             <input
               type="text"
               value={claimSearch}
@@ -386,8 +400,7 @@ const MyClaims = () => {
                       <td className="px-10 py-6">
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ring-1 ring-inset ${
-                            STATUS_CLASSES[claim.status] ||
-                            "bg-slate-50 text-slate-600"
+                            STATUS_CLASSES[claim.status] || "bg-slate-50 text-slate-600"
                           }`}
                         >
                           ● {claim.status}
@@ -395,19 +408,16 @@ const MyClaims = () => {
                       </td>
                       <td className="px-10 py-6 text-[11px] font-bold text-slate-400 italic">
                         {claim.raisedOn
-                          ? new Date(claim.raisedOn).toLocaleDateString(
-                              "en-IN",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              }
-                            )
+                          ? new Date(claim.raisedOn).toLocaleDateString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })
                           : "Pending"}
                       </td>
                       <td className="px-10 py-6 text-right">
                         <button
-                          onClick={() => handleViewDetails(claim.id)}
+                          onClick={() => handleViewDetails(claim.id, claim.displayId)}
                           className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 text-lg hover:bg-slate-900 hover:text-white transition-all shadow-sm"
                         >
                           <span>👁️</span>
@@ -457,6 +467,7 @@ const MyClaims = () => {
       {/* DIALOG COMPONENT */}
       <ViewClaim
         claimId={selectedClaimId}
+        displayId={selectedClaimDisplayId}
         isOpen={isViewClaimOpen}
         onClose={() => setIsViewClaimOpen(false)}
       />

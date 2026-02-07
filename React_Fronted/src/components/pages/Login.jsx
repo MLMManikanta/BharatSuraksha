@@ -83,6 +83,12 @@ function Login() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+              {location.state?.message && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
+                  <span className="text-lg">⚠️</span>
+                  <span>{location.state.message}</span>
+                </div>
+              )}
               {error && (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {error}

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Listbox, Transition } from "@headlessui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../../../utils/api";
 import { useAuth } from "../../../context/AuthContext";
 
 function JustificationLetter() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [claims, setClaims] = useState([]);
@@ -75,6 +77,13 @@ function JustificationLetter() {
         });
         setClaims(formattedClaims);
       } catch (err) {
+        console.error("Error fetching claims:", err);
+        if (err.status === 401) {
+          navigate("/login", {
+            state: { message: "Your session has expired. Please log in again." },
+          });
+          return;
+        }
         setError(err.message || "Failed to fetch claims");
         setClaims([]);
       } finally {
@@ -83,7 +92,7 @@ function JustificationLetter() {
     };
 
     fetchClaims();
-  }, []);
+  }, [navigate]);
 
   const handlePrint = () => {
     window.print();

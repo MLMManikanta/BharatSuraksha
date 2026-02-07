@@ -106,9 +106,7 @@ const RaiseClaim = () => {
     admissionDate: "",
     dischargeDate: "",
     hospitalName: "",
-    hospitalType: "",
     hospitalAddress: "",
-    nation: "India",
     diagnosis: "",
     claimedAmount: "",
     referenceId: "",
@@ -172,6 +170,14 @@ const RaiseClaim = () => {
       navigate("/claims/my-claims", { state: { toast: "Claim Submitted Successfully" } });
     } catch (err) {
       console.error("Claim submission failed:", err);
+
+      if (err.status === 401) {
+        navigate("/login", {
+          state: { message: "Your session has expired. Please log in again." },
+        });
+        return;
+      }
+
       const serverMsg = err.response?.data?.error || err.message || "Request failed";
       setSubmitError(serverMsg);
       setSubmitting(false);
@@ -307,19 +313,21 @@ const RaiseClaim = () => {
               className="space-y-8"
             >
               <section className="bg-white rounded-[2.5rem] shadow-xl shadow-blue-900/5 p-8 md:p-10 border border-slate-100">
-                <div className="flex items-center mb-8 gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-lg shadow-blue-200">
+                <div className="flex items-center mb-10 gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 text-white flex items-center justify-center font-black text-base shadow-lg shadow-blue-200">
                     02
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-slate-900">Hospital & Member Details</h2>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      Verify beneficiary and facility
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                      Hospital & Member Details
+                    </h2>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                      Verify beneficiary and facility information
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <CustomSelect
                     label="Verified Member"
                     value={form.dependentId}
@@ -333,20 +341,20 @@ const RaiseClaim = () => {
 
                   {claimType === "Pre-Post Hospitalization" && (
                     <>
-                      <div className="space-y-3">
-                        <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-                          Type
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
+                          Hospitalization Type
                         </label>
-                        <div className="flex gap-2">
+                        <div className="flex gap-3">
                           {["Pre", "Post"].map((type) => (
                             <button
                               key={type}
                               type="button"
                               onClick={() => updateField("hospitalizationType", type)}
-                              className={`flex-1 h-14 rounded-2xl border font-bold transition-all ${
+                              className={`flex-1 h-12 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm ${
                                 form.hospitalizationType === type
-                                  ? "bg-blue-600 border-blue-600 text-white"
-                                  : "bg-slate-50 border-slate-200 text-slate-500"
+                                  ? "bg-gradient-to-br from-blue-600 to-blue-700 border-2 border-blue-600 text-white shadow-md shadow-blue-200 scale-105"
+                                  : "bg-white border-2 border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-blue-50"
                               }`}
                             >
                               {type}
@@ -355,13 +363,13 @@ const RaiseClaim = () => {
                         </div>
                       </div>
 
-                      <div className="space-y-3">
-                        <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-                          Reference ID
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
+                          Reference Claim ID
                         </label>
                         <input
                           type="text"
-                          className="w-full h-14 rounded-2xl border-slate-200 bg-slate-50 px-5 font-bold text-slate-700 border focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                          className="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 font-semibold text-slate-800 text-sm placeholder:text-slate-400 focus:bg-blue-50/30 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none shadow-sm"
                           value={form.referenceId}
                           onChange={(e) => updateField("referenceId", e.target.value)}
                           placeholder="Original Claim Ref #"
@@ -370,8 +378,8 @@ const RaiseClaim = () => {
                     </>
                   )}
 
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
                       Admission Date
                     </label>
                     <CustomDatePicker
@@ -381,8 +389,8 @@ const RaiseClaim = () => {
                     />
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
                       Discharge Date
                     </label>
                     <CustomDatePicker
@@ -393,93 +401,70 @@ const RaiseClaim = () => {
                     />
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-                      Hospital Name
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
+                      Hospital Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      className="w-full h-14 rounded-2xl border-slate-200 bg-slate-50 px-5 font-bold text-slate-700 border focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      className="w-full h-12 rounded-xl border-2 border-slate-200 bg-white px-4 font-semibold text-slate-800 text-sm placeholder:text-slate-400 focus:bg-blue-50/30 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none shadow-sm"
                       value={form.hospitalName}
                       onChange={(e) => updateField("hospitalName", e.target.value)}
                       placeholder="Enter hospital name..."
                     />
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-                      Hospital Type
-                    </label>
-                    <CustomSelect
-                      value={form.hospitalType}
-                      onChange={(v) => updateField("hospitalType", v)}
-                      options={[
-                        "General Hospital",
-                        "Multi-specialty Hospital",
-                        "Private Hospital",
-                        "Government Hospital",
-                        "Nursing Home",
-                      ]}
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-                      Nation
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full h-14 rounded-2xl border-slate-200 bg-slate-50 px-5 font-bold text-slate-700 border focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
-                      value={form.nation}
-                      onChange={(e) => updateField("nation", e.target.value)}
-                      placeholder="Country name..."
-                    />
-                  </div>
-
-                  <div className="md:col-span-2 space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-                      Hospital Address
+                  <div className="md:col-span-2 lg:col-span-3 space-y-2">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
+                      Hospital Address <span className="text-red-500">*</span>
                     </label>
                     <textarea
-                      rows="3"
-                      className="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-700 border resize-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      rows="4"
+                      className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 font-semibold text-slate-800 text-sm placeholder:text-slate-400 leading-relaxed resize-none focus:bg-blue-50/30 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none shadow-sm"
                       value={form.hospitalAddress}
                       onChange={(e) => updateField("hospitalAddress", e.target.value)}
-                      placeholder="Facility Address..."
+                      placeholder="Enter complete hospital address with city, state, and pincode..."
                     />
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-                      Amount (INR)
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
+                      Claimed Amount (₹) <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="number"
-                      className="w-full h-14 rounded-2xl border-slate-200 bg-slate-50 px-5 font-black text-slate-900 border focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
-                      value={form.claimedAmount}
-                      onChange={(e) => updateField("claimedAmount", e.target.value)}
-                      placeholder="₹ 0.00"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                        ₹
+                      </span>
+                      <input
+                        type="number"
+                        className="w-full h-12 rounded-xl border-2 border-slate-200 bg-white pl-8 pr-4 font-bold text-slate-900 text-sm placeholder:text-slate-400 focus:bg-blue-50/30 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none shadow-sm"
+                        value={form.claimedAmount}
+                        onChange={(e) => updateField("claimedAmount", e.target.value)}
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
                   </div>
 
-                  <div className="md:col-span-2 space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-                      Diagnosis
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">
+                      Diagnosis / Medical Condition <span className="text-red-500">*</span>
                     </label>
                     <textarea
-                      rows="3"
-                      className="w-full rounded-2xl border-slate-200 bg-slate-50 px-5 py-4 font-bold text-slate-700 border resize-none focus:bg-white focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      rows="4"
+                      className="w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 font-semibold text-slate-800 text-sm placeholder:text-slate-400 leading-relaxed resize-none focus:bg-blue-50/30 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none shadow-sm"
                       value={form.diagnosis}
                       onChange={(e) => updateField("diagnosis", e.target.value)}
-                      placeholder="Diagnosis details..."
+                      placeholder="Provide detailed diagnosis and medical condition information..."
                     />
                   </div>
 
-                  <div className="flex flex-col items-start space-y-3">
-                    <label className="text-sm font-semibold text-blue-700 ml-1 block mb-1">
-                      Day Care?
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">
+                      Day Care Procedure?
                     </label>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex gap-3">
                       {["Yes", "No"].map((opt) => (
                         <button
                           key={opt}
@@ -494,10 +479,10 @@ const RaiseClaim = () => {
                               }));
                             }
                           }}
-                          className={`w-20 h-9 rounded-lg border font-bold text-[10px] uppercase transition-all ${
+                          className={`flex-1 h-12 rounded-xl font-bold text-sm uppercase tracking-wider transition-all duration-200 shadow-sm ${
                             form.dayCare === opt
-                              ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-100"
-                              : "bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300"
+                              ? "bg-gradient-to-br from-emerald-500 to-emerald-600 border-2 border-emerald-500 text-white shadow-md shadow-emerald-200 scale-105"
+                              : "bg-white border-2 border-slate-200 text-slate-600 hover:border-emerald-300 hover:bg-emerald-50"
                           }`}
                         >
                           {opt}
