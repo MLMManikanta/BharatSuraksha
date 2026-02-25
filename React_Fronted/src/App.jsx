@@ -47,7 +47,7 @@ import ClaimInstructions from "./components/pages/Utilities/ClaimInstructions";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/BharatSuraksha">
       <Routes>
         {/* --- AUTHENTICATION --- */}
         <Route path="/login" element={<Login />} />
