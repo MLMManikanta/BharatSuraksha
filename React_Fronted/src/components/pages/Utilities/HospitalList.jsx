@@ -15,7 +15,7 @@ const HOSPITALS = [
 function HospitalList() {
   const [search, setSearch] = useState("");
   const [city, setCity] = useState("all");
-  const logoPath = "/images/Logo-circle.png";
+  const logoPath = "/BharatSuraksha/images/Logo-circle.png";
 
   const cities = useMemo(
     () => ["all", ...new Set(HOSPITALS.map((h) => h.city))],

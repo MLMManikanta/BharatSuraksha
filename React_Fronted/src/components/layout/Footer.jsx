@@ -65,7 +65,7 @@ function Footer() {
           >
             <div className="filter drop-shadow-lg">
               <img
-                src="/images/Logo-circle.png"
+                src="/BharatSuraksha/images/Logo-circle.png"
                 alt="Bharat Suraksha logo"
                 className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
               />

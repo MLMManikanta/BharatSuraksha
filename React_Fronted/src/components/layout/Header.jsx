@@ -127,7 +127,7 @@ function Header() {
         >
           <nav className="flex items-center justify-between px-4 lg:px-8 py-3">
             <Link to="/" className="flex items-center gap-3">
-              <img src="/images/Logo-circle.png" alt="" className="h-14 w-auto" />
+              <img src="/BharatSuraksha/images/Logo-circle.png" alt="" className="h-14 w-auto" />
               <span className="text-xl font-extrabold leading-tight">
                 <span className="text-[#1A5EDB]">Bharat</span>
                 <br />

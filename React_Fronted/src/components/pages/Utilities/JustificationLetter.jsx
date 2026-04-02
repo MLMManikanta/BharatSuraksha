@@ -13,7 +13,7 @@ function JustificationLetter() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const logoPath = "/images/Logo-circle.png";
+  const logoPath = "/BharatSuraksha/images/Logo-circle.png";
 
   useEffect(() => {
     const fetchClaims = async () => {

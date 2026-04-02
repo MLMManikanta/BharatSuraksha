@@ -45,17 +45,17 @@ function Home() {
     {
       name: "Maruthi Gupta",
       text: "My premium got waived off because of Health Returns. Very satisfied with the benefits!",
-      img: "./images/Customer_rating/Customer_rating1.png"
+      img: "/BharatSuraksha/images/Customer_rating/Customer_rating1.png"
     },
     {
       name: "Harshitha",
       text: "My maternity expenses were covered smoothly. The policy really helped my family during delivery.",
-      img: "./images/Customer_rating/Customer_rating2.png"
+      img: "/BharatSuraksha/images/Customer_rating/Customer_rating2.png"
     },
     {
       name: "Ravi Kumar",
       text: "I received health insurance without any waiting periods. Great support and quick approval!",
-      img: "./images/Customer_rating/Customer_rating3.png"
+      img: "/BharatSuraksha/images/Customer_rating/Customer_rating3.png"
     }
   ];
 
@@ -241,7 +241,7 @@ function Home() {
           <div className="hero-image flex justify-center relative">
             <div className={`absolute top-10 right-10 w-64 h-64 bg-linear-to-br from-blue-200 to-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-60 ${prefersReducedMotion ? "" : "animate-pulse"}`}></div>
             <img
-              src="./images/hero_section/shield.png"
+              src="/BharatSuraksha/images/hero_section/shield.png"
               alt="Health insurance protection shield - symbolizing comprehensive coverage"
               className="w-72 md:w-96 relative z-10 drop-shadow-2xl"
             />
@@ -257,10 +257,10 @@ function Home() {
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {[
-            { img: "./images/TRUSTED_STATS/star.png", val: "98.7%", label: "Claim Settlement Ratio" },
-            { img: "./images/TRUSTED_STATS/shield.png", val: "4.9/5", label: "10,000+ Reviews" },
-            { img: "./images/TRUSTED_STATS/clock.png", val: "6–12 hrs", label: "Fast Claim Approval" },
-            { img: "./images/TRUSTED_STATS/hospital.png", val: "13,000+", label: "Network Hospitals" }
+            { img: "/BharatSuraksha/images/TRUSTED_STATS/star.png", val: "98.7%", label: "Claim Settlement Ratio" },
+            { img: "/BharatSuraksha/images/TRUSTED_STATS/shield.png", val: "4.9/5", label: "10,000+ Reviews" },
+            { img: "/BharatSuraksha/images/TRUSTED_STATS/clock.png", val: "6–12 hrs", label: "Fast Claim Approval" },
+            { img: "/BharatSuraksha/images/TRUSTED_STATS/hospital.png", val: "13,000+", label: "Network Hospitals" }
           ].map((stat, idx) => (
             <div 
               key={idx} 
@@ -295,7 +295,7 @@ function Home() {
             role="listitem"
           >
             <div className="h-24 flex items-center justify-center mb-6 bg-linear-to-br from-blue-50 to-blue-100 rounded-2xl group-hover:from-[#1A5EDB] group-hover:to-[#4A8EFF] transition-all">
-              <img src="./images/RECOMMENDED_PLANS/basic.png" className="w-14" alt="" aria-hidden="true" />
+              <img src="/BharatSuraksha/images/RECOMMENDED_PLANS/basic.png" className="w-14" alt="" aria-hidden="true" />
             </div>
             <div className="flex flex-col grow">
               <h3 className="text-xl font-extrabold text-center text-gray-900">Neev Suraksha</h3>
@@ -324,7 +324,7 @@ function Home() {
               Best Seller
             </div>
               <div className="h-24 flex items-center justify-center mb-6 bg-linear-to-br from-blue-50 to-blue-100 rounded-2xl">
-              <img src="./images/RECOMMENDED_PLANS/family_1.png" className="w-16" alt="" aria-hidden="true" />
+              <img src="/BharatSuraksha/images/RECOMMENDED_PLANS/family_1.png" className="w-16" alt="" aria-hidden="true" />
             </div>
             <div className="flex flex-col grow">
               <h3 className="text-xl font-extrabold text-center text-gray-900">Parivar Suraksha</h3>
@@ -350,7 +350,7 @@ function Home() {
             role="listitem"
           >
             <div className="h-24 flex items-center justify-center mb-6 bg-linear-to-br from-blue-50 to-blue-100 rounded-2xl group-hover:from-[#1A5EDB] group-hover:to-[#4A8EFF] transition-all">
-              <img src="./images/RECOMMENDED_PLANS/Senior.png" className="w-16" alt="" aria-hidden="true" />
+              <img src="/BharatSuraksha/images/RECOMMENDED_PLANS/Senior.png" className="w-16" alt="" aria-hidden="true" />
             </div>
             <div className="flex flex-col grow">
               <h3 className="text-xl font-extrabold text-center text-gray-900">Varishtha Suraksha</h3>
@@ -376,7 +376,7 @@ function Home() {
             role="listitem"
           >
             <div className="h-24 flex items-center justify-center mb-6 bg-linear-to-br from-blue-50 to-blue-100 rounded-2xl group-hover:from-[#1A5EDB] group-hover:to-[#4A8EFF] transition-all">
-              <img src="./images/RECOMMENDED_PLANS/di.png" className="w-14" alt="" aria-hidden="true" />
+              <img src="/BharatSuraksha/images/RECOMMENDED_PLANS/di.png" className="w-14" alt="" aria-hidden="true" />
             </div>
             <div className="flex flex-col grow">
               <h3 className="text-xl font-extrabold text-center text-gray-900">Vishwa Suraksha</h3>
@@ -410,11 +410,11 @@ function Home() {
             
             <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
-                { icon: "./images/CUSTOMIZATION_SECTION/room.png", text: "Room Rent Options" },
-                { icon: "./images/CUSTOMIZATION_SECTION/maternity.png", text: "Maternity Add-ons" },
-                { icon: "./images/CUSTOMIZATION_SECTION/cash.png", text: "Daily Hospital Cash" },
-                { icon: "./images/CUSTOMIZATION_SECTION/care.png", text: "Unlimited Care" },
-                { icon: "./images/RECOMMENDED_PLANS/globe.png", text: "Global Cover" }
+                { icon: "/BharatSuraksha/images/CUSTOMIZATION_SECTION/room.png", text: "Room Rent Options" },
+                { icon: "/BharatSuraksha/images/CUSTOMIZATION_SECTION/maternity.png", text: "Maternity Add-ons" },
+                { icon: "/BharatSuraksha/images/CUSTOMIZATION_SECTION/cash.png", text: "Daily Hospital Cash" },
+                { icon: "/BharatSuraksha/images/CUSTOMIZATION_SECTION/care.png", text: "Unlimited Care" },
+                { icon: "/BharatSuraksha/images/RECOMMENDED_PLANS/globe.png", text: "Global Cover" }
               ].map((item, idx) => (
                 <div 
                   key={idx} 
@@ -434,7 +434,7 @@ function Home() {
           <div className="flex justify-center">
             <div className={`bg-white rounded-3xl shadow-2xl p-8 ${prefersReducedMotion ? "" : "hover:shadow-3xl transition-all duration-500 hover:-rotate-1"}`}>
               <img 
-                src="./images/CUSTOMIZATION_SECTION/CUSTOMIZATION_SECTION.png" 
+                src="/BharatSuraksha/images/CUSTOMIZATION_SECTION/CUSTOMIZATION_SECTION.png" 
                 className="w-full max-w-sm rounded-2xl shadow-md" 
                 alt="Customization options preview showing plan selection interface"
               />
@@ -451,10 +451,10 @@ function Home() {
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8" role="list">
           {[
-            { img: "./images/BENEFITS_SECTION/mark.png", title: "Hassle-free Claims", desc: "Cashless claims at all network hospitals." },
-            { img: "./images/BENEFITS_SECTION/comment.png", title: "Real-time Updates", desc: "Instant SMS/Email alerts on claim status." },
-            { img: "./images/BENEFITS_SECTION/team.png", title: "24/7 Support", desc: "Dedicated team ready to help anytime." },
-            { img: "./images/BENEFITS_SECTION/card.png", title: "Best Prices", desc: "Affordable premiums with flexible payment." }
+            { img: "/BharatSuraksha/images/BENEFITS_SECTION/mark.png", title: "Hassle-free Claims", desc: "Cashless claims at all network hospitals." },
+            { img: "/BharatSuraksha/images/BENEFITS_SECTION/comment.png", title: "Real-time Updates", desc: "Instant SMS/Email alerts on claim status." },
+            { img: "/BharatSuraksha/images/BENEFITS_SECTION/team.png", title: "24/7 Support", desc: "Dedicated team ready to help anytime." },
+            { img: "/BharatSuraksha/images/BENEFITS_SECTION/card.png", title: "Best Prices", desc: "Affordable premiums with flexible payment." }
           ].map((benefit, idx) => (
             <div 
               key={idx} 

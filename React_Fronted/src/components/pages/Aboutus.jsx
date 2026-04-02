@@ -100,7 +100,7 @@ function Aboutus() {
           <div className="flex justify-center" aria-hidden="true">
             <div className={`bg-white rounded-3xl shadow-2xl p-6 border border-blue-100 ${prefersReducedMotion ? '' : 'animate-float'} ${prefersReducedMotion ? '' : 'hover:shadow-3xl'} transition duration-500`}>
               <img 
-                src="./images/About_us/hero_shield_main.jpeg" 
+                src="/BharatSuraksha/images/About_us/hero_shield_main.jpeg" 
                 className="w-full max-w-sm rounded-xl object-cover" 
                 alt="About Bharat Suraksha" 
               />
@@ -121,7 +121,7 @@ function Aboutus() {
           {/* Card 1 */}
           <div className="bg-blue-50 p-8 rounded-3xl border border-blue-100 hover:shadow-xl transition duration-300 hover:-translate-y-2 flex flex-col items-center focus-ring" tabIndex={0}>
             <div className="bg-white w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-sm">
-              <img src="./images/About_us/story_start.png" className="w-12 h-12 object-contain" alt="Founded" />
+              <img src="/BharatSuraksha/images/About_us/story_start.png" className="w-12 h-12 object-contain" alt="Founded" />
             </div>
             <h3 className="text-xl font-bold text-[#1A5EDB]">Founded in 2025</h3>
             <p className="mt-3 text-gray-600">Started with a simple belief: Every family deserves clear and honest guidance.</p>
@@ -129,7 +129,7 @@ function Aboutus() {
           {/* Card 2 */}
           <div className="bg-blue-50 p-8 rounded-3xl border border-blue-100 hover:shadow-xl transition duration-300 hover:-translate-y-2 flex flex-col items-center focus-ring" tabIndex={0}>
             <div className="bg-white w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-sm">
-               <img src="./images/About_us/family.png" className="w-12 h-12 object-contain" alt="Families" />
+               <img src="/BharatSuraksha/images/About_us/family.png" className="w-12 h-12 object-contain" alt="Families" />
             </div>
             <h3 className="text-xl font-bold text-[#1A5EDB]">500+ Families</h3>
             <p className="mt-3 text-gray-600">We are proud to support hundreds of families with plans that fit their specific lifestyles.</p>
@@ -137,7 +137,7 @@ function Aboutus() {
           {/* Card 3 */}
           <div className="bg-blue-50 p-8 rounded-3xl border border-blue-100 hover:shadow-xl transition duration-300 hover:-translate-y-2 flex flex-col items-center focus-ring" tabIndex={0}>
              <div className="bg-white w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-sm">
-               <img src="./images/About_us/hospital_network.png" className="w-12 h-12 object-contain" alt="Hospitals" />
+               <img src="/BharatSuraksha/images/About_us/hospital_network.png" className="w-12 h-12 object-contain" alt="Hospitals" />
              </div>
             <h3 className="text-xl font-bold text-[#1A5EDB]">13,000+ Hospitals</h3>
             <p className="mt-3 text-gray-600">A massive cashless network ensuring you never have to pay out of pocket during emergencies.</p>
@@ -185,10 +185,10 @@ function Aboutus() {
             { type: 'emoji', src: "🏥", title: "Cashless Hospitals", desc: "15,000+ Network" },
             { type: 'emoji', src: "⚡", title: "Quick Claims", desc: "Fast approval process" },
             { type: 'emoji', src: "🤱", title: "Maternity", desc: "Mom & Baby cover" },
-            { type: 'image', src: "./images/BENEFITS_SECTION/mark.png", title: "Hassle Free", desc: "Minimal paperwork" },
-            { type: 'image', src: "./images/BENEFITS_SECTION/comment.png", title: "Real Updates", desc: "SMS/Email tracking" },
-            { type: 'image', src: "./images/BENEFITS_SECTION/team.png", title: "24/7 Support", desc: "Always here for you" },
-            { type: 'image', src: "./images/BENEFITS_SECTION/card.png", title: "Best Prices", desc: "Affordable premiums" },
+            { type: 'image', src: "/BharatSuraksha/images/BENEFITS_SECTION/mark.png", title: "Hassle Free", desc: "Minimal paperwork" },
+            { type: 'image', src: "/BharatSuraksha/images/BENEFITS_SECTION/comment.png", title: "Real Updates", desc: "SMS/Email tracking" },
+            { type: 'image', src: "/BharatSuraksha/images/BENEFITS_SECTION/team.png", title: "24/7 Support", desc: "Always here for you" },
+            { type: 'image', src: "/BharatSuraksha/images/BENEFITS_SECTION/card.png", title: "Best Prices", desc: "Affordable premiums" },
             { type: 'emoji', src: "🛡️", title: "Extra Cover", desc: "Top-up options" }
           ].map((feature, index) => (
              <div

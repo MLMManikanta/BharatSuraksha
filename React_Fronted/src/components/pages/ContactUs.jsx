@@ -102,10 +102,10 @@ function ContactUs() {
             <div className={`absolute top-0 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply blur-3xl opacity-30 ${prefersReducedMotion ? '' : 'animate-float'}`}></div>
             <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md relative z-10 transform rotate-1 hover:rotate-0 transition duration-500">
                <img 
-                src="/images/contact_us/support_team.jpeg"
+                src="/BharatSuraksha/images/contact_us/support_team.jpeg"
                 alt="Customer support team"
                 className="rounded-2xl w-full h-72 object-cover shadow-lg"
-                onError={(e) => { e.target.onerror = null; e.target.src = '/images/contact_us/support_team_placeholder.svg'; }}
+                onError={(e) => { e.target.onerror = null; e.target.src = '/BharatSuraksha/images/contact_us/support_team_placeholder.svg'; }}
               />
             </div>
           </div>

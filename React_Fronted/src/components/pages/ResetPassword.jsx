@@ -57,7 +57,7 @@ function ResetPassword() {
             <div className="relative z-10 flex flex-col gap-6 justify-center items-center text-center">
               <div className="p-6 bg-white/10 backdrop-blur-md rounded-full shadow-lg border border-white/20">
                 <img
-                  src="/images/Logo-circle.png"
+                  src="/BharatSuraksha/images/Logo-circle.png"
                   className="w-28 h-auto drop-shadow-xl"
                   alt="Bharat Suraksha Logo"
                 />
@@ -76,7 +76,7 @@ function ResetPassword() {
           <div className="px-6 sm:px-10 md:px-16 py-12 bg-white flex flex-col justify-center">
             <div className="flex md:hidden items-center gap-3 mb-8">
               <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-md">
-                <img src="/images/Logo-circle.png" className="w-8 brightness-200" alt="Logo" />
+                <img src="/BharatSuraksha/images/Logo-circle.png" className="w-8 brightness-200" alt="Logo" />
               </div>
               <div>
                 <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
